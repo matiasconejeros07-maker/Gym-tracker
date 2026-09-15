@@ -426,7 +426,7 @@ a{color:inherit;}
 .session-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .session-ex-head h4{font-size:16px;}
 .session-ex-head .prev{font-size:12px;color:var(--text-dim);margin-left:auto;}
-.set-head,.set-row{display:grid;grid-template-columns:34px 82px 1fr 1fr 46px;gap:9px;align-items:center;max-width:580px;}
+.set-head,.set-row{display:grid;grid-template-columns:34px 82px 1fr 1fr 46px;gap:9px;align-items:center;max-width:434px;}
 .set-head{
   margin:2px 0 10px;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
   color:var(--text-dim);
@@ -445,18 +445,18 @@ a{color:inherit;}
 .sr-field{
   display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;
   background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;
-  padding:0 11px;height:44px;cursor:text;transition:border-color .15s ease, background .15s ease;
+  padding:0 10px;height:44px;cursor:text;transition:border-color .15s ease, background .15s ease;
 }
 .sr-field:hover{border-color:var(--border-strong);}
 .sr-field:focus-within{border-color:var(--cyan);background:rgba(34,232,255,.07);box-shadow:0 0 0 3px rgba(34,232,255,.12);}
 .sr-field input{
   width:100%;min-width:0;background:none;border:none;outline:none;color:var(--text);
   font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;text-align:right;
-  font-variant-numeric:tabular-nums;padding:0;max-width:76px;
+  font-variant-numeric:tabular-nums;padding:0;max-width:56px;flex:0 1 auto;
 }
 .sr-field input::-webkit-outer-spin-button,.sr-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .sr-field input[type=number]{-moz-appearance:textfield;appearance:textfield;}
-.sr-unit{font-size:12.5px;font-weight:700;color:var(--text-dim);letter-spacing:.02em;flex:none;}
+.sr-unit{font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:.01em;flex:none;}
 .set-row.is-done .sr-field{background:rgba(43,255,168,.07);border-color:rgba(43,255,168,.26);}
 .set-row.is-done .sr-field input{color:var(--green);}
 .set-row.is-done .sr-unit{color:rgba(43,255,168,.65);}

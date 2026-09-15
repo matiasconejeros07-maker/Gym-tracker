@@ -450,6 +450,7 @@ a{color:inherit;}
 #modalWeighIn .modal-foot{display:grid;grid-template-columns:auto 1fr;gap:10px;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
+.field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
 .weigh-notice{
   display:flex;gap:13px;align-items:flex-start;margin-top:16px;
   border-color:color-mix(in srgb, var(--cyan) 30%, transparent);
@@ -997,11 +998,9 @@ a{color:inherit;}
               <input type="text" id="settingName" maxlength="30">
             </div>
             <div class="field">
-              <label>Peso corporal actual (kg)</label>
-              <div class="field-row">
-                <input type="number" id="settingWeight" min="20" max="400" step="0.1">
-                <button class="btn btn-sm" data-action="log-weight" style="flex:none;">Registrar</button>
-              </div>
+              <label>Peso corporal de hoy (kg)</label>
+              <input type="number" id="settingWeight" inputmode="decimal" min="20" max="400" step="0.1">
+              <p class="field-hint" id="settingWeightHint"></p>
             </div>
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
               <label style="margin:0;">Sonido de temporizador</label>
@@ -2770,8 +2769,19 @@ function renderProfileView(){
   renderProfileAvatar();
   document.getElementById("settingName").value = state.profile.name || "";
   document.getElementById("settingSound").checked = !!state.profile.soundOn;
-  const lastWeight = state.profile.weightLog.length ? state.profile.weightLog[state.profile.weightLog.length-1].weight : "";
-  document.getElementById("settingWeight").value = lastWeight;
+  /* The field stays empty unless today's weight was already logged, so saving
+     the profile never invents a measurement the athlete did not take. */
+  const log = state.profile.weightLog;
+  const last = log.length ? log[log.length-1] : null;
+  const todayEntry = last && last.date === todayISO() ? last : null;
+  const weightInput = document.getElementById("settingWeight");
+  weightInput.value = todayEntry ? todayEntry.weight : "";
+  weightInput.placeholder = last ? String(last.weight) : "Ej. 75";
+  document.getElementById("settingWeightHint").textContent = todayEntry
+    ? `Registrado hoy: ${fmtNum(todayEntry.weight)} kg. Edítalo y guarda si quieres corregirlo.`
+    : last
+      ? `Última medición: ${fmtNum(last.weight)} kg el ${fmtDateLong(last.date)}. Déjalo en blanco si hoy no te pesaste.`
+      : "Registra tu primer peso: desde ahí te pediremos una medición cada 7 días.";
 
   const pct = clamp(stats.xpIntoLevel/stats.xpNeeded, 0, 1)*100;
   document.getElementById("profileXpBar").style.width = pct+"%";
@@ -2784,7 +2794,6 @@ function renderProfileView(){
     <div class="s-item"><b style="color:var(--cyan);">${stats.prCount}</b><span>Récords</span></div>
   `;
 
-  const log = state.profile.weightLog;
   const wl = log.slice(-20).map((e,i,arr)=>{
     const prev = arr[i-1];
     const diff = prev ? e.weight - prev.weight : 0;
@@ -2840,14 +2849,30 @@ function commitNameField(){
   return true;
 }
 
+/* One button saves the whole card: name, sound and — only if the athlete typed
+   one — the weight of the day. */
 function saveProfileSettings(){
+  const raw = document.getElementById("settingWeight").value.trim();
+  let weight = null;
+  if(raw !== ""){
+    weight = num(raw, null);
+    if(weight===null || weight<20 || weight>400){
+      showToast(ICONS.x, "Peso inválido", "Ingresa un peso entre 20 y 400 kg, o deja el campo vacío.");
+      return;
+    }
+  }
   const name = document.getElementById("settingName").value.trim();
   state.profile.name = name || "Atleta";
   state.profile.soundOn = document.getElementById("settingSound").checked;
+  if(weight !== null) recordBodyWeight(weight);
   saveState();
   renderProfileView();
   renderTopBar();
-  showToast(ICONS.check, "Perfil actualizado", "Tus cambios se guardaron.");
+  if(weight !== null){
+    showToast(ICONS.check, "Cambios guardados", `${fmtNum(weight)} kg registrados · próxima medición el ${fmtDate(weighInStatus().nextDate)}`);
+  } else {
+    showToast(ICONS.check, "Cambios guardados", "Tu perfil se actualizó.");
+  }
 }
 
 /* ===================== WEEKLY BODY-WEIGHT CHECK-IN ===================== */
@@ -2881,16 +2906,6 @@ function recordBodyWeight(val){
   saveState();
 }
 
-function logBodyWeight(){
-  const val = num(document.getElementById("settingWeight").value, null);
-  if(val===null || val<20 || val>400){ showToast(ICONS.x, "Peso inválido", "Ingresa un peso entre 20 y 400 kg."); return; }
-  const nameChanged = commitNameField();
-  recordBodyWeight(val);
-  renderProfileView();
-  if(nameChanged) renderTopBar();
-  showToast(ICONS.check, "Peso registrado", `${fmtNum(val)} kg · próxima medición el ${fmtDate(weighInStatus().nextDate)}`);
-}
-
 function openWeighIn(){
   const st = weighInStatus();
   if(!st.tracking) return;
@@ -2919,7 +2934,7 @@ function saveWeighIn(){
   const prev = state.profile.weightLog[state.profile.weightLog.length-1];
   recordBodyWeight(val);
   closeModal();
-  if(state.ui.currentView === "profile") renderProfileView();
+  if(state.ui.currentView === "profile"){ if(commitNameField()){ saveState(); renderTopBar(); } renderProfileView(); }
   const diff = prev ? val - prev.weight : 0;
   const diffTxt = prev && Math.abs(diff) >= 0.05 ? `${diff>0?"+":"−"}${fmtNum(Math.abs(diff))} kg vs. la anterior` : "sin cambios vs. la anterior";
   showToast(ICONS.check, "Peso de la semana registrado", `${fmtNum(val)} kg · ${diffTxt}`);
@@ -2927,6 +2942,7 @@ function saveWeighIn(){
 
 function skipWeighIn(){
   state.profile.weighInSnooze = todayISO();
+  if(commitNameField()) renderTopBar();
   saveState();
   closeModal();
   if(state.ui.currentView === "profile") renderProfileView();
@@ -3250,7 +3266,6 @@ document.addEventListener("click", function(e){
     case "pick-avatar-photo": document.getElementById("avatarFileInput").click(); break;
 
     case "save-profile": saveProfileSettings(); break;
-    case "log-weight": logBodyWeight(); break;
     case "open-weigh-in": openWeighIn(); break;
     case "weigh-in-step": stepWeighIn(num(actionEl.getAttribute("data-step"), 0)); break;
     case "save-weigh-in": saveWeighIn(); break;

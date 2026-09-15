@@ -236,7 +236,23 @@ a{color:inherit;}
 
 .chart-card h3{font-size:15px;font-weight:700;}
 .chart-card .chart-meta{font-size:12px;color:var(--text-dim);margin-top:2px;}
-.chart-wrap{margin-top:14px;}
+.chart-wrap{margin-top:14px;position:relative;}
+.chart-hero{display:flex;align-items:baseline;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.chart-hero b{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1;}
+.chart-hero span{font-size:13px;font-weight:600;color:var(--text-dim);}
+.chart-hero i{font-style:normal;font-size:12px;font-weight:700;margin-left:6px;}
+.chart-hero i.up{color:var(--green);}
+.chart-hero i.down{color:var(--text-dim);}
+.chart-hero i.flat{color:var(--text-faint);}
+.chart-hit{cursor:pointer;}
+.chart-hit.on{fill:rgba(255,255,255,.05);}
+.chart-tip{
+  position:absolute;bottom:34px;z-index:5;pointer-events:none;
+  background:rgba(8,16,26,.97);border:1px solid var(--border-strong);border-radius:10px;
+  padding:7px 10px;box-shadow:0 10px 24px -12px #000;white-space:nowrap;
+}
+.chart-tip b{display:block;font-family:'Space Grotesk',sans-serif;font-size:14.5px;font-weight:700;color:var(--text);}
+.chart-tip span{display:block;font-size:11.5px;color:var(--text-dim);margin-top:1px;}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 16px;color:var(--text-dim);gap:10px;}
 .empty-state svg{width:36px;height:36px;opacity:.5;}
 .empty-state b{color:var(--text);font-size:14.5px;}
@@ -795,7 +811,7 @@ a{color:inherit;}
         <div class="grid grid-2" style="margin-top:16px;">
           <div class="card chart-card">
             <h3>Actividad semanal</h3>
-            <div class="chart-meta">Volumen total (kg) levantado por día — últimos 7 días</div>
+            <div class="chart-meta">Kilos totales levantados por día (peso × reps) — últimos 7 días</div>
             <div class="chart-wrap" id="chartWeekly"></div>
           </div>
           <div class="card chart-card">
@@ -872,11 +888,12 @@ a{color:inherit;}
         <div class="grid grid-2">
           <div class="card chart-card">
             <h3>Volumen por sesión</h3>
-            <div class="chart-meta">Últimos 12 entrenamientos</div>
+            <div class="chart-meta">Kilos totales por sesión (peso × reps) — últimas 12</div>
             <div class="chart-wrap" id="chartVolumeHistory"></div>
           </div>
           <div class="card chart-card">
             <h3>Progresión de fuerza</h3>
+            <div class="chart-meta">Peso máximo levantado en cada sesión</div>
             <div class="chart-meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <select id="progressExSelect" style="background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 8px;font-family:inherit;"></select>
             </div>
@@ -944,7 +961,7 @@ a{color:inherit;}
           </div>
           <div class="card chart-card">
             <h3>Peso corporal</h3>
-            <div class="chart-meta">Historial de registros</div>
+            <div class="chart-meta">Kilos registrados en cada medición</div>
             <div class="chart-wrap" id="chartBodyweight"></div>
           </div>
         </div>
@@ -1675,9 +1692,16 @@ function renderDashboard(){
     const d = new Date(); d.setDate(d.getDate()-i);
     const iso = d.toISOString().slice(0,10);
     const vol = state.workouts.filter(w=>w.date===iso).reduce((sum,w)=>sum+workoutVolume(w),0);
-    days.push({ label: d.toLocaleDateString('es-CL',{weekday:'short'}).replace('.',''), value: vol });
+    days.push({
+      label: d.toLocaleDateString('es-CL',{weekday:'short'}).replace('.',''),
+      tip: d.toLocaleDateString('es-CL',{weekday:'long', day:'numeric', month:'short'}),
+      value: Math.round(vol)
+    });
   }
-  document.getElementById("chartWeekly").innerHTML = renderBarChart(days, "wk");
+  drawChart("chartWeekly", "bar", days, {
+    unit:"kg", aria:"Volumen levantado por día en los últimos 7 días",
+    heroValue: days.reduce((a,d)=>a+d.value,0), heroLabel:"en los últimos 7 días"
+  });
 
   // muscle distribution (30 days)
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
@@ -1751,27 +1775,183 @@ function emptyState(icon, title, sub){
   return `<div class="empty-state">${icon}<b>${escapeHtml(title)}</b><span>${escapeHtml(sub)}</span></div>`;
 }
 
-function renderBarChart(data, prefix){
+/* ---- chart scales & formatting ---------------------------------------- */
+/* Rounds an axis to clean steps so the ticks read 0 / 500 / 1.000 instead of
+   0 / 437 / 874. */
+function niceScale(min, max, tickCount){
+  const ticks = tickCount || 4;
+  if(!(max > min)) { max = min + 1; }
+  const raw = (max - min) / ticks;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  return { min: Math.floor(min/step)*step, max: Math.ceil(max/step)*step, step };
+}
+
+function fmtNum(v){
+  const n = Math.round(v*10)/10;
+  if(Math.abs(n) >= 10000) return (n/1000).toFixed(Math.abs(n)%1000 === 0 ? 0 : 1).replace(".", ",") + "k";
+  return n.toLocaleString("es-CL");
+}
+
+/* Repeated x labels (several sessions on one day) are shown once, and only a few
+   ticks are drawn so they never collide. */
+function axisLabels(points, maxLabels){
+  const n = points.length;
+  const keep = new Set([0, n-1]);
+  const stride = Math.max(1, Math.ceil(n / (maxLabels || 4)));
+  for(let i = 0; i < n; i += stride) keep.add(i);
+  let lastShown = null;
+  return points.map((p,i)=>{
+    if(!keep.has(i)) return "";
+    if(p.label === lastShown) return "";
+    lastShown = p.label;
+    return p.label;
+  });
+}
+
+function chartHero(points, unit, opts){
+  if(!points.length) return "";
+  if(opts && opts.heroValue != null){
+    return `<div class="chart-hero"><b>${fmtNum(opts.heroValue)}</b><span>${escapeHtml(unit||"")}</span>` +
+           (opts.heroLabel ? `<i class="flat">${escapeHtml(opts.heroLabel)}</i>` : "") + `</div>`;
+  }
+  const last = points[points.length-1].value;
+  const prev = points.length > 1 ? points[points.length-2].value : null;
+  let delta = "";
+  if(prev !== null && prev > 0){
+    const pct = Math.round(((last - prev) / prev) * 100);
+    const cls = pct > 0 ? "up" : pct < 0 ? "down" : "flat";
+    const sign = pct > 0 ? "+" : "";
+    delta = `<i class="${cls}">${sign}${pct}% vs. anterior</i>`;
+  }
+  return `<div class="chart-hero"><b>${fmtNum(last)}</b><span>${escapeHtml(unit||"")}</span>${delta}</div>`;
+}
+
+/* Shared y-axis chrome: solid hairline gridlines with clean, labelled ticks. */
+function axisChrome(scale, plot){
+  let grid = "", labels = "";
+  for(let v = scale.min; v <= scale.max + 1e-6; v += scale.step){
+    const y = plot.top + (plot.h) * (1 - (v - scale.min) / (scale.max - scale.min));
+    grid += `<line x1="${plot.left}" y1="${y.toFixed(1)}" x2="${plot.left + plot.w}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.09)" stroke-width="1"/>`;
+    labels += `<text x="${plot.left - 8}" y="${(y + 3.5).toFixed(1)}" font-size="10.5" fill="#a3c0d4" text-anchor="end" font-family="Inter">${fmtNum(v)}</text>`;
+  }
+  return grid + labels;
+}
+
+function renderBarChart(data, prefix, opts){
+  opts = opts || {};
   if(!data.length || data.every(d=>d.value<=0)){
     return emptyState(ICONS.scale, "Sin actividad reciente", "Registra un entrenamiento para ver tu volumen aquí.");
   }
-  const w = 520, h = 190, padB = 26, padT = 10, gap = 14;
-  const max = Math.max(1, ...data.map(d=>d.value));
-  const barW = (w - gap*(data.length-1)) / data.length;
-  let bars = "", labels = "";
+  const w = 520, h = 210, gap = 14;
+  const plot = { left: 46, top: 12, w: w - 46 - 8, h: h - 12 - 30 };
+  const scale = niceScale(0, Math.max(...data.map(d=>d.value)), 3);
+  const barW = (plot.w - gap*(data.length-1)) / data.length;
+  let bars = "", labels = "", hits = "";
   data.forEach((d,i)=>{
-    const bh = Math.max(3, (d.value/max) * (h-padB-padT));
-    const x = i*(barW+gap);
-    const y = h - padB - bh;
-    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" rx="6" fill="url(#${prefix}Grad)" />`;
-    labels += `<text x="${(x+barW/2).toFixed(1)}" y="${h-8}" font-size="11" fill="#a3c0d4" text-anchor="middle" font-family="Inter">${escapeHtml(d.label)}</text>`;
+    const bh = d.value > 0 ? Math.max(3, (d.value - scale.min) / (scale.max - scale.min) * plot.h) : 0;
+    const x = plot.left + i*(barW+gap);
+    const y = plot.top + plot.h - bh;
+    if(bh > 0) bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" rx="4" fill="url(#${prefix}Grad)"/>`;
+    labels += `<text x="${(x+barW/2).toFixed(1)}" y="${h-10}" font-size="10.5" fill="#a3c0d4" text-anchor="middle" font-family="Inter">${escapeHtml(d.label)}</text>`;
+    hits += `<rect class="chart-hit" data-i="${i}" x="${(x-gap/2).toFixed(1)}" y="${plot.top}" width="${(barW+gap).toFixed(1)}" height="${plot.h}" fill="transparent"/>`;
   });
-  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;overflow:visible;">
+  return `${chartHero(data, opts.unit, opts)}
+  <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de barras")}">
     <defs><linearGradient id="${prefix}Grad" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0%" stop-color="#3f8dff"/><stop offset="100%" stop-color="#22e8ff"/>
     </linearGradient></defs>
-    ${bars}${labels}
+    ${axisChrome(scale, plot)}${bars}${labels}${hits}
   </svg>`;
+}
+
+function renderLineChart(points, prefix, opts){
+  opts = opts || {};
+  if(!points.length){
+    return emptyState(ICONS.scale, "Sin datos suficientes", opts.emptyMsg || "Registra más datos para ver tu progresión.");
+  }
+  const w = 520, h = 210;
+  const plot = { left: 46, top: 14, w: w - 46 - 14, h: h - 14 - 30 };
+  const values = points.map(p=>p.value);
+  const lo = Math.min(...values), hi = Math.max(...values);
+  /* Volume starts at zero (it is a sum); a load axis keeps a padded floor so a
+     5 kg gain is not flattened against an irrelevant zero. */
+  const base = opts.zeroBase ? 0 : Math.max(0, lo - (hi - lo || lo*0.1 || 1) * 0.6);
+  const scale = niceScale(base, hi, 3);
+  const span = (scale.max - scale.min) || 1;
+  const stepX = points.length > 1 ? plot.w / (points.length - 1) : 0;
+  const coords = points.map((p,i)=>[
+    plot.left + (points.length > 1 ? stepX*i : plot.w/2),
+    plot.top + plot.h * (1 - (p.value - scale.min)/span)
+  ]);
+  const linePath = coords.map((c,i)=> (i===0?"M":"L")+c[0].toFixed(1)+","+c[1].toFixed(1)).join(" ");
+  const areaPath = linePath + ` L${coords[coords.length-1][0].toFixed(1)},${plot.top+plot.h} L${coords[0][0].toFixed(1)},${plot.top+plot.h} Z`;
+  const xl = axisLabels(points, 4);
+  let dots = "", labels = "", hits = "";
+  coords.forEach((c,i)=>{
+    dots += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3.6" fill="#0b1622" stroke="#2bffa8" stroke-width="2"/>`;
+    if(xl[i]) labels += `<text x="${c[0].toFixed(1)}" y="${h-10}" font-size="10.5" fill="#a3c0d4" text-anchor="middle" font-family="Inter">${escapeHtml(xl[i])}</text>`;
+    hits += `<rect class="chart-hit" data-i="${i}" x="${(c[0]-stepX/2).toFixed(1)}" y="${plot.top}" width="${(stepX||plot.w).toFixed(1)}" height="${plot.h}" fill="transparent"/>`;
+  });
+  /* Direct-label the endpoint only; the axis and the tooltip carry the rest. */
+  const lastC = coords[coords.length-1], lastV = points[points.length-1].value;
+  const endAnchor = lastC[0] > plot.left + plot.w - 52 ? "end" : "start";
+  const endX = endAnchor === "end" ? lastC[0] - 8 : lastC[0] + 8;
+  const endLabel = `<text x="${endX.toFixed(1)}" y="${(lastC[1] - 10).toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(opts.unit) : ""}</text>`;
+  return `${chartHero(points, opts.unit)}
+  <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de línea")}">
+    <defs>
+      <linearGradient id="${prefix}Area" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22e8ff" stop-opacity=".3"/><stop offset="100%" stop-color="#22e8ff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${axisChrome(scale, plot)}
+    <path d="${areaPath}" fill="url(#${prefix}Area)" stroke="none"/>
+    <path d="${linePath}" fill="none" stroke="#2bffa8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${labels}${endLabel}${hits}
+  </svg>`;
+}
+
+/* Draws a chart into a container and wires its hover/tap readout. */
+function drawChart(containerId, kind, points, opts){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  opts = opts || {};
+  el.innerHTML = (kind === "bar" ? renderBarChart : renderLineChart)(points, containerId, opts);
+  const svg = el.querySelector("svg");
+  if(!svg) return;
+  el.classList.add("chart-live");
+  const tip = document.createElement("div");
+  tip.className = "chart-tip";
+  tip.hidden = true;
+  tip.innerHTML = '<b></b><span></span>';
+  el.appendChild(tip);
+
+  const show = i => {
+    const p = points[i];
+    if(!p) return;
+    const hit = svg.querySelector(`.chart-hit[data-i="${i}"]`);
+    if(!hit) return;
+    tip.querySelector("b").textContent = fmtNum(p.value) + (opts.unit ? " " + opts.unit : "");
+    tip.querySelector("span").textContent = p.tip || p.label || "";
+    tip.hidden = false;
+    const r = hit.getBoundingClientRect(), er = el.getBoundingClientRect();
+    const cx = r.left - er.left + r.width/2;
+    tip.style.left = Math.max(4, Math.min(er.width - tip.offsetWidth - 4, cx - tip.offsetWidth/2)) + "px";
+    svg.querySelectorAll(".chart-hit").forEach(n=>n.classList.toggle("on", n === hit));
+  };
+  const hide = () => { tip.hidden = true; svg.querySelectorAll(".chart-hit").forEach(n=>n.classList.remove("on")); };
+
+  svg.addEventListener("pointermove", e => {
+    const t = e.target.closest(".chart-hit");
+    if(t) show(parseInt(t.dataset.i, 10));
+  });
+  svg.addEventListener("pointerdown", e => {
+    const t = e.target.closest(".chart-hit");
+    if(t) show(parseInt(t.dataset.i, 10));
+  });
+  svg.addEventListener("pointerleave", hide);
 }
 
 function renderDonutChart(segments, prefix){
@@ -1802,44 +1982,6 @@ function renderDonutChart(segments, prefix){
     </svg>
     <div style="flex:1;min-width:120px;">${legend}</div>
   </div>`;
-}
-
-function renderLineChart(points, prefix, opts){
-  opts = opts || {};
-  if(!points.length){
-    return emptyState(ICONS.scale, "Sin datos suficientes", opts.emptyMsg || "Registra más datos para ver tu progresión.");
-  }
-  const w = 520, h = 200, padL = 34, padR = 12, padT = 16, padB = 26;
-  const values = points.map(p=>p.value);
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = (max-min) || 1;
-  const stepX = points.length>1 ? (w-padL-padR)/(points.length-1) : 0;
-  const coords = points.map((p,i)=>{
-    const x = padL + stepX*i;
-    const y = padT + (h-padT-padB) * (1 - (p.value-min)/range);
-    return [x,y];
-  });
-  const linePath = coords.map((c,i)=> (i===0?"M":"L")+c[0].toFixed(1)+","+c[1].toFixed(1)).join(" ");
-  const areaPath = linePath + ` L${coords[coords.length-1][0].toFixed(1)},${h-padB} L${coords[0][0].toFixed(1)},${h-padB} Z`;
-  let dots = "", labels = "";
-  coords.forEach((c,i)=>{
-    dots += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3.4" fill="#060a10" stroke="#22e8ff" stroke-width="2"/>`;
-    if(points.length<=10 || i%Math.ceil(points.length/8)===0){
-      labels += `<text x="${c[0].toFixed(1)}" y="${h-8}" font-size="10.5" fill="#a3c0d4" text-anchor="middle" font-family="Inter">${escapeHtml(points[i].label)}</text>`;
-    }
-  });
-  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;overflow:visible;">
-    <defs>
-      <linearGradient id="${prefix}Area" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#22e8ff" stop-opacity=".35"/><stop offset="100%" stop-color="#22e8ff" stop-opacity="0"/>
-      </linearGradient>
-      <filter id="${prefix}Glow"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    </defs>
-    <path d="${areaPath}" fill="url(#${prefix}Area)" stroke="none"/>
-    <path d="${linePath}" fill="none" stroke="#2bffa8" stroke-width="2.4" filter="url(#${prefix}Glow)" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}${labels}
-  </svg>`;
 }
 
 function renderCalendarHeatmap(weeks){
@@ -2400,8 +2542,16 @@ function cancelSession(){
 /* ============================= PROGRESS VIEW ============================= */
 function renderProgressView(){
   const last12 = state.workouts.slice(-12);
-  const volPoints = last12.map(w=>({ label: fmtDate(w.date), value: Math.round(workoutVolume(w)) }));
-  document.getElementById("chartVolumeHistory").innerHTML = renderLineChart(volPoints, "vh", {emptyMsg:"Completa entrenamientos para ver tu volumen histórico."});
+  const offset = state.workouts.length - last12.length;
+  const volPoints = last12.map((w,i)=>({
+    label: fmtDate(w.date),
+    tip: `Sesión ${offset+i+1} · ${escapeHtml(w.routineName||"")} · ${fmtDate(w.date)}`,
+    value: Math.round(workoutVolume(w))
+  }));
+  drawChart("chartVolumeHistory", "line", volPoints, {
+    unit:"kg", zeroBase:true, aria:"Volumen total levantado en cada una de las últimas sesiones",
+    emptyMsg:"Completa entrenamientos para ver tu volumen histórico."
+  });
 
   const select = document.getElementById("progressExSelect");
   const exercisesWithData = state.exercises.filter(e=>state.workouts.some(w=>w.exercises.some(we=>we.exerciseId===e.id)));
@@ -2438,9 +2588,16 @@ function renderExerciseProgressChart(exerciseId){
     const doneSets = we.sets.filter(s=>s.done && s.weight>0);
     if(!doneSets.length) return;
     const top = doneSets.reduce((a,b)=>b.weight>a.weight?b:a);
-    points.push({ label: fmtDate(w.date), value: top.weight });
+    points.push({
+      label: fmtDate(w.date),
+      tip: `${top.weight} kg × ${top.reps} reps · ${fmtDate(w.date)}`,
+      value: top.weight
+    });
   });
-  document.getElementById("chartExerciseProgress").innerHTML = renderLineChart(points, "ep", {emptyMsg:"Sin registros para este ejercicio."});
+  drawChart("chartExerciseProgress", "line", points, {
+    unit:"kg", aria:"Peso máximo levantado por sesión en este ejercicio",
+    emptyMsg:"Sin registros para este ejercicio."
+  });
 }
 
 /* ============================= ACHIEVEMENTS VIEW ============================= */
@@ -2511,8 +2668,11 @@ function renderProfileView(){
     <div class="s-item"><b style="color:var(--cyan);">${stats.prCount}</b><span>Récords</span></div>
   `;
 
-  const wl = state.profile.weightLog.slice(-20).map(e=>({label: fmtDate(e.date), value: e.weight}));
-  document.getElementById("chartBodyweight").innerHTML = renderLineChart(wl, "bw", {emptyMsg:"Registra tu peso corporal para ver tu evolución."});
+  const wl = state.profile.weightLog.slice(-20).map(e=>({ label: fmtDate(e.date), tip: fmtDate(e.date), value: e.weight }));
+  drawChart("chartBodyweight", "line", wl, {
+    unit:"kg", aria:"Evolución de tu peso corporal",
+    emptyMsg:"Registra tu peso corporal para ver tu evolución."
+  });
 }
 
 function saveProfileSettings(){

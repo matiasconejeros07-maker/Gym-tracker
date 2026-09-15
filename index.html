@@ -422,6 +422,44 @@ a{color:inherit;}
 .swatch{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;}
 .swatch.active{border-color:#fff;}
 .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+/* weekly weigh-in */
+.weigh-lead{font-size:14.5px;line-height:1.55;color:var(--text-dim);margin-bottom:14px;}
+.weigh-last{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;
+  padding:11px 13px;margin-bottom:16px;
+}
+.weigh-last span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+.weigh-last i{display:block;font-style:normal;font-size:12.5px;color:var(--text-dim);margin-top:3px;}
+.weigh-last b{flex:none;font-family:'Space Grotesk',sans-serif;font-size:20px;color:var(--text);}
+.weigh-stepper{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:10px;align-items:center;}
+.weigh-stepper button{
+  width:46px;height:46px;padding:0;justify-content:center;font-size:22px;font-weight:700;line-height:1;
+  font-family:'Space Grotesk',sans-serif;
+}
+.weigh-stepper input[type=number]{
+  width:100%;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;
+  color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border-strong);
+  border-radius:12px;padding:11px 8px;font-variant-numeric:tabular-nums;
+}
+/* the ± buttons replace the native spinner, which only steals width here */
+.weigh-stepper input[type=number]::-webkit-outer-spin-button,
+.weigh-stepper input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.weigh-stepper input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+#modalWeighIn .modal-foot{display:grid;grid-template-columns:auto 1fr;gap:10px;}
+#modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
+.weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
+.weigh-notice{
+  display:flex;gap:13px;align-items:flex-start;margin-top:16px;
+  border-color:color-mix(in srgb, var(--cyan) 30%, transparent);
+  box-shadow:0 0 26px -16px var(--cyan-dim);
+}
+.weigh-notice .wn-ico{flex:none;width:42px;height:42px;border-radius:13px;}
+.weigh-notice .wn-ico svg{width:21px;height:21px;}
+.weigh-notice b{display:block;font-size:14.5px;margin-bottom:3px;}
+.weigh-notice p{font-size:13px;color:var(--text-dim);line-height:1.5;margin-bottom:11px;}
+.weigh-notice .wn-actions{display:flex;gap:9px;flex-wrap:wrap;}
 .picker-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:8px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;}
 .picker-item:last-child{border-bottom:none;}
@@ -940,6 +978,17 @@ a{color:inherit;}
           <div class="stat-strip" id="profileStats"></div>
         </div>
 
+        <div class="card weigh-notice hidden" id="weighInNotice">
+          <div class="wn-ico icon-badge"></div>
+          <div style="min-width:0;">
+            <b id="weighInNoticeTitle">Control semanal de peso</b>
+            <p id="weighInNoticeMsg"></p>
+            <div class="wn-actions">
+              <button class="btn btn-sm btn-primary" data-action="open-weigh-in">Registrar ahora</button>
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-2" style="margin-top:16px;">
           <div class="card">
             <h3 style="font-size:15px;margin-bottom:12px;">Ajustes</h3>
@@ -962,8 +1011,9 @@ a{color:inherit;}
           </div>
           <div class="card chart-card">
             <h3>Peso corporal</h3>
-            <div class="chart-meta">Kilos registrados en cada medición</div>
+            <div class="chart-meta">Una medición por semana — kilos registrados</div>
             <div class="chart-wrap" id="chartBodyweight"></div>
+            <div class="chart-meta" id="weighInNext" style="margin-top:10px;margin-bottom:0;"></div>
           </div>
         </div>
 
@@ -1067,6 +1117,29 @@ a{color:inherit;}
     <div class="modal-foot">
       <button class="btn btn-ghost" data-action="close-modal">Cancelar</button>
       <button class="btn btn-danger" id="confirmYesBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalWeighIn">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-head">
+      <h3>Control semanal de peso</h3>
+    </div>
+    <p class="weigh-lead" id="weighInLead"></p>
+    <div class="weigh-last" id="weighInLast"></div>
+    <div class="field" style="margin-bottom:0;">
+      <label>Tu peso de hoy (kg)</label>
+      <div class="weigh-stepper">
+        <button class="btn" data-action="weigh-in-step" data-step="-0.5" aria-label="Restar medio kilo">−</button>
+        <input type="number" id="weighInValue" inputmode="decimal" min="20" max="400" step="0.1" aria-label="Peso de hoy en kilogramos">
+        <button class="btn" data-action="weigh-in-step" data-step="0.5" aria-label="Sumar medio kilo">+</button>
+      </div>
+    </div>
+    <p class="weigh-hint">Si tu peso no cambió, registra el mismo número: lo importante es no dejar semanas en blanco. Si la omites, te la recordamos mañana.</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-action="skip-weigh-in">Omitir</button>
+      <button class="btn btn-primary" data-action="save-weigh-in">Registrar peso</button>
     </div>
   </div>
 </div>
@@ -1328,8 +1401,23 @@ let editingRoutineId = null;
 let editingExerciseId = null;
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
-function fmtDate(d){ const dt = new Date(d); return dt.toLocaleDateString('es-CL',{day:'2-digit',month:'short'}); }
+/* Dates are always the athlete's local day, never UTC: a session finished at
+   22:00 in Chile belongs to that day and not to the next one. */
+function isoDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function todayISO(){ return isoDate(new Date()); }
+function parseISO(v){
+  if(v instanceof Date) return v;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date(v);
+}
+function addDaysISO(iso, days){ const d = parseISO(iso); d.setDate(d.getDate()+days); return isoDate(d); }
+function daysBetweenISO(from, to){
+  return Math.round((parseISO(to) - parseISO(from)) / 86400000);
+}
+function fmtDate(d){ return parseISO(d).toLocaleDateString('es-CL',{day:'2-digit',month:'short'}); }
+function fmtDateLong(d){ return parseISO(d).toLocaleDateString('es-CL',{weekday:'long', day:'numeric', month:'long'}); }
 function escapeHtml(str){
   return String(str==null?"":str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
@@ -1383,7 +1471,7 @@ function seedRoutines(exercises){
 function defaultState(){
   const exercises = seedExercises();
   return {
-    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], avatar:defaultAvatar() },
+    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null, avatar:defaultAvatar() },
     exercises,
     routines: seedRoutines(exercises),
     workouts: [],
@@ -1406,6 +1494,8 @@ function loadState(){
     parsed.profile = parsed.profile || { name:"Atleta", createdAt:todayISO(), soundOn:true, weightLog:[] };
     if(!parsed.profile.avatar || typeof parsed.profile.avatar !== "object") parsed.profile.avatar = defaultAvatar();
     if(!Array.isArray(parsed.profile.weightLog)) parsed.profile.weightLog = [];
+    parsed.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    if(parsed.profile.weighInSnooze === undefined) parsed.profile.weighInSnooze = null;
     parsed.workouts = Array.isArray(parsed.workouts) ? parsed.workouts : [];
     parsed.achievements = parsed.achievements && typeof parsed.achievements==="object" ? parsed.achievements : {};
     parsed.xp = Number.isFinite(parsed.xp) ? parsed.xp : 0;
@@ -1469,7 +1559,7 @@ function computeStats(){
 
 function calcStreak(dateSet){
   const cursor = new Date();
-  const fmt = d => d.toISOString().slice(0,10);
+  const fmt = isoDate;
   if(!dateSet.has(fmt(cursor))){
     cursor.setDate(cursor.getDate()-1);
   }
@@ -1691,7 +1781,7 @@ function renderDashboard(){
   const days = [];
   for(let i=6;i>=0;i--){
     const d = new Date(); d.setDate(d.getDate()-i);
-    const iso = d.toISOString().slice(0,10);
+    const iso = isoDate(d);
     const dayWorkouts = state.workouts.filter(w=>w.date===iso);
     const series = dayWorkouts.reduce((sum,w)=>sum+workoutSets(w),0);
     const kg = dayWorkouts.reduce((sum,w)=>sum+workoutVolume(w),0);
@@ -1834,7 +1924,14 @@ function chartHero(points, unit, opts){
   const last = points[points.length-1].value;
   const prev = points.length > 1 ? points[points.length-2].value : null;
   let delta = "";
-  if(prev !== null && prev > 0){
+  if(prev !== null && opts && opts.deltaMode === "abs"){
+    /* Body weight reads better as kilos gained or lost than as a percentage,
+       and neither direction is "good", so the delta stays neutral. */
+    const diff = Math.round((last - prev) * 10) / 10;
+    delta = Math.abs(diff) < 0.05
+      ? `<i class="flat">sin cambios vs. anterior</i>`
+      : `<i class="flat">${diff>0?"+":"−"}${fmtNum(Math.abs(diff))} ${escapeHtml(unit||"")} vs. anterior</i>`;
+  } else if(prev !== null && prev > 0){
     const pct = Math.round(((last - prev) / prev) * 100);
     const cls = pct > 0 ? "up" : pct < 0 ? "down" : "flat";
     const sign = pct > 0 ? "+" : "";
@@ -1914,7 +2011,7 @@ function renderLineChart(points, prefix, opts){
   const endAnchor = lastC[0] > plot.left + plot.w - 52 ? "end" : "start";
   const endX = endAnchor === "end" ? lastC[0] - 8 : lastC[0] + 8;
   const endLabel = `<text x="${endX.toFixed(1)}" y="${(lastC[1] - 10).toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(unitLabel(opts.unit, lastV)) : ""}</text>`;
-  return `${chartHero(points, opts.unit)}
+  return `${chartHero(points, opts.unit, opts)}
   <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de línea")}">
     <defs>
       <linearGradient id="${prefix}Area" x1="0" y1="0" x2="0" y2="1">
@@ -2010,7 +2107,7 @@ function renderCalendarHeatmap(weeks){
   for(let i=0;i<totalDays+7;i++){
     const d = new Date(startMonday); d.setDate(startMonday.getDate()+i);
     if(d>today) break;
-    const iso = d.toISOString().slice(0,10);
+    const iso = isoDate(d);
     const count = dateVolume[iso]||0;
     const intensity = count===0?0: count===1?1: count===2?2:3;
     const colors = ["rgba(255,255,255,.05)","rgba(34,232,255,.35)","rgba(43,255,168,.55)","rgba(43,255,168,.9)"];
@@ -2543,6 +2640,7 @@ function finishSession(){
   checkAchievements();
   navigate("dashboard");
   showToast(ICONS.bolt, "Entrenamiento completado", `+${xpGain} XP · ${totalSetsDone} series de volumen`);
+  setTimeout(()=>maybePromptWeighIn(0), 2600);
 }
 
 function cancelSession(){
@@ -2681,16 +2779,65 @@ function renderProfileView(){
 
   document.getElementById("profileStats").innerHTML = `
     <div class="s-item"><b style="color:var(--cyan);">${stats.totalWorkouts}</b><span>Entrenos</span></div>
-    <div class="s-item"><b style="color:var(--blue);">${stats.totalSets.toLocaleString('es-CL')}</b><span>Series</span><em>${stats.totalVolume.toLocaleString('es-CL')} kg</em></div>
+    <div class="s-item"><b style="color:var(--blue);">${stats.totalSets.toLocaleString('es-CL')}</b><span>Series</span>${stats.totalVolume ? `<em>${stats.totalVolume.toLocaleString('es-CL')} kg</em>` : ""}</div>
     <div class="s-item"><b style="color:var(--green);">${stats.streak}</b><span>Racha</span></div>
     <div class="s-item"><b style="color:var(--cyan);">${stats.prCount}</b><span>Récords</span></div>
   `;
 
-  const wl = state.profile.weightLog.slice(-20).map(e=>({ label: fmtDate(e.date), tip: fmtDate(e.date), value: e.weight }));
+  const log = state.profile.weightLog;
+  const wl = log.slice(-20).map((e,i,arr)=>{
+    const prev = arr[i-1];
+    const diff = prev ? e.weight - prev.weight : 0;
+    const diffTxt = prev ? (Math.abs(diff) < 0.05 ? " · sin cambios" : ` · ${diff>0?"+":"−"}${fmtNum(Math.abs(diff))} kg`) : "";
+    return { label: fmtDate(e.date), tip: fmtDateLong(e.date) + diffTxt, value: e.weight };
+  });
   drawChart("chartBodyweight", "line", wl, {
-    unit:"kg", aria:"Evolución de tu peso corporal",
+    unit:"kg", deltaMode:"abs", aria:"Evolución de tu peso corporal, una medición por semana",
     emptyMsg:"Registra tu peso corporal para ver tu evolución."
   });
+
+  renderWeighInNotice();
+}
+
+function renderWeighInNotice(){
+  const st = weighInStatus();
+  const notice = document.getElementById("weighInNotice");
+  const next = document.getElementById("weighInNext");
+  const log = state.profile.weightLog;
+
+  if(!st.tracking){
+    notice.classList.add("hidden");
+    next.textContent = "Registra tu primer peso: desde ahí te pediremos una medición cada 7 días.";
+    return;
+  }
+
+  const first = log[0];
+  const total = st.last.weight - first.weight;
+  const totalTxt = log.length > 1
+    ? (Math.abs(total) < 0.05 ? "mismo peso que al empezar" : `${total>0?"+":"−"}${fmtNum(Math.abs(total))} kg desde tu primera medición`)
+    : "primera medición registrada";
+  next.textContent = st.due
+    ? `${log.length} ${log.length===1?"medición":"mediciones"} · ${totalTxt} · medición pendiente desde el ${fmtDate(st.nextDate)}`
+    : `${log.length} ${log.length===1?"medición":"mediciones"} · ${totalTxt} · próxima medición el ${fmtDate(st.nextDate)}`;
+
+  notice.classList.toggle("hidden", !st.due);
+  if(!st.due) return;
+  notice.querySelector(".wn-ico").innerHTML = ICONS.scale;
+  document.getElementById("weighInNoticeTitle").textContent = "Toca tu medición semanal";
+  document.getElementById("weighInNoticeMsg").textContent =
+    `Han pasado ${st.elapsed} días desde tu última medición (${fmtNum(st.last.weight)} kg, el ${fmtDateLong(st.last.date)}). Mídete hoy para mantener la progresión semana a semana.`;
+}
+
+/* The profile view re-renders whenever anything on it changes, which would wipe
+   a name the athlete had typed but not saved yet. Committing the field first
+   keeps that text instead of snapping it back to the stored value. */
+function commitNameField(){
+  const input = document.getElementById("settingName");
+  if(!input) return false;
+  const name = input.value.trim();
+  if(!name || name === state.profile.name) return false;
+  state.profile.name = name;
+  return true;
 }
 
 function saveProfileSettings(){
@@ -2703,16 +2850,102 @@ function saveProfileSettings(){
   showToast(ICONS.check, "Perfil actualizado", "Tus cambios se guardaron.");
 }
 
-function logBodyWeight(){
-  const val = num(document.getElementById("settingWeight").value, null);
-  if(val===null || val<=0){ showToast(ICONS.x, "Peso inválido", "Ingresa un valor numérico válido."); return; }
+/* ===================== WEEKLY BODY-WEIGHT CHECK-IN ===================== */
+const WEIGH_IN_DAYS = 7;
+
+/* The weekly check-in starts counting from the first weight the athlete logs,
+   and every new measurement re-anchors the next one seven days out. */
+function weighInStatus(){
+  const log = state.profile.weightLog;
+  if(!log.length) return { tracking:false, due:false, prompt:false };
+  const last = log[log.length-1];
+  const today = todayISO();
+  const elapsed = Math.max(0, daysBetweenISO(last.date, today));
+  const due = elapsed >= WEIGH_IN_DAYS;
+  const snoozed = !!state.profile.weighInSnooze && state.profile.weighInSnooze >= today;
+  return {
+    tracking:true, last, elapsed, due, snoozed,
+    nextDate: addDaysISO(last.date, WEIGH_IN_DAYS),
+    daysLeft: WEIGH_IN_DAYS - elapsed,
+    prompt: due && !snoozed
+  };
+}
+
+function recordBodyWeight(val){
   const today = todayISO();
   const existing = state.profile.weightLog.find(e=>e.date===today);
   if(existing) existing.weight = val;
   else state.profile.weightLog.push({ date: today, weight: val });
+  state.profile.weightLog.sort((a,b)=>a.date.localeCompare(b.date));
+  state.profile.weighInSnooze = null;
   saveState();
+}
+
+function logBodyWeight(){
+  const val = num(document.getElementById("settingWeight").value, null);
+  if(val===null || val<20 || val>400){ showToast(ICONS.x, "Peso inválido", "Ingresa un peso entre 20 y 400 kg."); return; }
+  const nameChanged = commitNameField();
+  recordBodyWeight(val);
   renderProfileView();
-  showToast(ICONS.check, "Peso registrado", val+" kg");
+  if(nameChanged) renderTopBar();
+  showToast(ICONS.check, "Peso registrado", `${fmtNum(val)} kg · próxima medición el ${fmtDate(weighInStatus().nextDate)}`);
+}
+
+function openWeighIn(){
+  const st = weighInStatus();
+  if(!st.tracking) return;
+  document.getElementById("weighInLead").textContent = st.due
+    ? `Han pasado ${st.elapsed} días desde tu última medición. Registra tu peso de esta semana para no perder el hilo de tu progresión.`
+    : `Tu próxima medición toca el ${fmtDateLong(st.nextDate)}, pero puedes adelantarla si quieres.`;
+  document.getElementById("weighInLast").innerHTML =
+    `<div style="min-width:0;"><span>Última medición</span><i>${escapeHtml(fmtDateLong(st.last.date))}</i></div>` +
+    `<b>${fmtNum(st.last.weight)} kg</b>`;
+  const input = document.getElementById("weighInValue");
+  input.value = st.last.weight;
+  openModal("modalWeighIn");
+  setTimeout(()=>{ input.focus(); input.select(); }, 140);
+}
+
+function stepWeighIn(delta){
+  const input = document.getElementById("weighInValue");
+  const base = num(input.value, null);
+  const last = state.profile.weightLog.length ? state.profile.weightLog[state.profile.weightLog.length-1].weight : 70;
+  input.value = Math.round(clamp((base===null?last:base) + delta, 20, 400) * 10) / 10;
+}
+
+function saveWeighIn(){
+  const val = num(document.getElementById("weighInValue").value, null);
+  if(val===null || val<20 || val>400){ showToast(ICONS.x, "Peso inválido", "Ingresa un peso entre 20 y 400 kg."); return; }
+  const prev = state.profile.weightLog[state.profile.weightLog.length-1];
+  recordBodyWeight(val);
+  closeModal();
+  if(state.ui.currentView === "profile") renderProfileView();
+  const diff = prev ? val - prev.weight : 0;
+  const diffTxt = prev && Math.abs(diff) >= 0.05 ? `${diff>0?"+":"−"}${fmtNum(Math.abs(diff))} kg vs. la anterior` : "sin cambios vs. la anterior";
+  showToast(ICONS.check, "Peso de la semana registrado", `${fmtNum(val)} kg · ${diffTxt}`);
+}
+
+function skipWeighIn(){
+  state.profile.weighInSnooze = todayISO();
+  saveState();
+  closeModal();
+  if(state.ui.currentView === "profile") renderProfileView();
+  showToast(ICONS.calendar, "Medición aplazada", "Te lo recordamos mañana. No dejes la semana sin medir.");
+}
+
+/* Only asks when the athlete is not in the middle of something else. */
+function maybePromptWeighIn(attempt){
+  attempt = attempt || 0;
+  if(!weighInStatus().prompt) return;
+  const busy = session
+    || document.querySelector(".modal-overlay.open")
+    || document.getElementById("celebrateOverlay").classList.contains("open")
+    || document.getElementById("restOverlay").classList.contains("open");
+  if(busy){
+    if(attempt < 40) setTimeout(()=>maybePromptWeighIn(attempt+1), 1200);
+    return;
+  }
+  openWeighIn();
 }
 
 function exportData(){
@@ -3018,6 +3251,10 @@ document.addEventListener("click", function(e){
 
     case "save-profile": saveProfileSettings(); break;
     case "log-weight": logBodyWeight(); break;
+    case "open-weigh-in": openWeighIn(); break;
+    case "weigh-in-step": stepWeighIn(num(actionEl.getAttribute("data-step"), 0)); break;
+    case "save-weigh-in": saveWeighIn(); break;
+    case "skip-weigh-in": skipWeighIn(); break;
     case "export-data": exportData(); break;
     case "reset-data": openConfirm("Esto borrará TODOS tus datos (ejercicios, rutinas, historial y logros). ¿Continuar?", resetAllData); break;
   }
@@ -3068,9 +3305,14 @@ document.addEventListener("keydown", function(e){
     const anchor = menuAnchor;
     closeCtxMenu();
     if(hadMenu){ if(anchor) anchor.focus(); return; }
+    if(document.getElementById("modalWeighIn").classList.contains("open")){ skipWeighIn(); return; }
     closeModal();
     if(document.getElementById("celebrateOverlay").classList.contains("open")) advanceCelebration();
   }
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && e.target.id === "weighInValue"){ e.preventDefault(); saveWeighIn(); }
 });
 
 document.addEventListener("input", function(e){
@@ -3137,6 +3379,7 @@ function init(){
   }
   checkAchievements();
   renderRoute();
+  setTimeout(()=>maybePromptWeighIn(0), 900);
 }
 
 init();

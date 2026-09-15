@@ -426,14 +426,57 @@ a{color:inherit;}
 .session-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .session-ex-head h4{font-size:16px;}
 .session-ex-head .prev{font-size:12px;color:var(--text-dim);margin-left:auto;}
-.set-row{display:grid;grid-template-columns:26px 1fr 1fr 1fr 40px;gap:8px;align-items:center;margin-bottom:8px;}
-.set-row .sr-n{font-family:'Space Grotesk',sans-serif;color:var(--text-faint);font-size:13px;text-align:center;}
-.set-row input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 6px;text-align:center;font-family:inherit;font-weight:700;font-size:14px;}
-.set-row .sr-check{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:none;color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.set-row .sr-check.done{background:linear-gradient(135deg,var(--green),var(--cyan));border-color:transparent;color:#041018;box-shadow:0 0 12px var(--green-dim);}
-.set-row .sr-check svg{width:16px;height:16px;}
-.set-row.is-pr input{color:var(--green);}
+.set-head,.set-row{display:grid;grid-template-columns:34px 82px 1fr 1fr 46px;gap:9px;align-items:center;max-width:580px;}
+.set-head{
+  margin:2px 0 9px;font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-faint);
+}
+.set-head span{text-align:center;}
+
+.set-row{margin-bottom:9px;padding:3px 0;border-radius:12px;transition:background .18s ease;}
+.set-row .sr-n{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text-dim);font-size:14px;text-align:center;
+  background:rgba(255,255,255,.05);border-radius:9px;padding:7px 0;
+}
+.sr-prev{text-align:center;font-size:12px;color:var(--text-dim);font-weight:600;white-space:nowrap;}
+.sr-prev-val i{font-style:normal;font-size:10px;color:var(--text-faint);margin-left:1px;}
+.sr-prev-empty{color:var(--text-faint);}
+
+.sr-field{
+  display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;
+  padding:0 11px;height:44px;cursor:text;transition:border-color .15s ease, background .15s ease;
+}
+.sr-field:hover{border-color:var(--border-strong);}
+.sr-field:focus-within{border-color:var(--cyan);background:rgba(34,232,255,.07);box-shadow:0 0 0 3px rgba(34,232,255,.12);}
+.sr-field input{
+  width:100%;min-width:0;background:none;border:none;outline:none;color:var(--text);
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;text-align:right;
+  font-variant-numeric:tabular-nums;padding:0;max-width:76px;
+}
+.sr-field input::-webkit-outer-spin-button,.sr-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.sr-field input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+.sr-unit{font-size:11.5px;font-weight:700;color:var(--text-faint);letter-spacing:.02em;flex:none;}
+.set-row.is-done .sr-field{background:rgba(43,255,168,.07);border-color:rgba(43,255,168,.26);}
+.set-row.is-done .sr-field input{color:var(--green);}
+.set-row.is-done .sr-unit{color:rgba(43,255,168,.65);}
+.set-row.is-done .sr-n{background:rgba(43,255,168,.12);color:var(--green);}
+
+.set-row .sr-check{
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s ease;
+}
+.set-row .sr-check:hover{border-color:var(--border-strong);color:var(--text);}
+.set-row .sr-check.done{background:linear-gradient(135deg,var(--green),var(--cyan));border-color:transparent;color:#041018;box-shadow:0 0 14px -2px var(--green-dim);}
+.set-row .sr-check svg{width:18px;height:18px;}
+.set-row.is-pr .sr-field input{color:var(--green);}
 .set-row.is-pr{animation:prRowGlow 1.4s ease;}
+@media (max-width:600px){
+  .set-head,.set-row{grid-template-columns:30px 1fr 1fr 44px;gap:7px;}
+  .col-prev{display:none;}
+  .sr-field{padding:0 9px;height:46px;}
+  .sr-field input{font-size:17px;}
+}
 @keyframes prRowGlow{0%{box-shadow:0 0 0 rgba(43,255,168,0);}30%{box-shadow:0 0 0 3px rgba(43,255,168,.25);}100%{box-shadow:0 0 0 rgba(43,255,168,0);}}
 .pr-inline-badge{
   display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:800;letter-spacing:.03em;
@@ -643,7 +686,7 @@ a{color:inherit;}
   .grid-kpi{grid-template-columns:1fr 1fr;}
 }
 @media (max-width:480px){
-  .set-row{grid-template-columns:20px 1fr 1fr 1fr 34px;gap:5px;}
+  .set-head,.set-row{grid-template-columns:28px 1fr 1fr 42px;gap:6px;}
   .field-row{flex-direction:column;}
   .page-sub{display:none;}
   #resumeSessionTxt{display:none;}
@@ -672,28 +715,28 @@ a{color:inherit;}
       </div>
     </div>
     <div class="nav-item" data-nav="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2.8" y="2.8" width="8.4" height="9.6" rx="2.4"/><rect x="12.8" y="2.8" width="8.4" height="5.6" rx="2.4"/><rect x="12.8" y="10.4" width="8.4" height="10.8" rx="2.4"/><rect x="2.8" y="14.4" width="8.4" height="6.8" rx="2.4"/></svg>
       Dashboard
     </div>
     <div class="nav-item" data-nav="routines">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="12" height="4" rx="1.2"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.6 2.4h12.8A2.6 2.6 0 0 1 21 5v14a2.6 2.6 0 0 1-2.6 2.6H5.6A2.6 2.6 0 0 1 3 19V5a2.6 2.6 0 0 1 2.6-2.6Zm1.8 4.05a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1ZM7.4 10.6a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1ZM7.4 14.75a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1Z"/></svg>
       Rutinas
     </div>
     <div class="nav-item" data-nav="exercises">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 3 10l3 3M17.5 6.5 21 10l-3 3M6.5 17.5 3 14l3-3M17.5 17.5 21 14l-3-3M9 4l6 16"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="8" y="10.7" width="8" height="2.6" rx="1.3"/><rect x="4.1" y="7.6" width="2.8" height="8.8" rx="1.3"/><rect x="7.6" y="5.3" width="2.6" height="13.4" rx="1.2"/><rect x="13.8" y="5.3" width="2.6" height="13.4" rx="1.2"/><rect x="17.1" y="7.6" width="2.8" height="8.8" rx="1.3"/></svg>
       Ejercicios
     </div>
     <div class="nav-item" data-nav="progress">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 15l3-4 3 2 4-6"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2.6" y="13.4" width="4.8" height="8" rx="1.9"/><rect x="9.6" y="8.8" width="4.8" height="12.6" rx="1.9"/><rect x="16.6" y="3.9" width="4.8" height="17.5" rx="1.9"/></svg>
       Progreso
     </div>
     <div class="nav-item" data-nav="achievements">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 2.4h10.8c.76 0 1.37.61 1.37 1.37v1.08h2.06c1.3 0 2.36 1.05 2.36 2.35 0 3.03-2.18 5.56-5.06 6.07-.85 1.9-2.56 3.32-4.63 3.77v2.06h2.66a1.35 1.35 0 0 1 0 2.7H7.88a1.35 1.35 0 0 1 0-2.7h2.66v-2.06c-2.07-.45-3.78-1.87-4.63-3.77C3.03 12.76.85 10.23.85 7.2c0-1.3 1.06-2.35 2.36-2.35h2.02V3.77c0-.76.61-1.37 1.37-1.37ZM5.23 7.55H3.55c-.1 0-.18.08-.17.19.1 1.4.92 2.6 2.09 3.24-.16-.73-.24-1.48-.24-2.25V7.55Zm13.54 0v1.18c0 .77-.08 1.52-.24 2.25 1.17-.64 1.99-1.84 2.09-3.24.01-.11-.07-.19-.17-.19h-1.68Z"/></svg>
       Logros
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-item" data-nav="profile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.4" r="4.6"/><path d="M12 13.5c-4.3 0-7.9 2.7-9 6.4-.3 1 .5 2 1.6 2h14.8c1.1 0 1.9-1 1.6-2-1.1-3.7-4.7-6.4-9-6.4Z"/></svg>
       Perfil
     </div>
     <div class="sidebar-foot">
@@ -909,11 +952,11 @@ a{color:inherit;}
 </div>
 
 <nav class="bottom-nav">
-  <button class="bn-item" data-nav="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Home</button>
-  <button class="bn-item" data-nav="routines"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1.2"/><rect x="3" y="10" width="18" height="4" rx="1.2"/><rect x="3" y="16" width="12" height="4" rx="1.2"/></svg>Rutinas</button>
-  <button class="bn-item" data-nav="exercises"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 3 10l3 3M17.5 6.5 21 10l-3 3M6.5 17.5 3 14l3-3M17.5 17.5 21 14l-3-3M9 4l6 16"/></svg>Ejerc.</button>
-  <button class="bn-item" data-nav="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 15l3-4 3 2 4-6"/></svg>Progreso</button>
-  <button class="bn-item" data-nav="achievements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/></svg>Logros</button>
+  <button class="bn-item" data-nav="dashboard"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2.8" y="2.8" width="8.4" height="9.6" rx="2.4"/><rect x="12.8" y="2.8" width="8.4" height="5.6" rx="2.4"/><rect x="12.8" y="10.4" width="8.4" height="10.8" rx="2.4"/><rect x="2.8" y="14.4" width="8.4" height="6.8" rx="2.4"/></svg>Home</button>
+  <button class="bn-item" data-nav="routines"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.6 2.4h12.8A2.6 2.6 0 0 1 21 5v14a2.6 2.6 0 0 1-2.6 2.6H5.6A2.6 2.6 0 0 1 3 19V5a2.6 2.6 0 0 1 2.6-2.6Zm1.8 4.05a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1ZM7.4 10.6a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1ZM7.4 14.75a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm4.05.2a1.2 1.2 0 0 0 0 2.4h5.1a1.2 1.2 0 0 0 0-2.4h-5.1Z"/></svg>Rutinas</button>
+  <button class="bn-item" data-nav="exercises"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="8" y="10.7" width="8" height="2.6" rx="1.3"/><rect x="4.1" y="7.6" width="2.8" height="8.8" rx="1.3"/><rect x="7.6" y="5.3" width="2.6" height="13.4" rx="1.2"/><rect x="13.8" y="5.3" width="2.6" height="13.4" rx="1.2"/><rect x="17.1" y="7.6" width="2.8" height="8.8" rx="1.3"/></svg>Ejerc.</button>
+  <button class="bn-item" data-nav="progress"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2.6" y="13.4" width="4.8" height="8" rx="1.9"/><rect x="9.6" y="8.8" width="4.8" height="12.6" rx="1.9"/><rect x="16.6" y="3.9" width="4.8" height="17.5" rx="1.9"/></svg>Progreso</button>
+  <button class="bn-item" data-nav="achievements"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 2.4h10.8c.76 0 1.37.61 1.37 1.37v1.08h2.06c1.3 0 2.36 1.05 2.36 2.35 0 3.03-2.18 5.56-5.06 6.07-.85 1.9-2.56 3.32-4.63 3.77v2.06h2.66a1.35 1.35 0 0 1 0 2.7H7.88a1.35 1.35 0 0 1 0-2.7h2.66v-2.06c-2.07-.45-3.78-1.87-4.63-3.77C3.03 12.76.85 10.23.85 7.2c0-1.3 1.06-2.35 2.36-2.35h2.02V3.77c0-.76.61-1.37 1.37-1.37ZM5.23 7.55H3.55c-.1 0-.18.08-.17.19.1 1.4.92 2.6 2.09 3.24-.16-.73-.24-1.48-.24-2.25V7.55Zm13.54 0v1.18c0 .77-.08 1.52-.24 2.25 1.17-.64 1.99-1.84 2.09-3.24.01-.11-.07-.19-.17-.19h-1.68Z"/></svg>Logros</button>
 </nav>
 
 <!-- MODALS -->
@@ -2095,13 +2138,27 @@ function startRoutine(routineId){
       return {
         exerciseId: re.exerciseId,
         name: ex ? ex.name : "Ejercicio",
+        muscle: ex ? ex.muscle : null,
         prevBest,
+        prevSets: lastSessionSets(re.exerciseId),
         sets: re.sets.map(s=>({ targetReps:s.reps, targetWeight:s.weight, reps:s.reps, weight:s.weight, done:false, isPR:false }))
       };
     })
   };
   state.activeSession = session;
   navigate("workout");
+}
+
+/* Sets logged for this exercise in the most recent session, so each row can
+   show what the same set did last time. */
+function lastSessionSets(exerciseId){
+  for(let i = state.workouts.length - 1; i >= 0; i--){
+    const we = state.workouts[i].exercises.find(x=>x.exerciseId===exerciseId);
+    if(!we) continue;
+    const done = we.sets.filter(s=>s.done);
+    if(done.length) return done.map(s=>({ weight:num(s.weight,0), reps:num(s.reps,0) }));
+  }
+  return [];
 }
 
 function findLastPerformance(exerciseId){
@@ -2142,21 +2199,41 @@ function renderSessionView(){
     ${session.exercises.map((se,exIdx)=>{
       const ex = state.exercises.find(e=>e.id===se.exerciseId);
       const color = ex ? (MUSCLE_COLORS[ex.muscle]||'#3f8dff') : '#3f8dff';
+      const prevSets = se.prevSets || [];
       return `<div class="session-ex">
         <div class="session-ex-head">
           <div class="br-icon icon-badge" style="width:36px;height:36px;${muscleBadgeStyle(color)}">${ex ? muscleIcon(ex.muscle) : ICONS.dumbbell}</div>
           <h4>${escapeHtml(se.name)}</h4>
-          <div class="prev">${se.prevBest ? "Anterior: "+se.prevBest.weight+"kg × "+se.prevBest.reps : "Sin historial previo"}</div>
+          <div class="prev">${se.prevBest ? "Mejor marca · "+se.prevBest.weight+" kg × "+se.prevBest.reps : "Sin historial previo"}</div>
         </div>
-        ${se.sets.map((s,setIdx)=>`
-          <div class="set-row ${s.isPR?'is-pr':''}">
+        <div class="set-head">
+          <span>Serie</span>
+          <span class="col-prev">Anterior</span>
+          <span>Peso</span>
+          <span>Reps</span>
+          <span class="sr-head-check">Hecho</span>
+        </div>
+        ${se.sets.map((s,setIdx)=>{
+          const prev = prevSets[setIdx];
+          const prevTxt = s.isPR
+            ? `<span class="pr-inline-badge">${ICONS.medal}PR</span>`
+            : prev ? `<span class="sr-prev-val">${prev.weight}<i>kg</i> × ${prev.reps}</span>`
+                   : `<span class="sr-prev-empty">—</span>`;
+          return `<div class="set-row ${s.isPR?'is-pr':''} ${s.done?'is-done':''}">
             <div class="sr-n">${setIdx+1}</div>
-            <input type="number" min="0" step="0.5" value="${s.weight}" placeholder="kg" data-action="session-set-weight" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
-            <input type="number" min="0" step="1" value="${s.reps}" placeholder="reps" data-action="session-set-reps" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
-            <div style="text-align:center;">${s.isPR? `<span class="pr-inline-badge">${ICONS.medal}PR</span>` : `<span style="font-size:11px;color:var(--text-faint);">${s.targetWeight}kg×${s.targetReps}</span>`}</div>
-            <button class="sr-check ${s.done?'done':''}" data-action="toggle-set-done" data-ex="${exIdx}" data-set="${setIdx}">${ICONS.check}</button>
-          </div>`).join("")}
-        <button class="btn btn-sm btn-ghost" data-action="session-add-set" data-ex="${exIdx}">+ Set extra</button>
+            <div class="sr-prev col-prev">${prevTxt}</div>
+            <label class="sr-field" aria-label="Peso en kilos, serie ${setIdx+1}">
+              <input type="number" inputmode="decimal" min="0" step="0.5" value="${s.weight}" data-action="session-set-weight" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
+              <span class="sr-unit">kg</span>
+            </label>
+            <label class="sr-field" aria-label="Repeticiones, serie ${setIdx+1}">
+              <input type="number" inputmode="numeric" min="0" step="1" value="${s.reps}" data-action="session-set-reps" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
+              <span class="sr-unit">reps</span>
+            </label>
+            <button class="sr-check ${s.done?'done':''}" data-action="toggle-set-done" data-ex="${exIdx}" data-set="${setIdx}" aria-label="${s.done?'Desmarcar':'Marcar'} serie ${setIdx+1}">${ICONS.check}</button>
+          </div>`;
+        }).join("")}
+        <button class="btn btn-sm btn-ghost" data-action="session-add-set" data-ex="${exIdx}">+ Serie extra</button>
       </div>`;
     }).join("")}
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:16px;" data-action="finish-session">Finalizar entrenamiento</button>

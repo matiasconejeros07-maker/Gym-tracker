@@ -609,9 +609,10 @@ a{color:inherit;}
   box-shadow:var(--badge-bevel), 0 0 28px -4px var(--cyan-dim);
 }
 .profile-avatar svg{width:34px;height:34px;color:#04141a;}
-.stat-strip{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;}
+.stat-strip{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;align-items:flex-start;}
 .stat-strip .s-item b{font-family:'Space Grotesk',sans-serif;font-size:19px;display:block;}
 .stat-strip .s-item span{font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
+.stat-strip .s-item em{display:block;font-size:11px;font-style:normal;color:var(--text-faint);margin-top:3px;}
 
 /* toasts + celebration */
 .toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:200;max-width:340px;}
@@ -811,12 +812,12 @@ a{color:inherit;}
         <div class="grid grid-2" style="margin-top:16px;">
           <div class="card chart-card">
             <h3>Actividad semanal</h3>
-            <div class="chart-meta">Kilos totales levantados por día (peso × reps) — últimos 7 días</div>
+            <div class="chart-meta">Series completadas por día — últimos 7 días</div>
             <div class="chart-wrap" id="chartWeekly"></div>
           </div>
           <div class="card chart-card">
             <h3>Distribución muscular</h3>
-            <div class="chart-meta">Sets por grupo muscular (30 días)</div>
+            <div class="chart-meta">Series por grupo muscular (30 días)</div>
             <div class="chart-wrap" id="chartMuscle"></div>
           </div>
         </div>
@@ -888,7 +889,7 @@ a{color:inherit;}
         <div class="grid grid-2">
           <div class="card chart-card">
             <h3>Volumen por sesión</h3>
-            <div class="chart-meta">Kilos totales por sesión (peso × reps) — últimas 12</div>
+            <div class="chart-meta">Series completadas por sesión — últimas 12</div>
             <div class="chart-wrap" id="chartVolumeHistory"></div>
           </div>
           <div class="card chart-card">
@@ -1036,7 +1037,7 @@ a{color:inherit;}
       <input type="text" id="routineName" maxlength="40" placeholder="Ej: Día de empuje (Push)">
     </div>
     <div class="field">
-      <label>Descanso entre sets (segundos)</label>
+      <label>Descanso entre series (segundos)</label>
       <input type="number" id="routineRest" min="15" max="600" step="5" value="90">
     </div>
     <div class="divider"></div>
@@ -1306,8 +1307,8 @@ const ACH_DEFS = [
   {id:"workouts_10", name:"Disciplina", desc:"Completa 10 entrenamientos.", xp:100, cond:s=>s.stats.totalWorkouts>=10},
   {id:"workouts_50", name:"Voluntad de Hierro", desc:"Completa 50 entrenamientos.", xp:300, cond:s=>s.stats.totalWorkouts>=50},
   {id:"workouts_100", name:"Club de los 100", desc:"Completa 100 entrenamientos.", xp:600, cond:s=>s.stats.totalWorkouts>=100},
-  {id:"volume_10k", name:"Rey del Volumen", desc:"Levanta 10.000 kg en total.", xp:150, cond:s=>s.stats.totalVolume>=10000},
-  {id:"volume_100k", name:"Titán del Volumen", desc:"Levanta 100.000 kg en total.", xp:500, cond:s=>s.stats.totalVolume>=100000},
+  {id:"volume_10k", name:"Rey del Volumen", desc:"Completa 250 series en total.", xp:150, cond:s=>s.stats.totalSets>=250},
+  {id:"volume_100k", name:"Titán del Volumen", desc:"Completa 1.000 series en total.", xp:500, cond:s=>s.stats.totalSets>=1000},
   {id:"pr_5", name:"Rompe Límites", desc:"Consigue 5 récords personales.", xp:120, cond:s=>s.stats.prCount>=5},
   {id:"pr_20", name:"Leyenda Viviente", desc:"Consigue 20 récords personales.", xp:350, cond:s=>s.stats.prCount>=20},
   {id:"explorer_5", name:"Explorador", desc:"Crea 5 ejercicios personalizados.", xp:100, cond:s=>s.exercises.filter(e=>e.custom).length>=5},
@@ -1612,7 +1613,7 @@ const VIEW_META = {
   progress:{title:"Progreso", sub:"Analítica a largo plazo"},
   achievements:{title:"Logros", sub:"Tu progresión y medallas"},
   profile:{title:"Perfil", sub:"Tu cuenta y ajustes"},
-  workout:{title:"Entrenamiento en curso", sub:"Registra tus sets en tiempo real"}
+  workout:{title:"Entrenamiento en curso", sub:"Registra tus series en tiempo real"}
 };
 
 function navigate(view){
@@ -1675,7 +1676,7 @@ function renderDashboard(){
   const stats = computeStats();
   const kpis = [
     { label:"Entrenamientos", val:stats.totalWorkouts, icon:ICONS.calendar, color:"var(--cyan)" },
-    { label:"Volumen total (kg)", val:stats.totalVolume.toLocaleString('es-CL'), icon:ICONS.scale, color:"var(--blue)" },
+    { label:"Volumen (series)", val:stats.totalSets.toLocaleString('es-CL'), icon:ICONS.layers, color:"var(--blue)" },
     { label:"Racha actual", val:stats.streak+"d", icon:ICONS.fire, color:"var(--green)" },
     { label:"Récords personales", val:stats.prCount, icon:ICONS.trophy, color:"var(--cyan)" }
   ];
@@ -1686,20 +1687,22 @@ function renderDashboard(){
       <div class="kpi-label">${k.label}</div>
     </div>`).join("");
 
-  // weekly chart: last 7 days volume
+  // weekly chart: series completed per day over the last 7 days
   const days = [];
   for(let i=6;i>=0;i--){
     const d = new Date(); d.setDate(d.getDate()-i);
     const iso = d.toISOString().slice(0,10);
-    const vol = state.workouts.filter(w=>w.date===iso).reduce((sum,w)=>sum+workoutVolume(w),0);
+    const dayWorkouts = state.workouts.filter(w=>w.date===iso);
+    const series = dayWorkouts.reduce((sum,w)=>sum+workoutSets(w),0);
+    const kg = dayWorkouts.reduce((sum,w)=>sum+workoutVolume(w),0);
     days.push({
       label: d.toLocaleDateString('es-CL',{weekday:'short'}).replace('.',''),
-      tip: d.toLocaleDateString('es-CL',{weekday:'long', day:'numeric', month:'short'}),
-      value: Math.round(vol)
+      tip: d.toLocaleDateString('es-CL',{weekday:'long', day:'numeric', month:'short'}) + (kg ? ` · ${Math.round(kg).toLocaleString('es-CL')} kg` : ""),
+      value: series
     });
   }
   drawChart("chartWeekly", "bar", days, {
-    unit:"kg", aria:"Volumen levantado por día en los últimos 7 días",
+    unit:"series", aria:"Series completadas por día en los últimos 7 días",
     heroValue: days.reduce((a,d)=>a+d.value,0), heroLabel:"en los últimos 7 días"
   });
 
@@ -1765,6 +1768,11 @@ function renderDashboard(){
 function workoutVolume(w){
   return w.exercises.reduce((sum,we)=>sum + we.sets.filter(s=>s.done).reduce((a,s)=>a+num(s.weight,0)*num(s.reps,0),0), 0);
 }
+/* Volume is measured in completed series; kilos stay available as a secondary
+   read-out in tooltips and in the profile. */
+function workoutSets(w){
+  return w.exercises.reduce((sum,we)=>sum + we.sets.filter(s=>s.done).length, 0);
+}
 function lastPerformedISO(routineId){
   const list = state.workouts.filter(w=>w.routineId===routineId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   return list.length ? list[0].date : null;
@@ -1778,13 +1786,15 @@ function emptyState(icon, title, sub){
 /* ---- chart scales & formatting ---------------------------------------- */
 /* Rounds an axis to clean steps so the ticks read 0 / 500 / 1.000 instead of
    0 / 437 / 874. */
-function niceScale(min, max, tickCount){
+function niceScale(min, max, tickCount, integerOnly){
   const ticks = tickCount || 4;
   if(!(max > min)) { max = min + 1; }
   const raw = (max - min) / ticks;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const norm = raw / mag;
-  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  let step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  /* Counts (series) have no meaningful half-step, so keep the ticks whole. */
+  if(integerOnly) step = Math.max(1, Math.round(step));
   return { min: Math.floor(min/step)*step, max: Math.ceil(max/step)*step, step };
 }
 
@@ -1810,10 +1820,15 @@ function axisLabels(points, maxLabels){
   });
 }
 
+/* "series" is plural; a single one reads "serie". */
+function unitLabel(unit, value){
+  return (unit === "series" && Math.abs(value) === 1) ? "serie" : (unit || "");
+}
+
 function chartHero(points, unit, opts){
   if(!points.length) return "";
   if(opts && opts.heroValue != null){
-    return `<div class="chart-hero"><b>${fmtNum(opts.heroValue)}</b><span>${escapeHtml(unit||"")}</span>` +
+    return `<div class="chart-hero"><b>${fmtNum(opts.heroValue)}</b><span>${escapeHtml(unitLabel(unit, opts.heroValue))}</span>` +
            (opts.heroLabel ? `<i class="flat">${escapeHtml(opts.heroLabel)}</i>` : "") + `</div>`;
   }
   const last = points[points.length-1].value;
@@ -1825,7 +1840,7 @@ function chartHero(points, unit, opts){
     const sign = pct > 0 ? "+" : "";
     delta = `<i class="${cls}">${sign}${pct}% vs. anterior</i>`;
   }
-  return `<div class="chart-hero"><b>${fmtNum(last)}</b><span>${escapeHtml(unit||"")}</span>${delta}</div>`;
+  return `<div class="chart-hero"><b>${fmtNum(last)}</b><span>${escapeHtml(unitLabel(unit, last))}</span>${delta}</div>`;
 }
 
 /* Shared y-axis chrome: solid hairline gridlines with clean, labelled ticks. */
@@ -1842,11 +1857,11 @@ function axisChrome(scale, plot){
 function renderBarChart(data, prefix, opts){
   opts = opts || {};
   if(!data.length || data.every(d=>d.value<=0)){
-    return emptyState(ICONS.scale, "Sin actividad reciente", "Registra un entrenamiento para ver tu volumen aquí.");
+    return emptyState(ICONS.layers, "Sin actividad reciente", "Registra un entrenamiento para ver tu volumen aquí.");
   }
   const w = 520, h = 210, gap = 14;
   const plot = { left: 46, top: 12, w: w - 46 - 8, h: h - 12 - 30 };
-  const scale = niceScale(0, Math.max(...data.map(d=>d.value)), 3);
+  const scale = niceScale(0, Math.max(...data.map(d=>d.value)), 3, opts.unit === "series");
   const barW = (plot.w - gap*(data.length-1)) / data.length;
   let bars = "", labels = "", hits = "";
   data.forEach((d,i)=>{
@@ -1875,10 +1890,10 @@ function renderLineChart(points, prefix, opts){
   const plot = { left: 46, top: 14, w: w - 46 - 14, h: h - 14 - 30 };
   const values = points.map(p=>p.value);
   const lo = Math.min(...values), hi = Math.max(...values);
-  /* Volume starts at zero (it is a sum); a load axis keeps a padded floor so a
-     5 kg gain is not flattened against an irrelevant zero. */
+  /* Volume starts at zero (it is a count of series); a load axis keeps a padded
+     floor so a 5 kg gain is not flattened against an irrelevant zero. */
   const base = opts.zeroBase ? 0 : Math.max(0, lo - (hi - lo || lo*0.1 || 1) * 0.6);
-  const scale = niceScale(base, hi, 3);
+  const scale = niceScale(base, hi, 3, opts.unit === "series");
   const span = (scale.max - scale.min) || 1;
   const stepX = points.length > 1 ? plot.w / (points.length - 1) : 0;
   const coords = points.map((p,i)=>[
@@ -1898,7 +1913,7 @@ function renderLineChart(points, prefix, opts){
   const lastC = coords[coords.length-1], lastV = points[points.length-1].value;
   const endAnchor = lastC[0] > plot.left + plot.w - 52 ? "end" : "start";
   const endX = endAnchor === "end" ? lastC[0] - 8 : lastC[0] + 8;
-  const endLabel = `<text x="${endX.toFixed(1)}" y="${(lastC[1] - 10).toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(opts.unit) : ""}</text>`;
+  const endLabel = `<text x="${endX.toFixed(1)}" y="${(lastC[1] - 10).toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(unitLabel(opts.unit, lastV)) : ""}</text>`;
   return `${chartHero(points, opts.unit)}
   <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de línea")}">
     <defs>
@@ -1933,7 +1948,7 @@ function drawChart(containerId, kind, points, opts){
     if(!p) return;
     const hit = svg.querySelector(`.chart-hit[data-i="${i}"]`);
     if(!hit) return;
-    tip.querySelector("b").textContent = fmtNum(p.value) + (opts.unit ? " " + opts.unit : "");
+    tip.querySelector("b").textContent = fmtNum(p.value) + (opts.unit ? " " + unitLabel(opts.unit, p.value) : "");
     tip.querySelector("span").textContent = p.tip || p.label || "";
     tip.hidden = false;
     const r = hit.getBoundingClientRect(), er = el.getBoundingClientRect();
@@ -1957,7 +1972,7 @@ function drawChart(containerId, kind, points, opts){
 function renderDonutChart(segments, prefix){
   segments = segments.filter(s=>s.value>0);
   if(!segments.length){
-    return emptyState(ICONS.target, "Sin datos de entrenamiento", "Completa sets para ver tu distribución muscular.");
+    return emptyState(ICONS.target, "Sin datos de entrenamiento", "Completa series para ver tu distribución muscular.");
   }
   const total = segments.reduce((a,s)=>a+s.value,0) || 1;
   const size = 180, r = 68, cx = size/2, cy = size/2, circ = 2*Math.PI*r;
@@ -1978,7 +1993,7 @@ function renderDonutChart(segments, prefix){
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="18"/>
       ${arcs}
       <text x="${cx}" y="${cy-2}" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="800" fill="#eaf6ff">${total}</text>
-      <text x="${cx}" y="${cy+16}" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#a3c0d4">sets</text>
+      <text x="${cx}" y="${cy+16}" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#a3c0d4">series</text>
     </svg>
     <div style="flex:1;min-width:120px;">${legend}</div>
   </div>`;
@@ -2117,7 +2132,7 @@ function renderRoutinesView(){
       <h3>${escapeHtml(r.name)}</h3>
       <div class="rc-stats">
         <span>${r.exercises.length} ejercicios</span><i></i>
-        <span>${totalSets} sets</span><i></i>
+        <span>${totalSets} series</span><i></i>
         <span>${r.restSeconds || 90}s</span>
       </div>
       <div class="rc-meta">${last ? "Última vez: "+fmtDate(last) : "Nunca realizada"}</div>
@@ -2234,7 +2249,7 @@ function renderRoutineBuilderList(){
         <span>reps ×</span>
         <input class="mini-input" type="number" min="0" max="500" step="0.5" value="${s.weight}" data-action="edit-set-weight" data-idx="${idx}" data-si="${si}" placeholder="kg">
         <span>kg</span>
-        <button class="btn btn-icon btn-sm" data-action="remove-set" data-idx="${idx}" data-si="${si}" title="Quitar set">${ICONS.x}</button>
+        <button class="btn btn-icon btn-sm" data-action="remove-set" data-idx="${idx}" data-si="${si}" title="Quitar serie">${ICONS.x}</button>
       </div>`).join("");
     return `<div class="builder-row" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;align-items:center;gap:12px;">
@@ -2247,7 +2262,7 @@ function renderRoutineBuilderList(){
         </div>
       </div>
       <div class="set-editor">${setsEditor}</div>
-      <button class="btn btn-sm btn-ghost" data-action="add-set" data-idx="${idx}" style="align-self:flex-start;margin-top:4px;">+ Añadir set</button>
+      <button class="btn btn-sm btn-ghost" data-action="add-set" data-idx="${idx}" style="align-self:flex-start;margin-top:4px;">+ Añadir serie</button>
     </div>`;
   }).join("");
 }
@@ -2343,7 +2358,7 @@ function renderSessionView(){
     <div class="session-bar">
       <div>
         <div style="font-weight:800;font-size:16px;">${escapeHtml(session.routineName)}</div>
-        <div class="chart-meta">${doneSets}/${totalSets} sets completados</div>
+        <div class="chart-meta">${doneSets}/${totalSets} series completadas</div>
       </div>
       <div class="session-progress"><div style="width:${pct}%"></div></div>
       <div class="sb-timer">${mm}:${ss}</div>
@@ -2504,7 +2519,7 @@ function finishSession(){
   endRestTimer();
   const totalSetsDone = session.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
   if(totalSetsDone===0){
-    showToast(ICONS.x, "Sin sets registrados", "Marca al menos un set como completado antes de finalizar.");
+    showToast(ICONS.x, "Sin series registradas", "Marca al menos una serie como completada antes de finalizar.");
     return;
   }
   const workout = {
@@ -2527,7 +2542,7 @@ function finishSession(){
   saveState();
   checkAchievements();
   navigate("dashboard");
-  showToast(ICONS.bolt, "Entrenamiento completado", `+${xpGain} XP · ${Math.round(vol)}kg de volumen`);
+  showToast(ICONS.bolt, "Entrenamiento completado", `+${xpGain} XP · ${totalSetsDone} series de volumen`);
 }
 
 function cancelSession(){
@@ -2543,13 +2558,16 @@ function cancelSession(){
 function renderProgressView(){
   const last12 = state.workouts.slice(-12);
   const offset = state.workouts.length - last12.length;
-  const volPoints = last12.map((w,i)=>({
-    label: fmtDate(w.date),
-    tip: `Sesión ${offset+i+1} · ${escapeHtml(w.routineName||"")} · ${fmtDate(w.date)}`,
-    value: Math.round(workoutVolume(w))
-  }));
+  const volPoints = last12.map((w,i)=>{
+    const kg = Math.round(workoutVolume(w));
+    return {
+      label: fmtDate(w.date),
+      tip: `Sesión ${offset+i+1} · ${escapeHtml(w.routineName||"")} · ${fmtDate(w.date)}` + (kg ? ` · ${kg.toLocaleString('es-CL')} kg` : ""),
+      value: workoutSets(w)
+    };
+  });
   drawChart("chartVolumeHistory", "line", volPoints, {
-    unit:"kg", zeroBase:true, aria:"Volumen total levantado en cada una de las últimas sesiones",
+    unit:"series", zeroBase:true, aria:"Series completadas en cada una de las últimas sesiones",
     emptyMsg:"Completa entrenamientos para ver tu volumen histórico."
   });
 
@@ -2635,8 +2653,8 @@ function estimateAchievementProgress(def, ctx){
     case "workouts_10": return s.totalWorkouts/10;
     case "workouts_50": return s.totalWorkouts/50;
     case "workouts_100": return s.totalWorkouts/100;
-    case "volume_10k": return s.totalVolume/10000;
-    case "volume_100k": return s.totalVolume/100000;
+    case "volume_10k": return s.totalSets/250;
+    case "volume_100k": return s.totalSets/1000;
     case "pr_5": return s.prCount/5;
     case "pr_20": return s.prCount/20;
     case "explorer_5": return ctx.exercises.filter(e=>e.custom).length/5;
@@ -2663,7 +2681,7 @@ function renderProfileView(){
 
   document.getElementById("profileStats").innerHTML = `
     <div class="s-item"><b style="color:var(--cyan);">${stats.totalWorkouts}</b><span>Entrenos</span></div>
-    <div class="s-item"><b style="color:var(--blue);">${stats.totalVolume.toLocaleString('es-CL')}</b><span>Kg totales</span></div>
+    <div class="s-item"><b style="color:var(--blue);">${stats.totalSets.toLocaleString('es-CL')}</b><span>Series</span><em>${stats.totalVolume.toLocaleString('es-CL')} kg</em></div>
     <div class="s-item"><b style="color:var(--green);">${stats.streak}</b><span>Racha</span></div>
     <div class="s-item"><b style="color:var(--cyan);">${stats.prCount}</b><span>Récords</span></div>
   `;
@@ -2968,7 +2986,7 @@ document.addEventListener("click", function(e){
     case "remove-set": {
       const i = parseInt(actionEl.dataset.idx,10), si = parseInt(actionEl.dataset.si,10);
       if(routineBuilderExercises[i].sets.length>1){ routineBuilderExercises[i].sets.splice(si,1); renderRoutineBuilderList(); }
-      else showToast(ICONS.x,"No se puede quitar","El ejercicio necesita al menos un set.");
+      else showToast(ICONS.x,"No se puede quitar","El ejercicio necesita al menos una serie.");
       break;
     }
 

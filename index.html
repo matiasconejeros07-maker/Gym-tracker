@@ -157,6 +157,7 @@ a{color:inherit;}
 .hamburger svg{width:19px;height:19px;}
 .page-title{font-size:19px;font-weight:800;letter-spacing:.03em;}
 .page-sub{font-size:12px;color:var(--text-dim);margin-top:1px;font-weight:500;}
+.section-sub{font-size:12.5px;color:var(--text-dim);margin-top:4px;line-height:1.45;max-width:44ch;}
 .topbar-spacer{flex:1;}
 .topbar-title{min-width:0;}
 .xp-pill{
@@ -345,6 +346,14 @@ a{color:inherit;}
 .rc-m-ico:last-child{margin-right:0;}
 .rc-m-ico svg{width:27px;height:27px;}
 .routine-card h3{font-size:17px;margin-bottom:8px;}
+.rc-flag{
+  display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;
+  letter-spacing:.07em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+  margin-bottom:9px;
+}
+.rc-flag svg{width:12px;height:12px;}
+.rc-flag.pinned{color:#7dffcf;background:rgba(125,255,207,.12);border:1px solid rgba(125,255,207,.3);}
+.rc-flag.top{color:#ffd66b;background:rgba(255,214,107,.1);border:1px solid rgba(255,214,107,.26);}
 .routine-card .rc-meta{font-size:12.5px;color:var(--text-dim);margin-bottom:14px;}
 .rc-stats{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-dim);font-weight:600;margin-bottom:6px;}
 .rc-stats i{width:3px;height:3px;border-radius:50%;background:var(--text-faint);display:inline-block;}
@@ -799,7 +808,7 @@ a{color:inherit;}
 @media (max-width:480px){
   .set-head,.set-row{grid-template-columns:28px minmax(0,94px) minmax(0,94px) 44px;gap:6px;justify-content:space-between;}
   .field-row{flex-direction:column;}
-  .page-sub{display:none;}
+  #pageSub{display:none;}
   #resumeSessionTxt{display:none;}
 }
 </style>
@@ -947,6 +956,7 @@ a{color:inherit;}
           <div>
             <div class="eyebrow">Entrenamiento</div>
             <h2>Rutinas</h2>
+            <div class="section-sub">Las que más entrenas van primero. Fija arriba la que quieras como principal.</div>
           </div>
           <button class="btn btn-primary" data-action="open-routine-modal">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1421,6 +1431,8 @@ const ICONS = {
   trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l14-8Z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5l-.7 5.2 3.4 3.1c.5.5.2 1.4-.5 1.4h-4.2v5.8c0 .8-1 1.3-1.6.7l-.4-.5-.4.5c-.6.6-1.6.1-1.6-.7v-5.8H4.3c-.7 0-1-.9-.5-1.4l3.4-3.1L6.5 3h3Z"/></svg>',
+  pinOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5l-.7 5.2 3.4 3.1c.5.5.2 1.4-.5 1.4h-4.2v5.8c0 .8-1 1.3-1.6.7l-.4-.5-.4.5c-.6.6-1.6.1-1.6-.7v-5.8H4.3c-.7 0-1-.9-.5-1.4l3.4-3.1L6.5 3h3Z" opacity=".5"/><path d="m3 3 18 18"/></svg>',
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>',
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
@@ -2271,13 +2283,75 @@ function renderExercisesView(){
 }
 
 /* ============================= ROUTINES VIEW ============================= */
+/* ---- routine ordering ------------------------------------------------- */
+/* Routines fixed by the athlete come first, in the order they arranged them;
+   everything else is ranked by how often it is actually trained. */
+function routineUseCount(id){
+  return state.workouts.reduce((n,w)=>n + (w.routineId===id ? 1 : 0), 0);
+}
+function pinnedRoutines(){
+  return state.routines.filter(r=>Number.isFinite(r.pinOrder)).sort((a,b)=>a.pinOrder-b.pinOrder);
+}
+function normalizePins(){
+  pinnedRoutines().forEach((r,i)=>{ r.pinOrder = i; });
+}
+function orderedRoutines(){
+  const index = new Map(state.routines.map((r,i)=>[r.id,i]));
+  return state.routines.slice().sort((a,b)=>{
+    const ap = Number.isFinite(a.pinOrder), bp = Number.isFinite(b.pinOrder);
+    if(ap !== bp) return ap ? -1 : 1;
+    if(ap && bp) return a.pinOrder - b.pinOrder;
+    const diff = routineUseCount(b.id) - routineUseCount(a.id);
+    if(diff) return diff;
+    const al = lastPerformedISO(a.id) || "", bl = lastPerformedISO(b.id) || "";
+    if(al !== bl) return bl.localeCompare(al);
+    return index.get(a.id) - index.get(b.id);
+  });
+}
+
+function pinRoutine(id){
+  const r = state.routines.find(x=>x.id===id);
+  if(!r || Number.isFinite(r.pinOrder)) return;
+  r.pinOrder = -1;          /* sorts ahead of every pinned one, then renumbered */
+  normalizePins();
+  saveState();
+  renderRoutinesView();
+  showToast(ICONS.pin, "Rutina fijada arriba", `"${r.name}" quedó como principal.`);
+}
+
+function unpinRoutine(id){
+  const r = state.routines.find(x=>x.id===id);
+  if(!r || !Number.isFinite(r.pinOrder)) return;
+  delete r.pinOrder;
+  normalizePins();
+  saveState();
+  renderRoutinesView();
+  showToast(ICONS.pinOff, "Rutina liberada", `"${r.name}" vuelve al orden por uso.`);
+}
+
+/* Moves a fixed routine one place within the fixed block. */
+function moveRoutine(id, delta){
+  normalizePins();
+  const pinned = pinnedRoutines();
+  const i = pinned.findIndex(r=>r.id===id);
+  const j = i + delta;
+  if(i < 0 || j < 0 || j >= pinned.length) return;
+  const tmp = pinned[i].pinOrder;
+  pinned[i].pinOrder = pinned[j].pinOrder;
+  pinned[j].pinOrder = tmp;
+  saveState();
+  renderRoutinesView();
+}
+
 function renderRoutinesView(){
   const grid = document.getElementById("routineGrid");
   if(!state.routines.length){
     grid.innerHTML = emptyState(ICONS.layers, "Sin rutinas", "Crea tu primera rutina para empezar a entrenar.");
     return;
   }
-  grid.innerHTML = state.routines.map((r,idx)=>{
+  const list = orderedRoutines();
+  const anyPinned = list.some(r=>Number.isFinite(r.pinOrder));
+  grid.innerHTML = list.map((r,idx)=>{
     const color = ["#22e8ff","#3f8dff","#2bffa8"][idx%3];
     const muscles = [...new Set(r.exercises.map(re=>{
       const ex = state.exercises.find(e=>e.id===re.exerciseId);
@@ -2285,19 +2359,28 @@ function renderRoutinesView(){
     }).filter(Boolean))];
     const last = lastPerformedISO(r.id);
     const totalSets = r.exercises.reduce((a,re)=>a+re.sets.length,0);
+    const uses = routineUseCount(r.id);
+    const isPinned = Number.isFinite(r.pinOrder);
+    /* Only the leading unpinned card earns the "most trained" flag, and only
+       once there is real history behind the claim. */
+    const isTop = !isPinned && !anyPinned && idx === 0 && uses >= 2;
+    const flag = isPinned
+      ? `<div class="rc-flag pinned">${ICONS.pin} Fijada</div>`
+      : isTop ? `<div class="rc-flag top">${ICONS.fire} La que más entrenas</div>` : "";
     return `<article class="routine-card">
       <div class="rc-bar" style="background:${color};box-shadow:0 0 12px ${color};"></div>
       <div class="rc-head">
         <div class="rc-muscles">${muscles.slice(0,3).map(m=>`<span class="rc-m-ico" style="${muscleBadgeStyle(MUSCLE_COLORS[m]||'#3f8dff')}" title="${escapeHtml(m)}">${muscleIcon(m)}</span>`).join("")}</div>
         <button class="card-kebab" data-action="card-menu" data-kind="routine" data-id="${r.id}" aria-label="Opciones de ${escapeHtml(r.name)}" aria-haspopup="menu">${ICONS.kebab}</button>
       </div>
+      ${flag}
       <h3>${escapeHtml(r.name)}</h3>
       <div class="rc-stats">
         <span>${r.exercises.length} ejercicios</span><i></i>
         <span>${totalSets} series</span><i></i>
         <span>${r.restSeconds || 90}s</span>
       </div>
-      <div class="rc-meta">${last ? "Última vez: "+fmtDate(last) : "Nunca realizada"}</div>
+      <div class="rc-meta">${uses ? `${uses} ${uses===1?"entreno":"entrenos"} · última vez ${fmtDate(last)}` : "Nunca realizada"}</div>
       <div class="rc-foot">
         <button class="btn btn-primary btn-sm" data-action="start-routine" data-id="${r.id}">${ICONS.play} Empezar</button>
       </div>
@@ -2449,6 +2532,7 @@ function saveRoutineFromModal(){
 
 function deleteRoutine(id){
   state.routines = state.routines.filter(r=>r.id!==id);
+  normalizePins();
   saveState();
   renderRoutinesView();
 }
@@ -3277,13 +3361,24 @@ function cardMenuItems(kind, id){
   }
   const r = state.routines.find(x=>x.id===id);
   if(!r) return null;
-  return { title: r.name, items: [
+  const items = [];
+  if(Number.isFinite(r.pinOrder)){
+    const pinned = pinnedRoutines();
+    const i = pinned.findIndex(x=>x.id===id);
+    if(i > 0) items.push({ label:"Subir", icon:ICONS.up, run:()=>moveRoutine(id,-1) });
+    if(i < pinned.length-1) items.push({ label:"Bajar", icon:ICONS.down, run:()=>moveRoutine(id,1) });
+    items.push({ label:"Quitar de arriba", icon:ICONS.pinOff, run:()=>unpinRoutine(id) });
+  } else {
+    items.push({ label:"Fijar arriba", icon:ICONS.pin, run:()=>pinRoutine(id) });
+  }
+  items.push({ separator:true });
+  return { title: r.name, items: items.concat([
     { label:"Editar rutina", icon:ICONS.edit, run:()=>openRoutineModal(id) },
     { label:"Duplicar", icon:ICONS.copy, run:()=>duplicateRoutine(id) },
     { separator:true },
     { label:"Eliminar", icon:ICONS.trash, danger:true,
       run:()=>openConfirm(`¿Eliminar "${r.name}"? Tu historial de entrenamientos no se verá afectado.`, ()=>deleteRoutine(id)) }
-  ]};
+  ])};
 }
 
 function duplicateExercise(id){

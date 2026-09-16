@@ -471,6 +471,12 @@ a{color:inherit;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
+.backup-state{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim);
+  background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;padding:11px 13px;
+}
+.backup-state b{color:var(--text);}
+.backup-state .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green-dim);flex:none;}
 
 /* intensity rating (1-5 flames) */
 .rate-context{
@@ -1071,10 +1077,29 @@ a{color:inherit;}
           </div>
         </div>
 
+        <div class="card weigh-notice hidden" id="recoveryNotice" style="margin-top:16px;">
+          <div class="wn-ico icon-badge"></div>
+          <div style="min-width:0;">
+            <b id="recoveryTitle">Copia de seguridad</b>
+            <p id="recoveryMsg"></p>
+            <div class="wn-actions" id="recoveryActions"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h3 style="font-size:15px;margin-bottom:4px;">Copia de seguridad</h3>
+          <div class="section-sub" style="margin-bottom:12px;">Tus datos viven en este navegador. Exporta un archivo de vez en cuando: es la única copia que sobrevive si borras los datos del sitio o cambias de teléfono.</div>
+          <div class="backup-state" id="backupState"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+            <button class="btn btn-primary" data-action="export-data">Exportar copia</button>
+            <button class="btn" data-action="import-data">Restaurar desde archivo</button>
+          </div>
+          <input type="file" id="importFileInput" accept="application/json,.json" class="hidden">
+        </div>
+
         <div class="card" style="margin-top:16px;">
           <h3 style="font-size:15px;margin-bottom:10px;">Datos</h3>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn" data-action="export-data">Exportar datos (JSON)</button>
             <button class="btn btn-danger" data-action="reset-data">Reiniciar todo</button>
           </div>
         </div>
@@ -1557,13 +1582,81 @@ function defaultState(){
 }
 
 /* ============================= PERSISTENCE ============================= */
+/* ---------------------------------------------------------------------------
+   Storage safety. Losing an athlete's history is the worst thing this app can
+   do, so the state is never replaced silently: every save keeps the previous
+   copy plus a daily snapshot, a copy is only ever overwritten by one with at
+   least as much content, and anything unreadable is set aside instead of
+   discarded.
+--------------------------------------------------------------------------- */
+const BACKUP_KEY = "pulse_gym_state_backup";
+const RESCUE_KEY = "pulse_gym_state_rescue";
+const DAILY_PREFIX = "pulse_gym_daily_";
+const DAILY_KEEP = 4;
+let recoveryNotice = null;   /* set during load, surfaced once the UI is up */
+
+/* How much of the athlete's own work a snapshot holds. Used so a backup is
+   never traded for an emptier one. */
+function contentScore(st){
+  if(!st || typeof st !== "object") return -1;
+  const ex = Array.isArray(st.exercises) ? st.exercises.filter(e=>e && e.custom).length : 0;
+  const ro = Array.isArray(st.routines) ? st.routines.filter(r=>r && r.custom).length : 0;
+  const wo = Array.isArray(st.workouts) ? st.workouts.length : 0;
+  const wl = st.profile && Array.isArray(st.profile.weightLog) ? st.profile.weightLog.length : 0;
+  return wo*3 + ro*2 + ex*2 + wl;
+}
+
+function readSnapshot(key){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return validState(parsed) ? parsed : null;
+  }catch(err){ return null; }
+}
+
+function validState(st){
+  return !!st && typeof st === "object" && Array.isArray(st.exercises) && Array.isArray(st.routines);
+}
+
+function dailyKeys(){
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.indexOf(DAILY_PREFIX) === 0) keys.push(k);
+  }
+  return keys.sort();
+}
+
+/* The richest copy kept anywhere, so a wiped main key can always be undone. */
+function bestBackup(){
+  /* Newest first, so that among copies holding the same amount of work the
+     most recent one wins. */
+  const candidates = dailyKeys().reverse().concat([BACKUP_KEY]);
+  let best = null, bestScore = 0, bestKey = null;
+  candidates.forEach(k=>{
+    const snap = readSnapshot(k);
+    const score = contentScore(snap);
+    if(snap && score > bestScore){ best = snap; bestScore = score; bestKey = k; }
+  });
+  return best ? { state: best, score: bestScore, key: bestKey } : null;
+}
+
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    if(!parsed || typeof parsed !== "object" || !Array.isArray(parsed.exercises) || !Array.isArray(parsed.routines)){
+    if(!raw){
+      /* The main key is gone but a backup may have survived. */
+      const backup = bestBackup();
+      if(backup){
+        recoveryNotice = { kind:"restored", score:backup.score };
+        return migrateState(backup.state);
+      }
       return defaultState();
+    }
+    const parsed = JSON.parse(raw);
+    if(!validState(parsed)){
+      throw new Error("estructura inválida");
     }
     parsed.profile = parsed.profile || { name:"Atleta", createdAt:todayISO(), soundOn:true, weightLog:[] };
     if(!parsed.profile.avatar || typeof parsed.profile.avatar !== "object") parsed.profile.avatar = defaultAvatar();
@@ -1577,16 +1670,78 @@ function loadState(){
     parsed.ui = parsed.ui || { currentView:"dashboard", exerciseFilter:"Todos" };
     return parsed;
   }catch(err){
-    console.warn("PULSE: estado corrupto, se reinicia.", err);
+    console.warn("PULSE: no se pudo leer el estado guardado.", err);
+    /* Keep the unreadable bytes: they may still be rescued by hand. */
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) localStorage.setItem(RESCUE_KEY, raw);
+    }catch(e){}
+    const backup = bestBackup();
+    if(backup){
+      recoveryNotice = { kind:"restored", score:backup.score };
+      return migrateState(backup.state);
+    }
+    recoveryNotice = { kind:"corrupt" };
     return defaultState();
   }
 }
+
+/* Runs the same normalisation on a restored backup that a normal load does. */
+function migrateState(st){
+  st.profile = st.profile || { name:"Atleta", createdAt:todayISO(), soundOn:true, weightLog:[] };
+  if(!st.profile.avatar || typeof st.profile.avatar !== "object") st.profile.avatar = defaultAvatar();
+  if(!Array.isArray(st.profile.weightLog)) st.profile.weightLog = [];
+  st.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  if(st.profile.weighInSnooze === undefined) st.profile.weighInSnooze = null;
+  st.workouts = Array.isArray(st.workouts) ? st.workouts : [];
+  st.achievements = st.achievements && typeof st.achievements==="object" ? st.achievements : {};
+  st.xp = Number.isFinite(st.xp) ? st.xp : 0;
+  st.activeSession = st.activeSession || null;
+  st.ui = st.ui || { currentView:"dashboard", exerciseFilter:"Todos" };
+  return st;
+}
+
 function saveState(){
+  let json;
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    json = JSON.stringify(state);
+  }catch(err){
+    console.warn("PULSE: no se pudo serializar el estado.", err);
+    return;
+  }
+  let previous = null;
+  try{ previous = localStorage.getItem(STORAGE_KEY); }catch(e){}
+  try{
+    localStorage.setItem(STORAGE_KEY, json);
   }catch(err){
     console.warn("PULSE: no se pudo guardar el estado.", err);
-    showToast(ICONS.x, "Almacenamiento lleno", "No se pudieron guardar los cambios.");
+    showToast(ICONS.x, "Almacenamiento lleno", "No se pudieron guardar los cambios. Exporta tus datos por seguridad.");
+    return;
+  }
+  writeBackups(previous, json);
+}
+
+/* Keeps the copy from before this save, plus one snapshot per day. Neither is
+   ever replaced by a copy holding less work than the one already stored. */
+function writeBackups(previous, json){
+  const score = contentScore(state);
+  if(score <= 0) return;
+  try{
+    if(previous){
+      const prevParsed = JSON.parse(previous);
+      if(validState(prevParsed) && contentScore(prevParsed) >= contentScore(readSnapshot(BACKUP_KEY))){
+        localStorage.setItem(BACKUP_KEY, previous);
+      }
+    }
+    const todayKey = DAILY_PREFIX + todayISO();
+    if(score >= contentScore(readSnapshot(todayKey))){
+      localStorage.setItem(todayKey, json);
+    }
+    const keys = dailyKeys();
+    while(keys.length > DAILY_KEEP){ localStorage.removeItem(keys.shift()); }
+  }catch(err){
+    /* A full quota must never break saving the state itself. */
+    console.warn("PULSE: no se pudo escribir la copia de seguridad.", err);
   }
 }
 
@@ -3047,6 +3202,8 @@ function renderProfileView(){
   });
 
   renderWeighInNotice();
+  renderBackupState();
+  renderRecoveryNotice();
 }
 
 function renderWeighInNotice(){
@@ -3210,16 +3367,104 @@ function exportData(){
     const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "pulse-gym-data.json";
+    a.href = url; a.download = `pulse-gym-${todayISO()}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    showToast(ICONS.check, "Datos exportados", "Se descargó el archivo JSON.");
+    state.profile.lastExport = new Date().toISOString();
+    saveState();
+    if(state.ui.currentView === "profile") renderBackupState();
+    showToast(ICONS.check, "Copia descargada", "Guárdala en un lugar seguro: con ella puedes restaurar todo.");
   }catch(e){
     showToast(ICONS.x, "Error al exportar", "No se pudo generar el archivo.");
   }
 }
 
+/* Restores a state exported earlier. The current one is snapshotted first, so
+   importing the wrong file is never final. */
+function importData(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onerror = ()=>showToast(ICONS.x, "No se pudo leer", "Intenta con otro archivo.");
+  reader.onload = ev=>{
+    let parsed;
+    try{ parsed = JSON.parse(ev.target.result); }
+    catch(err){ showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de PULSE."); return; }
+    if(!validState(parsed)){
+      showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de PULSE.");
+      return;
+    }
+    const incoming = contentScore(parsed);
+    const current = contentScore(state);
+    const msg = current > incoming
+      ? `La copia trae menos historial que lo que tienes ahora (${incoming} vs. ${current}). ¿Restaurar igual? Tus datos actuales quedarán guardados como copia.`
+      : `Se restaurarán ${Array.isArray(parsed.workouts)?parsed.workouts.length:0} entrenamientos y tus rutinas. ¿Continuar?`;
+    openConfirm(msg, ()=>{
+      try{ localStorage.setItem(BACKUP_KEY, JSON.stringify(state)); }catch(e){}
+      state = migrateState(parsed);
+      session = state.activeSession || null;
+      saveState();
+      navigate("dashboard");
+      showToast(ICONS.check, "Datos restaurados", "Tu historial volvió a la app.");
+    });
+  };
+  reader.readAsText(file);
+}
+
+function renderBackupState(){
+  const el = document.getElementById("backupState");
+  if(!el) return;
+  const last = state.profile.lastExport;
+  const backup = bestBackup();
+  const auto = backup ? `${dailyKeys().length + 1} copias automáticas en este navegador` : "sin copias automáticas todavía";
+  el.innerHTML = last
+    ? `<span class="dot"></span><span>Última copia exportada: <b>${escapeHtml(fmtDateLong(last.slice(0,10)))}</b> · ${auto}</span>`
+    : `<span class="dot" style="background:var(--danger);box-shadow:none;"></span><span>Todavía no has exportado ninguna copia · ${auto}</span>`;
+}
+
+/* Shown when the app had to fall back to a backup, or could not read what was
+   stored. Either way the athlete decides what happens next. */
+function renderRecoveryNotice(){
+  const card = document.getElementById("recoveryNotice");
+  if(!card) return;
+  if(!recoveryNotice){ card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  card.querySelector(".wn-ico").innerHTML = ICONS.layers;
+  const title = document.getElementById("recoveryTitle");
+  const msg = document.getElementById("recoveryMsg");
+  const actions = document.getElementById("recoveryActions");
+  if(recoveryNotice.kind === "restored"){
+    title.textContent = "Recuperamos tus datos de una copia";
+    msg.textContent = "Lo que había guardado en este navegador no se pudo leer o desapareció, así que restauramos la copia automática más completa. Exporta un archivo ahora para tener un respaldo fuera del navegador.";
+    actions.innerHTML = `<button class="btn btn-sm btn-primary" data-action="export-data">Exportar copia ahora</button>
+      <button class="btn btn-sm btn-ghost" data-action="dismiss-recovery">Entendido</button>`;
+  } else {
+    title.textContent = "No pudimos leer los datos guardados";
+    msg.textContent = "La app arrancó vacía porque el contenido guardado estaba dañado. Lo conservamos tal cual por si se puede rescatar, y puedes restaurar una copia que hayas exportado antes.";
+    actions.innerHTML = `<button class="btn btn-sm btn-primary" data-action="import-data">Restaurar desde archivo</button>
+      <button class="btn btn-sm btn-ghost" data-action="download-rescue">Descargar lo dañado</button>
+      <button class="btn btn-sm btn-ghost" data-action="dismiss-recovery">Entendido</button>`;
+  }
+}
+
+function downloadRescue(){
+  let raw = null;
+  try{ raw = localStorage.getItem(RESCUE_KEY); }catch(e){}
+  if(!raw){ showToast(ICONS.x, "Nada que descargar", "No quedó contenido dañado guardado."); return; }
+  const blob = new Blob([raw], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `pulse-datos-dañados-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function dismissRecovery(){
+  recoveryNotice = null;
+  renderRecoveryNotice();
+}
+
 function resetAllData(){
+  try{ localStorage.setItem(BACKUP_KEY, JSON.stringify(state)); }catch(e){}
   state = defaultState();
   saveState();
   session = null;
@@ -3525,8 +3770,16 @@ document.addEventListener("click", function(e){
     case "save-weigh-in": saveWeighIn(); break;
     case "skip-weigh-in": skipWeighIn(); break;
     case "export-data": exportData(); break;
+    case "import-data": document.getElementById("importFileInput").click(); break;
+    case "download-rescue": downloadRescue(); break;
+    case "dismiss-recovery": dismissRecovery(); break;
     case "reset-data": openConfirm("Esto borrará TODOS tus datos (ejercicios, rutinas, historial y logros). ¿Continuar?", resetAllData); break;
   }
+});
+
+document.getElementById("importFileInput").addEventListener("change", function(e){
+  importData(e.target.files && e.target.files[0]);
+  e.target.value = "";
 });
 
 document.getElementById("avatarFileInput").addEventListener("change", function(e){
@@ -3657,8 +3910,19 @@ function init(){
     session = state.activeSession;
     state.ui.currentView = "workout";
   }
+  /* A recovered state only lives in memory until something writes it back. */
+  if(recoveryNotice && recoveryNotice.kind === "restored") saveState();
   checkAchievements();
   renderRoute();
+  if(recoveryNotice){
+    setTimeout(()=>{
+      if(recoveryNotice.kind === "restored"){
+        showToast(ICONS.layers, "Datos recuperados de una copia", "Revisa tu perfil y exporta un respaldo.");
+      } else {
+        showToast(ICONS.x, "No se pudieron leer tus datos", "Entra a tu perfil para restaurar una copia.");
+      }
+    }, 700);
+  }
   setTimeout(()=>maybePromptWeighIn(0), 900);
 }
 

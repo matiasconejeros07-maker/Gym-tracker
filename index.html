@@ -462,6 +462,39 @@ a{color:inherit;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
+
+/* intensity rating (1-5 flames) */
+.rate-context{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--text-dim);
+  background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;
+  padding:10px 13px;margin-bottom:16px;
+}
+.rate-context b{color:var(--text);font-size:13.5px;}
+.fire-rate{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;--fire:var(--cyan);}
+.fire-btn{
+  aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  border-radius:16px;border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--text-faint);cursor:pointer;padding:0;
+  transition:transform .16s ease, box-shadow .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
+}
+.fire-btn svg{width:26px;height:26px;}
+.fire-btn.on{
+  color:var(--fire);
+  border-color:color-mix(in srgb, var(--fire) 45%, transparent);
+  background:linear-gradient(160deg, color-mix(in srgb, var(--fire) 22%, transparent), rgba(255,255,255,.02));
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.22), inset 0 -5px 10px rgba(0,0,0,.3), 0 0 22px -8px var(--fire);
+  transform:translateY(-2px);
+}
+.fire-btn:active{transform:scale(.93);}
+.fire-label{
+  text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;
+  margin-top:14px;min-height:22px;color:var(--fire-label, var(--text-dim));
+}
+.intensity-note{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim);margin-top:12px;}
+.intensity-note .fires{display:inline-flex;gap:3px;}
+.intensity-note .fires svg{width:15px;height:15px;}
+.intensity-note .fires .off{color:rgba(255,255,255,.14);}
 .weigh-notice{
   display:flex;gap:13px;align-items:flex-start;margin-top:16px;
   border-color:color-mix(in srgb, var(--cyan) 30%, transparent);
@@ -941,6 +974,7 @@ a{color:inherit;}
             <h3>Volumen por sesión</h3>
             <div class="chart-meta">Series completadas por sesión — últimas 12</div>
             <div class="chart-wrap" id="chartVolumeHistory"></div>
+            <div class="intensity-note" id="intensityNote"></div>
           </div>
           <div class="card chart-card">
             <h3>Progresión de fuerza</h3>
@@ -1127,6 +1161,21 @@ a{color:inherit;}
     <div class="modal-foot">
       <button class="btn btn-ghost" data-action="close-modal">Cancelar</button>
       <button class="btn btn-danger" id="confirmYesBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalIntensity">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-head">
+      <h3>¿Cómo fue la intensidad?</h3>
+    </div>
+    <p class="weigh-lead">Una sola pregunta: ¿cuánto te exigió este entrenamiento?</p>
+    <div class="rate-context" id="intensityContext"></div>
+    <div class="fire-rate" id="intensityScale"></div>
+    <div class="fire-label" id="intensityLabel">Toca un nivel para guardarlo</div>
+    <div class="modal-foot" style="justify-content:center;">
+      <button class="btn btn-ghost btn-sm" data-action="skip-intensity">Omitir</button>
     </div>
   </div>
 </div>
@@ -2023,7 +2072,10 @@ function renderLineChart(points, prefix, opts){
   const lastC = coords[coords.length-1], lastV = points[points.length-1].value;
   const endAnchor = lastC[0] > plot.left + plot.w - 52 ? "end" : "start";
   const endX = endAnchor === "end" ? lastC[0] - 8 : lastC[0] + 8;
-  const endLabel = `<text x="${endX.toFixed(1)}" y="${(lastC[1] - 10).toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(unitLabel(opts.unit, lastV)) : ""}</text>`;
+  /* Keep the endpoint label inside the plot when the last point sits at the top
+     of the scale: above the line if there is room, just below it otherwise. */
+  const endY = lastC[1] - 10 < 13 ? lastC[1] + 19 : lastC[1] - 10;
+  const endLabel = `<text x="${endX.toFixed(1)}" y="${endY.toFixed(1)}" font-size="12" font-weight="700" fill="#eaf6ff" text-anchor="${endAnchor}" font-family="Space Grotesk">${fmtNum(lastV)}${opts.unit ? " "+escapeHtml(unitLabel(opts.unit, lastV)) : ""}</text>`;
   return `${chartHero(points, opts.unit, opts)}
   <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de línea")}">
     <defs>
@@ -2649,11 +2701,90 @@ function finishSession(){
   state.xp += xpGain;
   session = null;
   state.activeSession = null;
+  /* The workout is stored before the question is asked, so closing the modal
+     can never cost the athlete the session they just finished. */
   saveState();
-  checkAchievements();
   navigate("dashboard");
   showToast(ICONS.bolt, "Entrenamiento completado", `+${xpGain} XP · ${totalSetsDone} series de volumen`);
-  setTimeout(()=>maybePromptWeighIn(0), 2600);
+  askIntensity(workout.id);
+}
+
+/* ======================= PERCEIVED INTENSITY (1-5) ====================== */
+const INTENSITY_LEVELS = [
+  { level:1, label:"Muy suave",  color:"#4fc3ff" },
+  { level:2, label:"Suave",      color:"#2bffa8" },
+  { level:3, label:"Moderada",   color:"#ffd66b" },
+  { level:4, label:"Exigente",   color:"#ff9f43" },
+  { level:5, label:"Al límite",  color:"#ff5d7a" }
+];
+const INTENSITY_BY_LEVEL = {};
+INTENSITY_LEVELS.forEach(l=>{ INTENSITY_BY_LEVEL[l.level] = l; });
+let pendingIntensityId = null;
+
+function fireRow(level, total){
+  total = total || 5;
+  const color = (INTENSITY_BY_LEVEL[Math.round(level)] || INTENSITY_LEVELS[2]).color;
+  let out = "";
+  for(let i=1;i<=total;i++){
+    out += `<span class="${i<=level ? "" : "off"}" style="${i<=level ? `color:${color};` : ""}display:inline-flex;">${ICONS.fire}</span>`;
+  }
+  return `<span class="fires">${out}</span>`;
+}
+
+function askIntensity(workoutId){
+  pendingIntensityId = workoutId;
+  const w = state.workouts.find(x=>x.id===workoutId);
+  if(!w){ afterIntensity(); return; }
+  const mins = Math.max(1, Math.round((w.durationSeconds||0)/60));
+  document.getElementById("intensityContext").innerHTML =
+    `<b>${escapeHtml(w.routineName||"Entrenamiento")}</b><span>· ${workoutSets(w)} series · ${mins} min</span>`;
+  document.getElementById("intensityScale").innerHTML = INTENSITY_LEVELS.map(l=>
+    `<button class="fire-btn" data-action="set-intensity" data-level="${l.level}" data-preview="${l.level}"
+             aria-label="Intensidad ${l.level} de 5: ${l.label}">${ICONS.fire}</button>`).join("");
+  previewIntensity(0);
+  openModal("modalIntensity");
+}
+
+/* Lights the flames up to `level` so the scale reads as one rising gauge. */
+function previewIntensity(level){
+  const scale = document.getElementById("intensityScale");
+  const def = INTENSITY_BY_LEVEL[level];
+  scale.style.setProperty("--fire", def ? def.color : "var(--cyan)");
+  scale.querySelectorAll(".fire-btn").forEach((btn,i)=>{
+    btn.classList.toggle("on", i < level);
+  });
+  const label = document.getElementById("intensityLabel");
+  label.textContent = def ? `${level}/5 · ${def.label}` : "Toca un nivel para guardarlo";
+  label.style.setProperty("--fire-label", def ? def.color : "var(--text-dim)");
+}
+
+function setIntensity(level){
+  level = clamp(Math.round(num(level,0)), 1, 5);
+  const w = state.workouts.find(x=>x.id===pendingIntensityId);
+  if(w){
+    w.intensity = level;
+    saveState();
+  }
+  previewIntensity(level);
+  const def = INTENSITY_BY_LEVEL[level];
+  setTimeout(()=>{
+    closeModal();
+    showToast(ICONS.fire, "Intensidad registrada", `${level}/5 · ${def.label}`);
+    afterIntensity();
+  }, 260);
+}
+
+function skipIntensity(){
+  closeModal();
+  afterIntensity();
+}
+
+/* Achievements wait for the question so their celebration does not cover it. */
+function afterIntensity(){
+  pendingIntensityId = null;
+  checkAchievements();
+  renderRoute();
+  setTimeout(()=>maybePromptWeighIn(0), 2200);
 }
 
 function cancelSession(){
@@ -2673,7 +2804,9 @@ function renderProgressView(){
     const kg = Math.round(workoutVolume(w));
     return {
       label: fmtDate(w.date),
-      tip: `Sesión ${offset+i+1} · ${escapeHtml(w.routineName||"")} · ${fmtDate(w.date)}` + (kg ? ` · ${kg.toLocaleString('es-CL')} kg` : ""),
+      tip: `Sesión ${offset+i+1} · ${escapeHtml(w.routineName||"")} · ${fmtDate(w.date)}`
+        + (kg ? ` · ${kg.toLocaleString('es-CL')} kg` : "")
+        + (w.intensity ? ` · intensidad ${w.intensity}/5` : ""),
       value: workoutSets(w)
     };
   });
@@ -2681,6 +2814,16 @@ function renderProgressView(){
     unit:"series", zeroBase:true, aria:"Series completadas en cada una de las últimas sesiones",
     emptyMsg:"Completa entrenamientos para ver tu volumen histórico."
   });
+
+  const rated = last12.filter(w=>w.intensity);
+  const note = document.getElementById("intensityNote");
+  if(rated.length){
+    const avg = rated.reduce((a,w)=>a+w.intensity,0) / rated.length;
+    const rounded = Math.round(avg*10)/10;
+    note.innerHTML = `${fireRow(Math.round(avg))}<span>Intensidad media <b style="color:var(--text);">${fmtNum(rounded)}/5</b> · ${INTENSITY_BY_LEVEL[Math.round(avg)].label.toLowerCase()} en ${rated.length} ${rated.length===1?"sesión":"sesiones"}</span>`;
+  } else {
+    note.innerHTML = `<span>Al terminar un entrenamiento te preguntamos su intensidad; aquí verás tu promedio.</span>`;
+  }
 
   const select = document.getElementById("progressExSelect");
   const exercisesWithData = state.exercises.filter(e=>state.workouts.some(w=>w.exercises.some(we=>we.exerciseId===e.id)));
@@ -3280,6 +3423,8 @@ document.addEventListener("click", function(e){
     case "pick-avatar-photo": document.getElementById("avatarFileInput").click(); break;
 
     case "save-profile": saveProfileSettings(); break;
+    case "set-intensity": setIntensity(actionEl.getAttribute("data-level")); break;
+    case "skip-intensity": skipIntensity(); break;
     case "open-weigh-in": openWeighIn(); break;
     case "weigh-in-step": stepWeighIn(num(actionEl.getAttribute("data-step"), 0)); break;
     case "save-weigh-in": saveWeighIn(); break;
@@ -3324,6 +3469,7 @@ document.addEventListener("click", function(e){
   if(e.target.id === "modalExercise" || e.target.id === "modalRoutine" || e.target.id === "modalConfirm" || e.target.id === "modalAvatar"){
     closeModal();
   }
+  if(e.target.id === "modalIntensity"){ skipIntensity(); }
   if(e.target.id === "celebrateOverlay"){
     advanceCelebration();
   }
@@ -3334,6 +3480,7 @@ document.addEventListener("keydown", function(e){
     const anchor = menuAnchor;
     closeCtxMenu();
     if(hadMenu){ if(anchor) anchor.focus(); return; }
+    if(document.getElementById("modalIntensity").classList.contains("open")){ skipIntensity(); return; }
     if(document.getElementById("modalWeighIn").classList.contains("open")){ skipWeighIn(); return; }
     closeModal();
     if(document.getElementById("celebrateOverlay").classList.contains("open")) advanceCelebration();
@@ -3342,6 +3489,15 @@ document.addEventListener("keydown", function(e){
 
 document.addEventListener("keydown", function(e){
   if(e.key === "Enter" && e.target.id === "weighInValue"){ e.preventDefault(); saveWeighIn(); }
+});
+
+document.addEventListener("pointerover", function(e){
+  const btn = e.target.closest ? e.target.closest("[data-preview]") : null;
+  if(btn) previewIntensity(parseInt(btn.getAttribute("data-preview"),10));
+});
+document.getElementById("intensityScale").addEventListener("pointerleave", function(){
+  const w = state.workouts.find(x=>x.id===pendingIntensityId);
+  previewIntensity(w && w.intensity ? w.intensity : 0);
 });
 
 document.addEventListener("input", function(e){

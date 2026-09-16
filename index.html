@@ -19,11 +19,11 @@
   --border:rgba(93,214,255,.16);
   --border-strong:rgba(93,214,255,.34);
   --cyan:#22e8ff;
-  --cyan-dim:rgba(34,232,255,.45);
+  --cyan-dim:color-mix(in srgb, var(--cyan) 45%, transparent);
   --blue:#3f8dff;
-  --blue-dim:rgba(63,141,255,.45);
+  --blue-dim:color-mix(in srgb, var(--blue) 45%, transparent);
   --green:#2bffa8;
-  --green-dim:rgba(43,255,168,.45);
+  --green-dim:color-mix(in srgb, var(--green) 45%, transparent);
   --mint:#7dffcf;
   --text:#eaf6ff;
   --text-dim:#a3c0d4;
@@ -32,11 +32,62 @@
   --radius-lg:20px;
   --radius-md:14px;
   --radius-sm:9px;
+  --surf-1:rgba(14,26,40,.94);
+  --surf-2:rgba(8,14,22,.96);
+  --surf-3:rgba(11,21,33,.95);
+  --grid-line:color-mix(in srgb, var(--blue) 8%, transparent);
   --shadow-glow:0 0 0 1px var(--border), 0 18px 40px -18px rgba(0,0,0,.7);
   --sidebar-w:236px;
   --topbar-h:68px;
   --bottomnav-h:64px;
 }
+/* ---------------------------------------------------------------------------
+   Colour themes. Every accent in the app resolves through these tokens, so a
+   theme repaints the whole interface — not just the profile.
+--------------------------------------------------------------------------- */
+body[data-theme="aurora"]{
+  --bg:#0a0610;
+  --bg2:#120a1b;
+  --panel:#170e22;
+  --panel-2:#1d1329;
+  --border:rgba(255,160,220,.17);
+  --border-strong:rgba(255,160,220,.36);
+  --cyan:#ff6fd8;
+  --cyan-dim:rgba(255,111,216,.45);
+  --blue:#a97bff;
+  --blue-dim:rgba(169,123,255,.45);
+  --green:#ffc94d;
+  --green-dim:rgba(255,201,77,.45);
+  --mint:#ffb3e6;
+  --text-dim:#d9bfd6;
+  --text-faint:#b195b4;
+  --surf-1:rgba(32,19,44,.95);
+  --surf-2:rgba(17,10,24,.96);
+  --surf-3:rgba(26,15,36,.95);
+  --grid-line:rgba(169,123,255,.09);
+}
+body[data-theme="orquidea"]{
+  --bg:#07060f;
+  --bg2:#0e0b1a;
+  --panel:#120f22;
+  --panel-2:#181328;
+  --border:rgba(190,160,255,.17);
+  --border-strong:rgba(190,160,255,.36);
+  --cyan:#c07bff;
+  --cyan-dim:rgba(192,123,255,.45);
+  --blue:#7c6bff;
+  --blue-dim:rgba(124,107,255,.45);
+  --green:#ff9ecb;
+  --green-dim:rgba(255,158,203,.45);
+  --mint:#e0b7ff;
+  --text-dim:#cfc2e6;
+  --text-faint:#a596bf;
+  --surf-1:rgba(26,20,46,.95);
+  --surf-2:rgba(14,11,26,.96);
+  --surf-3:rgba(21,16,38,.95);
+  --grid-line:rgba(124,107,255,.09);
+}
+
 *,*::before,*::after{box-sizing:border-box;}
 html{-webkit-text-size-adjust:100%;}
 body{
@@ -88,8 +139,8 @@ a{color:inherit;}
 .bg-grid{
   position:absolute;inset:-10% -10% -10% -10%;
   background-image:
-    linear-gradient(rgba(63,141,255,.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(63,141,255,.08) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size:42px 42px;
   transform:perspective(600px) rotateX(58deg) translateY(0);
   transform-origin:center bottom;
@@ -135,14 +186,14 @@ a{color:inherit;}
 .nav-item svg{width:19px;height:19px;flex:none;opacity:.85;}
 .nav-item:hover{color:var(--text);background:rgba(93,214,255,.06);}
 .nav-item.active{
-  color:var(--cyan);background:rgba(34,232,255,.08);
+  color:var(--cyan);background:color-mix(in srgb, var(--cyan) 8%, transparent);
   border-color:var(--border-strong);
   box-shadow:0 0 16px -6px var(--cyan-dim), inset 0 0 12px -8px var(--cyan-dim);
 }
 .nav-item.active svg{opacity:1;filter:drop-shadow(0 0 5px var(--cyan-dim));}
 .nav-spacer{flex:1;}
 .sidebar-foot{padding:12px 10px 4px;border-top:1px solid var(--border);margin-top:8px;}
-.streak-chip-side{display:flex;align-items:center;gap:9px;padding:10px;border-radius:var(--radius-sm);background:rgba(43,255,168,.06);border:1px solid rgba(43,255,168,.18);}
+.streak-chip-side{display:flex;align-items:center;gap:9px;padding:10px;border-radius:var(--radius-sm);background:color-mix(in srgb, var(--green) 6%, transparent);border:1px solid color-mix(in srgb, var(--green) 18%, transparent);}
 .streak-chip-side svg{width:18px;height:18px;color:var(--green);flex:none;}
 .streak-chip-side b{font-family:'Space Grotesk',sans-serif;color:var(--green);font-size:14px;}
 .streak-chip-side span{font-size:11.5px;color:var(--text-dim);display:block;}
@@ -162,7 +213,7 @@ a{color:inherit;}
 .topbar-title{min-width:0;}
 .xp-pill{
   display:flex;align-items:center;gap:9px;padding:7px 12px 7px 8px;border-radius:999px;
-  border:1px solid var(--border-strong);background:rgba(63,141,255,.07);cursor:pointer;
+  border:1px solid var(--border-strong);background:color-mix(in srgb, var(--blue) 7%, transparent);cursor:pointer;
 }
 .xp-ring{width:30px;height:30px;flex:none;}
 .xp-pill .lvl-txt{font-family:'Space Grotesk',sans-serif;font-size:12.5px;color:var(--cyan);font-weight:700;}
@@ -209,7 +260,7 @@ a{color:inherit;}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
 
 .card{
-  background:linear-gradient(160deg,rgba(14,26,40,.94),rgba(8,14,22,.96));
+  background:linear-gradient(160deg,var(--surf-1),var(--surf-2));
   border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;
   box-shadow:var(--shadow-glow);
 }
@@ -285,7 +336,7 @@ a{color:inherit;}
 .chip-select{display:flex;gap:6px;flex-wrap:wrap;}
 .chip{padding:8px 13px;border-radius:999px;border:1px solid var(--border);color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.02);}
 .chip:hover{color:var(--text);}
-.chip.active{background:rgba(34,232,255,.12);border-color:var(--border-strong);color:var(--cyan);}
+.chip.active{background:color-mix(in srgb, var(--cyan) 12%, transparent);border-color:var(--border-strong);color:var(--cyan);}
 
 .chip-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;flex:none;}
 .chip{display:inline-flex;align-items:center;}
@@ -303,12 +354,12 @@ a{color:inherit;}
 .ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px;}
 .ex-card{
   border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;
-  background:linear-gradient(160deg, color-mix(in srgb, var(--c,#3f8dff) 9%, rgba(11,21,33,.95)), rgba(8,14,22,.96));
+  background:linear-gradient(160deg, color-mix(in srgb, var(--c,var(--blue)) 9%, var(--surf-3)), var(--surf-2));
   transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;position:relative;
   display:flex;flex-direction:column;
 }
 .ex-card .ex-foot{margin-top:auto;}
-.ex-card:hover{border-color:color-mix(in srgb, var(--c,#3f8dff) 40%, transparent);transform:translateY(-3px);box-shadow:0 16px 30px -20px rgba(0,0,0,.8);}
+.ex-card:hover{border-color:color-mix(in srgb, var(--c,var(--blue)) 40%, transparent);transform:translateY(-3px);box-shadow:0 16px 30px -20px rgba(0,0,0,.8);}
 .ex-card .ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .ex-card .ex-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none;color:#04141a;}
 .ex-card .ex-icon svg{width:40px;height:40px;}
@@ -334,14 +385,14 @@ a{color:inherit;}
 
 /* routines */
 .routine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
-.routine-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;background:linear-gradient(155deg,rgba(14,26,40,.94),rgba(8,14,22,.96));position:relative;overflow:hidden;}
+.routine-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;background:linear-gradient(155deg,var(--surf-1),var(--surf-2));position:relative;overflow:hidden;}
 .routine-card .rc-bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
 .routine-card .rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px;}
 .rc-muscles{display:flex;}
 .rc-m-ico{
   width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#04141a;
   box-shadow:inset 0 1.5px 1px rgba(255,255,255,.45), inset 0 -3px 5px rgba(0,0,0,.35), 0 4px 10px -6px #000;
-  margin-right:-5px;border:1.5px solid #0b1622;
+  margin-right:-5px;border:1.5px solid var(--panel);
 }
 .rc-m-ico:last-child{margin-right:0;}
 .rc-m-ico svg{width:27px;height:27px;}
@@ -352,7 +403,7 @@ a{color:inherit;}
   margin-bottom:9px;
 }
 .rc-flag svg{width:12px;height:12px;}
-.rc-flag.pinned{color:#7dffcf;background:rgba(125,255,207,.12);border:1px solid rgba(125,255,207,.3);}
+.rc-flag.pinned{color:var(--mint);background:color-mix(in srgb, var(--mint) 12%, transparent);border:1px solid color-mix(in srgb, var(--mint) 30%, transparent);}
 .rc-flag.top{color:#ffd66b;background:rgba(255,214,107,.1);border:1px solid rgba(255,214,107,.26);}
 .routine-card .rc-meta{font-size:12.5px;color:var(--text-dim);margin-bottom:14px;}
 .rc-stats{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-dim);font-weight:600;margin-bottom:6px;}
@@ -366,7 +417,7 @@ a{color:inherit;}
 .ctx-menu{
   position:fixed;z-index:151;min-width:206px;padding:7px;border-radius:15px;
   background:linear-gradient(165deg,#0f1e2e,#0a141f);border:1px solid var(--border-strong);
-  box-shadow:0 26px 50px -18px rgba(0,0,0,.85), 0 0 0 1px rgba(34,232,255,.06);
+  box-shadow:0 26px 50px -18px rgba(0,0,0,.85), 0 0 0 1px color-mix(in srgb, var(--cyan) 6%, transparent);
   display:none;transform-origin:top right;
 }
 .ctx-menu.open{display:block;animation:menuIn .16s cubic-bezier(.2,.9,.3,1.1);}
@@ -419,7 +470,7 @@ a{color:inherit;}
 .modal{
   width:100%;max-width:520px;max-height:88vh;overflow-y:auto;background:linear-gradient(165deg,#0d1a28,#081119);
   border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:24px;
-  box-shadow:0 0 0 1px rgba(34,232,255,.08),0 30px 70px -20px rgba(0,0,0,.8);
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--cyan) 8%, transparent),0 30px 70px -20px rgba(0,0,0,.8);
   animation:modalIn .22s ease;
 }
 .modal.modal-wide{max-width:680px;}
@@ -435,7 +486,7 @@ a{color:inherit;}
   width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);
   padding:11px 13px;color:var(--text);font-family:inherit;font-size:14.5px;font-weight:500;outline:none;transition:border-color .15s;
 }
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(34,232,255,.1);}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px color-mix(in srgb, var(--cyan) 10%, transparent);}
 .field-row{display:flex;gap:10px;}
 .field-row .field{flex:1;}
 .swatch-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -471,6 +522,22 @@ a{color:inherit;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;}
+.theme-card{
+  text-align:left;padding:14px;border-radius:16px;cursor:pointer;
+  border:1px solid var(--border);background:linear-gradient(160deg,var(--surf-1),var(--surf-2));
+  color:var(--text);transition:border-color .2s ease, box-shadow .2s ease, transform .16s ease;
+}
+.theme-card:active{transform:scale(.985);}
+.theme-card.selected{
+  border-color:color-mix(in srgb, var(--tc1) 60%, transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--tc1) 40%, transparent), 0 0 30px -12px var(--tc1);
+}
+.theme-dots{display:flex;gap:6px;margin-bottom:11px;}
+.theme-dots span{width:22px;height:22px;border-radius:8px;box-shadow:inset 0 1.5px 1px rgba(255,255,255,.4), inset 0 -3px 6px rgba(0,0,0,.35);}
+.theme-card b{display:flex;align-items:center;gap:6px;font-size:14.5px;}
+.theme-card b svg{width:15px;height:15px;color:var(--tc1);}
+.theme-card span.tag{display:block;font-size:11.5px;color:var(--text-dim);font-weight:600;margin-top:3px;padding:0;background:none;}
 .backup-state{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim);
   background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;padding:11px 13px;
@@ -523,7 +590,7 @@ a{color:inherit;}
 .picker-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:8px;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;}
 .picker-item:last-child{border-bottom:none;}
-.picker-item:hover{background:rgba(34,232,255,.06);}
+.picker-item:hover{background:color-mix(in srgb, var(--cyan) 6%, transparent);}
 .picker-item .pi-ico{
   width:28px;height:28px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#04141a;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.4), inset 0 -2px 4px rgba(0,0,0,.3);
@@ -537,7 +604,7 @@ a{color:inherit;}
 .session-bar .sb-timer{font-family:'Space Grotesk',sans-serif;font-size:22px;color:var(--cyan);}
 .session-progress{flex:1;min-width:140px;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;}
 .session-progress > div{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:999px;transition:width .3s ease;}
-.session-ex{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px;background:linear-gradient(160deg,rgba(13,24,37,.95),rgba(8,14,22,.97));}
+.session-ex{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px;background:linear-gradient(160deg,var(--surf-1),var(--surf-2));}
 .session-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .session-ex-head h4{font-size:16px;}
 .session-ex-head .prev{font-size:12px;color:var(--text-dim);margin-left:auto;}
@@ -563,7 +630,7 @@ a{color:inherit;}
   padding:0 9px;height:44px;cursor:text;transition:border-color .15s ease, background .15s ease;
 }
 .sr-field:hover{border-color:var(--border-strong);}
-.sr-field:focus-within{border-color:var(--cyan);background:rgba(34,232,255,.07);box-shadow:0 0 0 3px rgba(34,232,255,.12);}
+.sr-field:focus-within{border-color:var(--cyan);background:color-mix(in srgb, var(--cyan) 7%, transparent);box-shadow:0 0 0 3px color-mix(in srgb, var(--cyan) 12%, transparent);}
 .sr-field input{
   width:100%;min-width:0;background:none;border:none;outline:none;color:var(--text);
   font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;text-align:right;
@@ -572,10 +639,10 @@ a{color:inherit;}
 .sr-field input::-webkit-outer-spin-button,.sr-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .sr-field input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 .sr-unit{font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:.01em;flex:none;}
-.set-row.is-done .sr-field{background:rgba(43,255,168,.07);border-color:rgba(43,255,168,.26);}
+.set-row.is-done .sr-field{background:color-mix(in srgb, var(--green) 7%, transparent);border-color:color-mix(in srgb, var(--green) 26%, transparent);}
 .set-row.is-done .sr-field input{color:var(--green);}
-.set-row.is-done .sr-unit{color:rgba(43,255,168,.65);}
-.set-row.is-done .sr-n{background:rgba(43,255,168,.12);color:var(--green);}
+.set-row.is-done .sr-unit{color:color-mix(in srgb, var(--green) 65%, transparent);}
+.set-row.is-done .sr-n{background:color-mix(in srgb, var(--green) 12%, transparent);color:var(--green);}
 
 .set-row .sr-check{
   width:100%;height:44px;border-radius:12px;border:1.5px solid var(--border-strong);background:rgba(255,255,255,.06);
@@ -596,7 +663,7 @@ a{color:inherit;}
   .sr-field{padding:0 9px;height:46px;}
   .sr-field input{font-size:17px;}
 }
-@keyframes prRowGlow{0%{box-shadow:0 0 0 rgba(43,255,168,0);}30%{box-shadow:0 0 0 3px rgba(43,255,168,.25);}100%{box-shadow:0 0 0 rgba(43,255,168,0);}}
+@keyframes prRowGlow{0%{box-shadow:0 0 0 color-mix(in srgb, var(--green) 0%, transparent);}30%{box-shadow:0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent);}100%{box-shadow:0 0 0 color-mix(in srgb, var(--green) 0%, transparent);}}
 .pr-inline-badge{
   display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:800;letter-spacing:.03em;
   padding:3px 7px;border-radius:999px;color:#04141a;
@@ -606,7 +673,7 @@ a{color:inherit;}
 .pr-inline-badge svg{width:10px;height:10px;}
 .rest-overlay{
   position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;
-  background:radial-gradient(120% 100% at 50% 38%, rgba(43,255,168,.16), rgba(3,6,10,.96) 65%);
+  background:radial-gradient(120% 100% at 50% 38%, color-mix(in srgb, var(--green) 16%, transparent), rgba(3,6,10,.96) 65%);
   backdrop-filter:blur(14px);padding:20px;
 }
 .rest-overlay.open{display:flex;}
@@ -616,7 +683,7 @@ a{color:inherit;}
 .rest-ring-wrap{position:relative;width:min(220px,60vw);height:min(220px,60vw);margin:0 auto 32px;}
 .rest-ring{width:100%;height:100%;transform:rotate(-90deg);overflow:visible;}
 .rest-ring-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:10;}
-.rest-ring-progress{fill:none;stroke:url(#restGrad);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .95s linear;filter:drop-shadow(0 0 12px rgba(43,255,168,.55));}
+.rest-ring-progress{fill:none;stroke:url(#restGrad);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .95s linear;filter:drop-shadow(0 0 12px color-mix(in srgb, var(--green) 55%, transparent));}
 .rest-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
 .rest-controls{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
 .rest-btn{padding:13px 20px;border-radius:14px;border:1px solid var(--border-strong);background:rgba(255,255,255,.03);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:transform .12s ease;}
@@ -628,7 +695,7 @@ a{color:inherit;}
   position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:120;
   display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:none;cursor:pointer;
   background:linear-gradient(135deg,var(--green),var(--cyan));color:#04141a;font-weight:700;font-size:13.5px;
-  box-shadow:0 12px 26px -8px rgba(43,255,168,.5);
+  box-shadow:0 12px 26px -8px color-mix(in srgb, var(--green) 50%, transparent);
 }
 .rest-mini-pill b{font-variant-numeric:tabular-nums;}
 .rmp-dot{width:7px;height:7px;border-radius:50%;background:#04141a;animation:blinkDot 1s ease-in-out infinite;}
@@ -646,7 +713,7 @@ a{color:inherit;}
 /* achievements */
 .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
 .ach-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center;background:rgba(255,255,255,.015);position:relative;}
-.ach-card.unlocked{border-color:var(--border-strong);background:linear-gradient(160deg,rgba(34,232,255,.08),rgba(43,255,168,.05));}
+.ach-card.unlocked{border-color:var(--border-strong);background:linear-gradient(160deg,color-mix(in srgb, var(--cyan) 8%, transparent),color-mix(in srgb, var(--green) 5%, transparent));}
 .ach-icon{width:60px;height:60px;border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);}
 .ach-card.unlocked .ach-icon{
   background:radial-gradient(120% 130% at 28% 20%, #bfffe9 0%, var(--green) 32%, var(--cyan) 70%, var(--blue) 100%);
@@ -726,12 +793,12 @@ a{color:inherit;}
 
 .celebrate-overlay{
   position:fixed;inset:0;
-  background:radial-gradient(120% 100% at 50% 30%, rgba(34,232,255,.14), rgba(3,6,10,.94) 60%);
+  background:radial-gradient(120% 100% at 50% 30%, color-mix(in srgb, var(--cyan) 14%, transparent), rgba(3,6,10,.94) 60%);
   display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(10px);
   overflow:hidden;
 }
 .celebrate-overlay.open{display:flex;}
-.celebrate-overlay.kind-pr{background:radial-gradient(120% 100% at 50% 30%, rgba(43,255,168,.16), rgba(3,6,10,.94) 60%);}
+.celebrate-overlay.kind-pr{background:radial-gradient(120% 100% at 50% 30%, color-mix(in srgb, var(--green) 16%, transparent), rgba(3,6,10,.94) 60%);}
 .celebrate-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 .celebrate-particles span{
   position:absolute;left:50%;top:55%;width:6px;height:6px;border-radius:50%;
@@ -892,7 +959,7 @@ a{color:inherit;}
         <svg class="xp-ring" viewBox="0 0 36 36" id="topXpRing">
           <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="3"></circle>
           <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#xpGrad)" stroke-width="3" stroke-linecap="round" id="topXpArc" transform="rotate(-90 18 18)"></circle>
-          <defs><linearGradient id="xpGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22e8ff"/><stop offset="100%" stop-color="#2bffa8"/></linearGradient></defs>
+          <defs><linearGradient id="xpGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" style="stop-color:var(--cyan)"/><stop offset="100%" style="stop-color:var(--green)"/></linearGradient></defs>
         </svg>
         <div>
           <div class="lvl-txt" id="topLvlTxt">Nv. 1</div>
@@ -1075,6 +1142,12 @@ a{color:inherit;}
             <div class="chart-wrap" id="chartBodyweight"></div>
             <div class="chart-meta" id="weighInNext" style="margin-top:10px;margin-bottom:0;"></div>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h3 style="font-size:15px;margin-bottom:4px;">Apariencia</h3>
+          <div class="section-sub" style="margin-bottom:13px;">Elige la paleta de toda la app. Cambia colores, gráficos e iconos, no solo esta pantalla.</div>
+          <div class="theme-grid" id="themeGrid"></div>
         </div>
 
         <div class="card weigh-notice hidden" id="recoveryNotice" style="margin-top:16px;">
@@ -1301,7 +1374,7 @@ a{color:inherit;}
       <svg class="rest-ring" viewBox="0 0 220 220">
         <defs>
           <linearGradient id="restGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#2bffa8"/><stop offset="100%" stop-color="#22e8ff"/>
+            <stop offset="0%" style="stop-color:var(--green)"/><stop offset="100%" style="stop-color:var(--cyan)"/>
           </linearGradient>
         </defs>
         <circle class="rest-ring-track" cx="110" cy="110" r="98"/>
@@ -1330,10 +1403,42 @@ a{color:inherit;}
 /* ============================= CONSTANTS ============================= */
 const STORAGE_KEY = "pulse_gym_state_v1";
 const MUSCLES = ["Pecho","Espalda","Piernas","Hombros","Brazos","Core","Cardio"];
-const MUSCLE_COLORS = {
-  "Pecho":"#22e8ff","Espalda":"#3f8dff","Piernas":"#2bffa8",
-  "Hombros":"#5ad0ff","Brazos":"#7dffcf","Core":"#4fc3ff","Cardio":"#a0f9ff"
+/* Charts, muscle maps and card accents are drawn in JS, so each theme carries
+   its own copy of those colours next to the CSS tokens. */
+const THEMES = {
+  neon: {
+    name:"Neón", tag:"Cian · azul · verde",
+    dots:["#22e8ff","#3f8dff","#2bffa8"],
+    chartFrom:"#3f8dff", chartTo:"#22e8ff", line:"#2bffa8", area:"#22e8ff", surface:"#0b1622",
+    cards:["#22e8ff","#3f8dff","#2bffa8"],
+    muscles:{ "Pecho":"#22e8ff","Espalda":"#3f8dff","Piernas":"#2bffa8",
+              "Hombros":"#5ad0ff","Brazos":"#7dffcf","Core":"#4fc3ff","Cardio":"#a0f9ff" }
+  },
+  aurora: {
+    name:"Aurora", tag:"Rosa · violeta · ámbar",
+    dots:["#ff6fd8","#a97bff","#ffc94d"],
+    chartFrom:"#a97bff", chartTo:"#ff6fd8", line:"#ffc94d", area:"#ff6fd8", surface:"#170e22",
+    cards:["#ff6fd8","#a97bff","#ffc94d"],
+    muscles:{ "Pecho":"#ff6fd8","Espalda":"#a97bff","Piernas":"#ffc94d",
+              "Hombros":"#ff9ae0","Brazos":"#c9a0ff","Core":"#ffb3e6","Cardio":"#ff7a8f" }
+  },
+  orquidea: {
+    name:"Orquídea", tag:"Violeta · lila · rosa",
+    dots:["#c07bff","#7c6bff","#ff9ecb"],
+    chartFrom:"#7c6bff", chartTo:"#c07bff", line:"#ff9ecb", area:"#c07bff", surface:"#120f22",
+    cards:["#c07bff","#7c6bff","#ff9ecb"],
+    muscles:{ "Pecho":"#c07bff","Espalda":"#7c6bff","Piernas":"#ff9ecb",
+              "Hombros":"#d9a6ff","Brazos":"#9d8cff","Core":"#e0b7ff","Cardio":"#ff7aa8" }
+  }
 };
+const THEME_LIST = Object.keys(THEMES);
+let PALETTE = THEMES.neon;
+
+function applyTheme(id){
+  PALETTE = THEMES[id] || THEMES.neon;
+  document.body.dataset.theme = THEMES[id] ? id : "neon";
+}
+function muscleColor(m){ return PALETTE.muscles[m] || PALETTE.chartFrom; }
 const SOUND_KEY_DEFAULT = true;
 
 /* Anatomical body map: one athletic silhouette, with the trained muscle lit in
@@ -1365,7 +1470,7 @@ const MUSCLE_HL = {
 };
 
 function muscleIcon(m){
-  const c = MUSCLE_COLORS[m] || "#3f8dff";
+  const c = muscleColor(m);
   const hl = MUSCLE_HL[m] || MUSCLE_HL["Pecho"];
   const pulse = m === "Cardio"
     ? `<g fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 71h8l3.5-7 5 13 4-8 2.5 4h12"/></g>` : "";
@@ -1374,6 +1479,7 @@ function muscleIcon(m){
 
 /* Equipment marks: solid forms so they hold up at 14px in the card meta line. */
 const FGLYPH = inner => '<svg viewBox="0 0 48 48" fill="currentColor">'+inner+'</svg>';
+const LOTUS_PETAL = "M24 8.5C28.8 15 31.4 21.6 31.4 27.4c0 4.1-3.1 7-7.4 7s-7.4-2.9-7.4-7c0-5.8 2.6-12.4 7.4-18.9Z";
 const EQUIP_ICONS = {
   barra: FGLYPH(`<rect x="4" y="21.4" width="40" height="5.2" rx="2.6"/><rect x="10.5" y="14" width="5.6" height="20" rx="2.4"/><rect x="18" y="9.5" width="5" height="29" rx="2.2"/><rect x="25" y="9.5" width="5" height="29" rx="2.2"/><rect x="31.9" y="14" width="5.6" height="20" rx="2.4"/>`),
   mancuernas: FGLYPH(`<rect x="16" y="21.4" width="16" height="5.2" rx="2.6"/><rect x="8.5" y="15" width="5.4" height="18" rx="2.4"/><rect x="15" y="10.5" width="5" height="27" rx="2.2"/><rect x="28" y="10.5" width="5" height="27" rx="2.2"/><rect x="34.1" y="15" width="5.4" height="18" rx="2.4"/>`),
@@ -1396,7 +1502,12 @@ const AVATAR_TONES = {
   blue:   ["#a9ccff","#3f8dff","#14459c"],
   teal:   ["#b4fff0","#19d6b6","#0b7a6a"],
   ice:    ["#ffffff","#a0f9ff","#3f8dff"],
-  mint:   ["#e6fff2","#7dffcf","#1aa377"]
+  mint:   ["#e6fff2","#7dffcf","#1aa377"],
+  rosa:   ["#ffd6ef","#ff79c6","#a01f78"],
+  violeta:["#e6d8ff","#a97bff","#4a1f9e"],
+  ambar:  ["#fff0c2","#ffc94d","#a06a00"],
+  orquidea:["#ffe3f5","#ff9ae0","#8e2e86"],
+  coral:  ["#ffe4d6","#ff8a5c","#a83a2a"]
 };
 const AVATAR_EMBLEMS = {
   atleta:    `<svg viewBox="0 0 96 96" fill="currentColor"><ellipse cx="48" cy="11.5" rx="8" ry="9"/><path d="M43 18h10v7.4c0 1.4-.9 2.6-2.3 3l-2.7.7-2.7-.7c-1.4-.4-2.3-1.6-2.3-3V18Z"/>${BMIR(BODY_TORSO)}${BMIR(BODY_ARM)}</svg>`,
@@ -1411,6 +1522,27 @@ const AVATAR_EMBLEMS = {
   medalla:   FGLYPH(`<path d="M14.2 4h7.4l-6 13.2c-1.6.6-3.1 1.5-4.4 2.6L5 8.7C3.9 6.6 5.4 4 7.8 4h6.4Zm19.6 0h-6.4l6 13.2c1.6.6 3.1 1.5 4.4 2.6L43 8.7C44.1 6.6 42.6 4 40.2 4h-6.4Z"/><path fill-rule="evenodd" d="M24 19c-7.7 0-14 6.3-14 14s6.3 14 14 14 14-6.3 14-14-6.3-14-14-14Zm0 6.6a7.4 7.4 0 1 1 0 14.8 7.4 7.4 0 0 1 0-14.8Z"/>`),
   diana:     FGLYPH(`<path fill-rule="evenodd" d="M24 3.5C12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24 35.3 3.5 24 3.5Zm0 6.6c7.7 0 13.9 6.2 13.9 13.9S31.7 37.9 24 37.9 10.1 31.7 10.1 24 16.3 10.1 24 10.1Z"/><path fill-rule="evenodd" d="M24 15.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2Zm0 5.8a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/>`),
   corredor:  FGLYPH(`<circle cx="30.5" cy="8.5" r="5.5"/><path d="M38.4 21.8c-.9-1.6-2.8-2.3-4.5-1.7l-2.6.9-8.5-4.4c-1.3-.7-2.9-.5-4 .5l-7.4 6.7c-1.4 1.3-1.5 3.4-.2 4.8 1.3 1.4 3.4 1.5 4.8.2l5.7-5.2 3.3 1.7-5.6 7.9c-1 1.5-.9 3.5.3 4.8l7.7 8.3c1.3 1.4 3.4 1.5 4.8.2 1.4-1.3 1.5-3.4.2-4.8l-6-6.5 6.4-9c.6-.9.8-2 .5-3l3.6 1.4 4.6 6.8c1 1.5 3.1 1.9 4.6.9 1.5-1 1.9-3.1.9-4.6l-5.2-7.7c-.4-.6-1-1.1-1.7-1.3l-1.7-.6Z"/><path d="M4 18.5h7.5M2.5 26.5H9M6 34.5h5.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"/>`),
+  loto:      FGLYPH(`<g transform="translate(-1.68,1.9) scale(1.07)">
+    <path d="${LOTUS_PETAL}" transform="rotate(-62 24 30)" opacity=".6"/>
+    <path d="${LOTUS_PETAL}" transform="rotate(62 24 30)" opacity=".6"/>
+    <path d="${LOTUS_PETAL}" transform="rotate(-31 24 30)" opacity=".82"/>
+    <path d="${LOTUS_PETAL}" transform="rotate(31 24 30)" opacity=".82"/>
+    <path d="${LOTUS_PETAL}"/></g>`),
+  mariposa:  FGLYPH(`
+    <path d="M23 15.2C18.6 7.6 10.8 4 7 7.4 2.6 11.2 5.5 20.7 13.1 24.1c3.3 1.5 7 1.4 9.9.3Z"/>
+    <path d="M23 26.3c-3.6 1.5-9 3-12 6.7-3.1 3.9-.9 9.2 3.8 9.2 4.4 0 7.6-5 8.2-10.7Z"/>
+    <path d="M25 15.2C29.4 7.6 37.2 4 41 7.4c4.4 3.8 1.5 13.3-6.1 16.7-3.3 1.5-7 1.4-9.9.3Z"/>
+    <path d="M25 26.3c3.6 1.5 9 3 12 6.7 3.1 3.9.9 9.2-3.8 9.2-4.4 0-7.6-5-8.2-10.7Z"/>
+    <rect x="22.4" y="12.4" width="3.2" height="26.4" rx="1.6"/>
+    <circle cx="24" cy="10.8" r="3"/>
+    <path d="M25.7 9.4c1.4-2.8 3.8-4.4 6.6-5M22.3 9.4c-1.4-2.8-3.8-4.4-6.6-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>`),
+  corona:    FGLYPH(`
+    <path d="M7.9 38.4 4.2 14.1c-.3-2.1 2.2-3.4 3.8-2L16.4 19 21.9 7.6c.9-1.8 3.4-1.8 4.2 0L31.6 19l8.4-6.9c1.6-1.4 4.1-.1 3.8 2l-3.7 24.3H7.9Z"/>
+    <rect x="7.6" y="40.4" width="32.8" height="4.6" rx="2.3"/>
+    <circle cx="24" cy="27" r="3.1" opacity=".34"/>
+    <circle cx="14" cy="29" r="2.3" opacity=".34"/>
+    <circle cx="34" cy="29" r="2.3" opacity=".34"/>`),
+  diamante:  FGLYPH(`<path fill-rule="evenodd" d="M15.4 5.5h17.2c.9 0 1.8.4 2.3 1.2l6.9 9.4c.7 1 .7 2.3 0 3.2L26.4 41.2c-1.2 1.6-3.6 1.6-4.8 0L6.2 19.3c-.7-.9-.7-2.2 0-3.2l6.9-9.4c.5-.8 1.4-1.2 2.3-1.2Zm.8 6-3.6 5h6.2l1.9-5h-4.5Zm10.9 0h-4.2l-1.9 5h8l-1.9-5Zm6.7 0h-4.5l1.9 5h6.2l-3.6-5ZM35.6 22.5h-5.3l-3.1 9.6 8.4-9.6Zm-11.6 10.7 3.5-10.7h-7l3.5 10.7ZM17.7 22.5h-5.3l8.4 9.6-3.1-9.6Z"/>`),
   escudo:    FGLYPH(`<path d="M24 3.5 7.5 9.2c-1.2.4-2 1.5-2 2.8v12.3c0 9.6 6.4 18.1 16.4 21.9.7.3 1.5.3 2.2 0 10-3.8 16.4-12.3 16.4-21.9V12c0-1.3-.8-2.4-2-2.8L24 3.5Zm0 12.8c1.6 0 2.9 1.3 2.9 2.9v3.3h3.3c1.6 0 2.9 1.3 2.9 2.9s-1.3 2.9-2.9 2.9h-3.3v3.3c0 1.6-1.3 2.9-2.9 2.9s-2.9-1.3-2.9-2.9v-3.3h-3.3c-1.6 0-2.9-1.3-2.9-2.9s1.3-2.9 2.9-2.9h3.3v-3.3c0-1.6 1.3-2.9 2.9-2.9Z"/>`)
 };
 const AVATAR_LIST = Object.keys(AVATAR_EMBLEMS);
@@ -1570,7 +1702,7 @@ function seedRoutines(exercises){
 function defaultState(){
   const exercises = seedExercises();
   return {
-    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null, avatar:defaultAvatar() },
+    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null, theme:"neon", avatar:defaultAvatar() },
     exercises,
     routines: seedRoutines(exercises),
     workouts: [],
@@ -1663,6 +1795,7 @@ function loadState(){
     if(!Array.isArray(parsed.profile.weightLog)) parsed.profile.weightLog = [];
     parsed.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     if(parsed.profile.weighInSnooze === undefined) parsed.profile.weighInSnooze = null;
+    if(!THEMES[parsed.profile.theme]) parsed.profile.theme = "neon";
     parsed.workouts = Array.isArray(parsed.workouts) ? parsed.workouts : [];
     parsed.achievements = parsed.achievements && typeof parsed.achievements==="object" ? parsed.achievements : {};
     parsed.xp = Number.isFinite(parsed.xp) ? parsed.xp : 0;
@@ -1693,6 +1826,7 @@ function migrateState(st){
   if(!Array.isArray(st.profile.weightLog)) st.profile.weightLog = [];
   st.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   if(st.profile.weighInSnooze === undefined) st.profile.weighInSnooze = null;
+  if(!THEMES[st.profile.theme]) st.profile.theme = "neon";
   st.workouts = Array.isArray(st.workouts) ? st.workouts : [];
   st.achievements = st.achievements && typeof st.achievements==="object" ? st.achievements : {};
   st.xp = Number.isFinite(st.xp) ? st.xp : 0;
@@ -2036,7 +2170,7 @@ function renderDashboard(){
       muscleCount[m] = (muscleCount[m]||0) + doneSets;
     });
   });
-  const segments = Object.keys(muscleCount).map(m=>({label:m, value:muscleCount[m], color: MUSCLE_COLORS[m]||"#3f8dff"}));
+  const segments = Object.keys(muscleCount).map(m=>({label:m, value:muscleCount[m], color: muscleColor(m)}));
   document.getElementById("chartMuscle").innerHTML = renderDonutChart(segments, "ms");
 
   // suggestion: routine not done in longest time, or first routine
@@ -2201,7 +2335,7 @@ function renderBarChart(data, prefix, opts){
   return `${chartHero(data, opts.unit, opts)}
   <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de barras")}">
     <defs><linearGradient id="${prefix}Grad" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#3f8dff"/><stop offset="100%" stop-color="#22e8ff"/>
+      <stop offset="0%" stop-color="${PALETTE.chartFrom}"/><stop offset="100%" stop-color="${PALETTE.chartTo}"/>
     </linearGradient></defs>
     ${axisChrome(scale, plot)}${bars}${labels}${hits}
   </svg>`;
@@ -2231,7 +2365,7 @@ function renderLineChart(points, prefix, opts){
   const xl = axisLabels(points, 4);
   let dots = "", labels = "", hits = "";
   coords.forEach((c,i)=>{
-    dots += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3.6" fill="#0b1622" stroke="#2bffa8" stroke-width="2"/>`;
+    dots += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3.6" fill="${PALETTE.surface}" stroke="${PALETTE.line}" stroke-width="2"/>`;
     if(xl[i]) labels += `<text x="${c[0].toFixed(1)}" y="${h-10}" font-size="10.5" fill="#a3c0d4" text-anchor="middle" font-family="Inter">${escapeHtml(xl[i])}</text>`;
     hits += `<rect class="chart-hit" data-i="${i}" x="${(c[0]-stepX/2).toFixed(1)}" y="${plot.top}" width="${(stepX||plot.w).toFixed(1)}" height="${plot.h}" fill="transparent"/>`;
   });
@@ -2247,12 +2381,12 @@ function renderLineChart(points, prefix, opts){
   <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="img" aria-label="${escapeHtml(opts.aria||"Gráfico de línea")}">
     <defs>
       <linearGradient id="${prefix}Area" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#22e8ff" stop-opacity=".3"/><stop offset="100%" stop-color="#22e8ff" stop-opacity="0"/>
+        <stop offset="0%" stop-color="${PALETTE.area}" stop-opacity=".3"/><stop offset="100%" stop-color="${PALETTE.area}" stop-opacity="0"/>
       </linearGradient>
     </defs>
     ${axisChrome(scale, plot)}
     <path d="${areaPath}" fill="url(#${prefix}Area)" stroke="none"/>
-    <path d="${linePath}" fill="none" stroke="#2bffa8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${linePath}" fill="none" stroke="${PALETTE.line}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}${labels}${endLabel}${hits}
   </svg>`;
 }
@@ -2373,7 +2507,7 @@ function exerciseUsage(exerciseId){
 }
 
 function exerciseCard(e){
-  const color = MUSCLE_COLORS[e.muscle] || "#3f8dff";
+  const color = muscleColor(e.muscle);
   const use = exerciseUsage(e.id);
   const stat = use.bestWeight > 0
     ? `<span class="ex-pr">${ICONS.medal}${use.bestWeight}kg × ${use.bestReps}</span>`
@@ -2397,7 +2531,7 @@ function renderExercisesView(){
   const filters = ["Todos", ...MUSCLES];
   chipsEl.innerHTML = filters.map(f=>{
     const active = state.ui.exerciseFilter===f;
-    const color = MUSCLE_COLORS[f];
+    const color = muscleColor(f);
     const ico = f==="Todos" ? "" : `<span class="chip-dot" style="background:${color};box-shadow:0 0 8px -1px ${color};"></span>`;
     return `<button class="chip ${active?'active':''}" data-filter="${escapeHtml(f)}" ${active?'aria-pressed="true"':''}>${ico}${escapeHtml(f)}</button>`;
   }).join("");
@@ -2424,7 +2558,7 @@ function renderExercisesView(){
   grid.innerHTML = MUSCLES.map(m=>{
     const items = list.filter(e=>e.muscle===m);
     if(!items.length) return "";
-    const color = MUSCLE_COLORS[m];
+    const color = muscleColor(m);
     return `<section class="ex-group">
       <header class="ex-group-head">
         <span class="ex-group-ico" style="color:${color}">${muscleIcon(m)}</span>
@@ -2507,7 +2641,7 @@ function renderRoutinesView(){
   const list = orderedRoutines();
   const anyPinned = list.some(r=>Number.isFinite(r.pinOrder));
   grid.innerHTML = list.map((r,idx)=>{
-    const color = ["#22e8ff","#3f8dff","#2bffa8"][idx%3];
+    const color = PALETTE.cards[idx%3];
     const muscles = [...new Set(r.exercises.map(re=>{
       const ex = state.exercises.find(e=>e.id===re.exerciseId);
       return ex ? ex.muscle : null;
@@ -2525,7 +2659,7 @@ function renderRoutinesView(){
     return `<article class="routine-card">
       <div class="rc-bar" style="background:${color};box-shadow:0 0 12px ${color};"></div>
       <div class="rc-head">
-        <div class="rc-muscles">${muscles.slice(0,3).map(m=>`<span class="rc-m-ico" style="${muscleBadgeStyle(MUSCLE_COLORS[m]||'#3f8dff')}" title="${escapeHtml(m)}">${muscleIcon(m)}</span>`).join("")}</div>
+        <div class="rc-muscles">${muscles.slice(0,3).map(m=>`<span class="rc-m-ico" style="${muscleBadgeStyle(muscleColor(m))}" title="${escapeHtml(m)}">${muscleIcon(m)}</span>`).join("")}</div>
         <button class="card-kebab" data-action="card-menu" data-kind="routine" data-id="${r.id}" aria-label="Opciones de ${escapeHtml(r.name)}" aria-haspopup="menu">${ICONS.kebab}</button>
       </div>
       ${flag}
@@ -2626,7 +2760,7 @@ function renderExercisePicker(){
   }
   el.innerHTML = state.exercises.map(e=>`
     <div class="picker-item" data-action="add-ex-to-builder" data-id="${e.id}">
-      <span class="pi-ico" style="${muscleBadgeStyle(MUSCLE_COLORS[e.muscle]||'#3f8dff')}">${muscleIcon(e.muscle)}</span>
+      <span class="pi-ico" style="${muscleBadgeStyle(muscleColor(e.muscle))}">${muscleIcon(e.muscle)}</span>
       ${escapeHtml(e.name)}
       <span style="margin-left:auto;color:var(--text-faint);font-size:11.5px;">${escapeHtml(e.muscle)}</span>
     </div>`).join("");
@@ -2641,7 +2775,7 @@ function renderRoutineBuilderList(){
   el.innerHTML = routineBuilderExercises.map((re,idx)=>{
     const ex = state.exercises.find(e=>e.id===re.exerciseId);
     const name = ex ? ex.name : "Ejercicio eliminado";
-    const color = ex ? (MUSCLE_COLORS[ex.muscle]||'#3f8dff') : '#7f9bb3';
+    const color = ex ? muscleColor(ex.muscle) : '#7f9bb3';
     const setsEditor = re.sets.map((s,si)=>`
       <div class="set-editor-row">
         <span class="sn">S${si+1}</span>
@@ -2767,7 +2901,7 @@ function renderSessionView(){
     </div>
     ${session.exercises.map((se,exIdx)=>{
       const ex = state.exercises.find(e=>e.id===se.exerciseId);
-      const color = ex ? (MUSCLE_COLORS[ex.muscle]||'#3f8dff') : '#3f8dff';
+      const color = ex ? muscleColor(ex.muscle) : PALETTE.chartFrom;
       const prevSets = se.prevSets || [];
       return `<div class="session-ex">
         <div class="session-ex-head">
@@ -3201,6 +3335,7 @@ function renderProfileView(){
     emptyMsg:"Registra tu peso corporal para ver tu evolución."
   });
 
+  renderThemePicker();
   renderWeighInNotice();
   renderBackupState();
   renderRecoveryNotice();
@@ -3403,11 +3538,37 @@ function importData(file){
       state = migrateState(parsed);
       session = state.activeSession || null;
       saveState();
+      applyTheme(state.profile.theme || "neon");
       navigate("dashboard");
       showToast(ICONS.check, "Datos restaurados", "Tu historial volvió a la app.");
     });
   };
   reader.readAsText(file);
+}
+
+function renderThemePicker(){
+  const el = document.getElementById("themeGrid");
+  if(!el) return;
+  const current = state.profile.theme || "neon";
+  el.innerHTML = THEME_LIST.map(id=>{
+    const t = THEMES[id];
+    const selected = id === current;
+    return `<button class="theme-card ${selected?"selected":""}" data-action="set-theme" data-theme="${id}"
+      style="--tc1:${t.dots[0]};" ${selected?'aria-pressed="true"':''}>
+      <div class="theme-dots">${t.dots.map(c=>`<span style="background:linear-gradient(150deg, color-mix(in srgb, ${c} 82%, white 18%), ${c});"></span>`).join("")}</div>
+      <b>${escapeHtml(t.name)}${selected?ICONS.check:""}</b>
+      <span class="tag">${escapeHtml(t.tag)}</span>
+    </button>`;
+  }).join("");
+}
+
+function setTheme(id){
+  if(!THEMES[id]) return;
+  state.profile.theme = id;
+  applyTheme(id);
+  saveState();
+  renderRoute();
+  showToast(ICONS.sparkle, "Tema aplicado", THEMES[id].name + " — " + THEMES[id].tag.toLowerCase());
 }
 
 function renderBackupState(){
@@ -3765,6 +3926,7 @@ document.addEventListener("click", function(e){
     case "save-profile": saveProfileSettings(); break;
     case "set-intensity": setIntensity(actionEl.getAttribute("data-level")); break;
     case "skip-intensity": skipIntensity(); break;
+    case "set-theme": setTheme(actionEl.getAttribute("data-theme")); break;
     case "open-weigh-in": openWeighIn(); break;
     case "weigh-in-step": stepWeighIn(num(actionEl.getAttribute("data-step"), 0)); break;
     case "save-weigh-in": saveWeighIn(); break;
@@ -3906,6 +4068,7 @@ function init(){
   state = loadState();
   if(!state.ui.currentView) state.ui.currentView = "dashboard";
   if(!state.ui.exerciseFilter) state.ui.exerciseFilter = "Todos";
+  applyTheme(state.profile.theme || "neon");
   if(state.activeSession){
     session = state.activeSession;
     state.ui.currentView = "workout";

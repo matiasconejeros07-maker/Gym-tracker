@@ -626,6 +626,38 @@ a{color:inherit;}
   .cardio-head,.cardio-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;}
 }
 
+.ob-consent{
+  display:flex;gap:11px;align-items:flex-start;margin-top:16px;padding:13px;
+  border-radius:13px;border:1px solid var(--border);background:rgba(255,255,255,.03);
+  font-size:12.5px;color:var(--text-dim);line-height:1.5;cursor:pointer;
+}
+.ob-consent input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--cyan);}
+
+/* ---------------- panel de administración ---------------- */
+.adm-state{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:13px;
+  border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:12.5px;color:var(--text-dim);
+}
+.adm-state .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+.adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px;margin:14px 0;}
+.adm-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.adm-table th{
+  text-align:left;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-faint);padding:0 10px 9px;font-weight:800;white-space:nowrap;
+}
+.adm-table td{padding:11px 10px;border-top:1px solid var(--border);vertical-align:top;}
+.adm-table td b{font-size:13px;}
+.adm-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
+.adm-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;
+  background:color-mix(in srgb, var(--cyan) 14%, transparent);color:var(--cyan);white-space:nowrap;}
+.adm-setup{font-size:13px;line-height:1.6;color:var(--text-dim);}
+.adm-setup ol{padding-left:20px;margin:10px 0;}
+.adm-setup li{margin-bottom:7px;}
+.adm-setup code{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;background:rgba(255,255,255,.06);
+  padding:2px 6px;border-radius:6px;color:var(--mint);word-break:break-all;
+}
+
 /* ---------------- salud y energía ---------------- */
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .metric{
@@ -1170,6 +1202,19 @@ a{color:inherit;}
         <div class="ex-list" id="exGrid"></div>
       </section>
 
+      <!-- ADMIN -->
+      <section class="view" id="view-admin">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Administración</div>
+            <h2>Quién usa APULSO</h2>
+            <div class="section-sub">Personas que completaron el cuestionario inicial desde tu enlace.</div>
+          </div>
+          <button class="btn" data-action="admin-refresh">Actualizar</button>
+        </div>
+        <div class="card"><div id="adminPanel"></div></div>
+      </section>
+
       <!-- ROUTINES -->
       <section class="view" id="view-routines">
         <div class="section-head">
@@ -1321,6 +1366,21 @@ a{color:inherit;}
             <button class="btn" data-action="import-data">Restaurar desde archivo</button>
           </div>
           <input type="file" id="importFileInput" accept="application/json,.json" class="hidden">
+        </div>
+
+        <div class="card hidden" id="shareCard" style="margin-top:16px;">
+          <h3 style="font-size:15px;margin-bottom:4px;">Compartir mis datos</h3>
+          <div class="section-sub" style="margin-bottom:12px;">Tu nombre y tus medidas se envían a quien administra APULSO.</div>
+          <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;">
+            <label style="margin:0;" id="shareLabel">Compartir</label>
+            <input type="checkbox" id="shareToggle" data-action="toggle-share" style="width:20px;height:20px;">
+          </div>
+        </div>
+
+        <div class="card hidden" id="adminLinkCard" style="margin-top:16px;">
+          <h3 style="font-size:15px;margin-bottom:4px;">Administración</h3>
+          <div class="section-sub" style="margin-bottom:12px;">Ver quién ha entrado por tu enlace.</div>
+          <button class="btn btn-primary" data-nav="admin">Abrir panel</button>
         </div>
 
         <div class="card" style="margin-top:16px;">
@@ -1555,6 +1615,19 @@ a{color:inherit;}
 
 /* ============================= CONSTANTS ============================= */
 const STORAGE_KEY = "pulse_gym_state_v1";
+
+/* ---------------------------------------------------------------------------
+   Registro de usuarios (opcional).
+
+   Esta app es un archivo estático: los datos de cada persona viven en SU
+   teléfono y no salen de ahí. Para saber quién entra por el enlace hace falta
+   un lugar donde guardarlos. Pega abajo la URL del Apps Script que está en
+   backend/registro.gs y cada persona que complete el cuestionario quedará
+   registrada, siempre que acepte compartirlo.
+
+   Vacío = no se envía nada a ninguna parte.
+--------------------------------------------------------------------------- */
+const SYNC_ENDPOINT = "";
 const MUSCLES = ["Pecho","Espalda","Piernas","Hombros","Brazos","Core","Cardio"];
 /* Charts, muscle maps and card accents are drawn in JS, so each theme carries
    its own copy of those colours next to the CSS tokens. */
@@ -1827,8 +1900,12 @@ function seedExercises(){
     ["Extensión de tríceps","Brazos","Polea","Fuerza"],
     ["Plancha","Core","Peso corporal","Peso corporal"],
     ["Elevación de piernas","Core","Peso corporal","Peso corporal"],
+    ["Trote suave","Cardio","Ninguno","Cardio"],
     ["Carrera continua","Cardio","Ninguno","Cardio"],
-    ["Bicicleta estática","Cardio","Máquina","Cardio"]
+    ["Bicicleta estática","Cardio","Máquina","Cardio"],
+    ["Caminadora","Cardio","Máquina","Cardio"],
+    ["Elíptica","Cardio","Máquina","Cardio"],
+    ["Saltar la cuerda","Cardio","Ninguno","Cardio"]
   ];
   return list.map(([name,muscle,equip,type])=>({
     id: uid(), name, muscle, equipment:equip, type, custom:false
@@ -1856,7 +1933,8 @@ function defaultState(){
   const exercises = seedExercises();
   return {
     profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null,
-              theme:"neon", gender:"", age:null, height:null, activity:0, onboarded:false, avatar:defaultAvatar() },
+              theme:"neon", gender:"", age:null, height:null, activity:0, onboarded:false,
+              shareData:false, deviceId:null, avatar:defaultAvatar() },
     exercises,
     routines: seedRoutines(exercises),
     workouts: [],
@@ -2242,13 +2320,15 @@ const VIEW_META = {
   progress:{title:"Progreso", sub:"Analítica a largo plazo"},
   achievements:{title:"Logros", sub:"Tu progresión y medallas"},
   profile:{title:"Perfil", sub:"Tu cuenta y ajustes"},
-  workout:{title:"Entrenamiento en curso", sub:"Registra tus series en tiempo real"}
+  workout:{title:"Entrenamiento en curso", sub:"Registra tus series en tiempo real"},
+  admin:{title:"Administración", sub:"Quién usa tu enlace"}
 };
 
 function navigate(view){
   state.ui.currentView = view;
   saveState();
   renderRoute();
+  if(view === "admin" && syncEnabled() && adminKey() && !adminRows) loadAdminRows();
 }
 
 function renderRoute(){
@@ -2276,6 +2356,7 @@ function renderCurrentView(view){
     case "achievements": renderAchievementsView(); break;
     case "profile": renderProfileView(); break;
     case "workout": renderSessionView(); break;
+    case "admin": renderAdminView(); break;
   }
   renderTopBar();
 }
@@ -3542,6 +3623,14 @@ function renderProfileView(){
     emptyMsg:"Registra tu peso corporal para ver tu evolución."
   });
 
+  const shareCard = document.getElementById("shareCard");
+  shareCard.classList.toggle("hidden", !syncEnabled());
+  if(syncEnabled()){
+    document.getElementById("shareToggle").checked = !!state.profile.shareData;
+    document.getElementById("shareLabel").textContent = state.profile.shareData ? "Compartiendo" : "No compartir";
+  }
+  document.getElementById("adminLinkCard").classList.toggle("hidden", !state.ui.admin);
+
   renderHealthPanel();
   renderThemePicker();
   renderWeighInNotice();
@@ -3616,6 +3705,193 @@ function saveProfileSettings(){
   }
 }
 
+/* ===================== PANEL DE ADMINISTRACIÓN ===================== */
+let adminRows = null;      /* registros traídos del servidor */
+let adminError = null;
+let adminLoading = false;
+
+function adminKey(){
+  try{ return localStorage.getItem("apulso_admin_key") || ""; }catch(e){ return ""; }
+}
+function setAdminKey(v){
+  try{ localStorage.setItem("apulso_admin_key", v); }catch(e){}
+}
+
+async function loadAdminRows(){
+  if(!syncEnabled()){ renderAdminView(); return; }
+  const key = adminKey();
+  if(!key){ adminRows = null; adminError = null; renderAdminView(); return; }
+  adminLoading = true; adminError = null; renderAdminView();
+  try{
+    const res = await fetch(SYNC_ENDPOINT + "?key=" + encodeURIComponent(key), { method:"GET" });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || "respuesta inesperada");
+    adminRows = Array.isArray(data.registros) ? data.registros : [];
+  }catch(err){
+    adminRows = null;
+    adminError = err.message || String(err);
+  }
+  adminLoading = false;
+  renderAdminView();
+}
+
+function renderAdminView(){
+  const el = document.getElementById("adminPanel");
+  if(!el) return;
+
+  if(!syncEnabled()){
+    el.innerHTML = `
+      <div class="adm-state"><span class="dot" style="background:var(--danger);"></span>
+        <span>Sin conectar. La app es un archivo estático: los datos de cada persona
+        viven en su propio teléfono y no llegan a ninguna parte.</span></div>
+      <div class="adm-setup" style="margin-top:16px;">
+        <b style="color:var(--text);font-size:14px;">Para registrar quién entra necesitas un lugar donde guardar los datos.</b>
+        <p style="margin-top:8px;">En el repositorio dejé <code>backend/registro.gs</code>, un script de Google
+        que guarda cada registro en una hoja de cálculo. Es gratis y no necesitas servidor.</p>
+        <ol>
+          <li>Crea una hoja en <code>sheets.new</code>.</li>
+          <li>Extensiones → Apps Script, y pega el contenido de <code>backend/registro.gs</code>.</li>
+          <li>Cambia <code>CLAVE_ADMIN</code> por una contraseña tuya.</li>
+          <li>Implementar → Aplicación web → acceso "Cualquier usuario". Copia la URL <code>/exec</code>.</li>
+          <li>Pega esa URL en <code>index.html</code>, en la constante <code>SYNC_ENDPOINT</code>, y sube el cambio.</li>
+        </ol>
+        <p>Desde ese momento, cada persona que complete el cuestionario y acepte compartir
+        sus datos aparecerá aquí y en tu hoja.</p>
+      </div>`;
+    return;
+  }
+
+  const key = adminKey();
+  if(!key){
+    el.innerHTML = `
+      <div class="adm-state"><span class="dot" style="background:#ffc94d;"></span>
+        <span>Conectado, pero falta tu clave de administrador para poder leer los registros.</span></div>
+      <div class="field" style="margin-top:16px;">
+        <label>Clave de administrador</label>
+        <input type="password" id="adminKeyInput" placeholder="La que pusiste en CLAVE_ADMIN">
+        <p class="field-hint">Se guarda sólo en este dispositivo. No viaja dentro de la app,
+        así que nadie que abra tu enlace puede ver los registros.</p>
+      </div>
+      <button class="btn btn-primary" data-action="admin-save-key">Entrar</button>`;
+    return;
+  }
+
+  if(adminLoading){
+    el.innerHTML = `<div class="adm-state"><span class="dot" style="background:var(--cyan);"></span><span>Cargando registros…</span></div>`;
+    return;
+  }
+
+  if(adminError){
+    el.innerHTML = `
+      <div class="adm-state"><span class="dot" style="background:var(--danger);"></span>
+        <span>No se pudieron leer los registros: ${escapeHtml(adminError)}</span></div>
+      <p class="field-hint" style="margin-top:12px;">Revisa que la clave sea correcta y que la
+      implementación del script permita el acceso a "Cualquier usuario".</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <button class="btn" data-action="admin-refresh">Reintentar</button>
+        <button class="btn btn-ghost" data-action="admin-forget-key">Cambiar clave</button>
+        <a class="btn btn-ghost" href="${escapeHtml(SYNC_ENDPOINT + "?key=" + encodeURIComponent(key))}" target="_blank" rel="noopener">Abrir en el navegador</a>
+      </div>`;
+    return;
+  }
+
+  const rows = adminRows || [];
+  const hoy = todayISO();
+  const hace7 = addDaysISO(hoy, -7);
+  const recientes = rows.filter(r=>String(r.fecha||"").slice(0,10) >= hace7).length;
+  const conNivel = rows.filter(r=>r.activity);
+  const nivelMedio = conNivel.length
+    ? Math.round(conNivel.reduce((a,r)=>a+num(r.activity,0),0)/conNivel.length*10)/10 : null;
+
+  el.innerHTML = `
+    <div class="adm-state"><span class="dot" style="background:var(--green);"></span>
+      <span>Conectado · los registros llegan a tu hoja de cálculo</span></div>
+    <div class="adm-kpis">
+      <div class="metric"><div class="m-label">Personas</div><div class="m-val">${rows.length}</div></div>
+      <div class="metric"><div class="m-label">Últimos 7 días</div><div class="m-val" style="color:var(--cyan);">${recientes}</div></div>
+      <div class="metric"><div class="m-label">Nivel promedio</div><div class="m-val">${nivelMedio!==null?fmtNum(nivelMedio):"—"}</div></div>
+    </div>
+    ${rows.length ? `
+    <div class="adm-scroll"><table class="adm-table">
+      <thead><tr><th>Persona</th><th>Sexo</th><th>Edad</th><th>Medidas</th><th>Nivel</th><th>Fecha</th></tr></thead>
+      <tbody>${rows.slice().reverse().map(r=>`
+        <tr>
+          <td><b>${escapeHtml(r.name||"Sin nombre")}</b></td>
+          <td>${escapeHtml(r.gender||"—")}</td>
+          <td>${escapeHtml(String(r.age||"—"))}</td>
+          <td>${escapeHtml(String(r.height||"—"))} cm · ${escapeHtml(String(r.weight||"—"))} kg${r.bmi?`<br><span style="color:var(--text-faint);">IMC ${escapeHtml(fmtNum(num(r.bmi,0)))}</span>`:""}</td>
+          <td><span class="adm-tag">${escapeHtml(String(r.activity||"—"))} · ${escapeHtml(r.activityName||"")}</span></td>
+          <td style="white-space:nowrap;color:var(--text-dim);">${escapeHtml(String(r.fecha||"").slice(0,10))}</td>
+        </tr>`).join("")}</tbody>
+    </table></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+      <button class="btn" data-action="admin-export">Exportar CSV</button>
+      <button class="btn btn-ghost" data-action="admin-forget-key">Cerrar sesión de admin</button>
+    </div>`
+    : `<p class="metric-empty" style="margin-top:14px;">Todavía no hay registros. Comparte tu enlace:
+       cada persona que complete el cuestionario y acepte compartir sus datos aparecerá aquí.</p>`}`;
+}
+
+function adminExportCsv(){
+  const rows = adminRows || [];
+  if(!rows.length){ showToast(ICONS.x, "Nada que exportar", "Aún no hay registros."); return; }
+  const cab = ["Fecha","Nombre","Sexo","Edad","Estatura","Peso","Nivel","Nivel texto","IMC","TDEE","Zona horaria"];
+  const esc = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const csv = [cab.join(",")].concat(rows.map(r=>[
+    String(r.fecha||"").slice(0,10), r.name, r.gender, r.age, r.height, r.weight,
+    r.activity, r.activityName, r.bmi, r.tdee, r.tz
+  ].map(esc).join(","))).join("\n");
+  const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `apulso-registros-${todayISO()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast(ICONS.check, "CSV descargado", `${rows.length} registros exportados.`);
+}
+
+/* ===================== REGISTRO REMOTO (opcional) ===================== */
+function syncEnabled(){ return !!SYNC_ENDPOINT; }
+
+function deviceId(){
+  if(!state.profile.deviceId){
+    state.profile.deviceId = uid() + uid().slice(0,4);
+  }
+  return state.profile.deviceId;
+}
+
+/* Manda la ficha una sola vez por persona, y sólo si la aceptó. */
+function sendRegistration(){
+  if(!syncEnabled() || !state.profile.shareData) return;
+  const m = healthMetrics();
+  const act = ACTIVITY_BY_LEVEL[state.profile.activity];
+  const payload = {
+    deviceId: deviceId(),
+    name: state.profile.name || "",
+    gender: state.profile.gender || "",
+    age: state.profile.age || "",
+    height: state.profile.height || "",
+    weight: currentWeight() || "",
+    activity: state.profile.activity || "",
+    activityName: act ? act.name : "",
+    bmi: m ? Math.round(m.bmi*10)/10 : "",
+    tdee: m ? Math.round(m.tdee) : "",
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+    lang: navigator.language || ""
+  };
+  try{
+    fetch(SYNC_ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    }).then(()=>{
+      state.profile.syncedAt = new Date().toISOString();
+      saveState();
+    }).catch(()=>{});
+  }catch(err){ /* sin conexión: no se reintenta, no es crítico */ }
+}
+
 /* ===================== BIENVENIDA Y CONFIGURACIÓN INICIAL ===================== */
 let splashTimer = null;
 let obStep = 0;
@@ -3641,6 +3917,7 @@ function endSplash(){
 function startOnboarding(){
   obStep = 0;
   obDraft = {
+    share: state.profile.onboarded ? !!state.profile.shareData : true,
     name: state.profile.name && state.profile.name !== "Atleta" ? state.profile.name : "",
     gender: state.profile.gender || "",
     age: state.profile.age || "",
@@ -3699,7 +3976,14 @@ function renderOnboarding(){
         <button class="ob-opt ${obDraft.activity===a.level?"on":""}" data-action="ob-activity" data-value="${a.level}">
           <span class="ob-num">${a.level}</span>
           <span style="min-width:0;"><b>${escapeHtml(a.name)}</b><span>${escapeHtml(a.desc)}</span></span>
-        </button>`).join("")}</div>`;
+        </button>`).join("")}</div>
+      ${syncEnabled() ? `
+      <label class="ob-consent">
+        <input type="checkbox" id="obShare" ${obDraft.share ? "checked" : ""}>
+        <span>Compartir mi nombre y mis medidas con quien administra APULSO.
+        Sirve para saber cuánta gente usa la app. Puedes desactivarlo ahora o
+        más tarde desde tu perfil.</span>
+      </label>` : ""}`;
   }
 
   foot.innerHTML =
@@ -3724,6 +4008,8 @@ function obCapture(){
     if(w===null || w<30 || w>300){ showToast(ICONS.x, "Peso no válido", "Ingresa un peso entre 30 y 300 kg."); return false; }
     obDraft.age = age; obDraft.height = h; obDraft.weight = w;
   } else if(obStep === 3){
+    const share = document.getElementById("obShare");
+    if(share) obDraft.share = share.checked;
     if(!obDraft.activity){ showToast(ICONS.x, "Elige tu nivel", "Toca el nivel que mejor describa tu semana."); return false; }
   }
   return true;
@@ -3753,8 +4039,10 @@ function finishOnboarding(){
   p.height = obDraft.height;
   p.activity = obDraft.activity;
   p.onboarded = true;
+  p.shareData = syncEnabled() ? !!obDraft.share : false;
   recordBodyWeight(obDraft.weight);
   saveState();
+  sendRegistration();
   document.getElementById("onboard").classList.remove("open");
   renderRoute();
   setTimeout(showNextCelebration, 400);
@@ -3900,6 +4188,7 @@ function healthMetrics(){
 /* MET por ejercicio de cardio y nivel de esfuerzo, según el Compendium of
    Physical Activities. Cada actividad trae sus tres intensidades publicadas. */
 const CARDIO_MET = {
+  "trote":      { suave:6.0,  moderado:7.0,  intenso:8.3,  nombre:["Trote muy suave","Trote general","Trote fuerte 8 km/h"] },
   "carrera":    { suave:8.3,  moderado:9.8,  intenso:11.8, nombre:["Correr 8 km/h","Correr 9,7 km/h","Correr 11,3 km/h o más"] },
   "caminata":   { suave:3.5,  moderado:5.0,  intenso:7.0,  nombre:["Caminar 4,8 km/h","Caminar 6,4 km/h","Caminar muy rápido o en pendiente"] },
   "bicicleta":  { suave:5.5,  moderado:7.0,  intenso:10.5, nombre:["50-100 W","100-150 W","150-200 W"] },
@@ -3915,7 +4204,8 @@ const CARDIO_EFFORTS = ["suave","moderado","intenso"];
 /* Elige la tabla MET a partir del nombre del ejercicio. */
 function cardioProfile(name){
   const n = String(name||"").toLowerCase();
-  if(/corr|trot|carrera|running|sprint/.test(n)) return CARDIO_MET.carrera;
+  if(/trot|jog/.test(n))                          return CARDIO_MET.trote;
+  if(/corr|carrera|running|sprint/.test(n))       return CARDIO_MET.carrera;
   if(/camin|marcha|walk|trotadora|cinta/.test(n)) return CARDIO_MET.caminata;
   if(/bici|spinning|ciclo/.test(n))               return CARDIO_MET.bicicleta;
   if(/elipt|eliptic/.test(n))                     return CARDIO_MET.eliptica;
@@ -4515,6 +4805,29 @@ document.addEventListener("click", function(e){
     case "save-profile": saveProfileSettings(); break;
     case "set-intensity": setIntensity(actionEl.getAttribute("data-level")); break;
     case "skip-intensity": skipIntensity(); break;
+    case "admin-refresh": loadAdminRows(); break;
+    case "admin-export": adminExportCsv(); break;
+    case "admin-save-key": {
+      const v = (document.getElementById("adminKeyInput").value||"").trim();
+      if(!v){ showToast(ICONS.x, "Falta la clave", "Escribe la clave de administrador."); break; }
+      setAdminKey(v);
+      loadAdminRows();
+      break;
+    }
+    case "admin-forget-key": {
+      setAdminKey("");
+      adminRows = null; adminError = null;
+      renderAdminView();
+      break;
+    }
+    case "toggle-share": {
+      state.profile.shareData = !state.profile.shareData;
+      saveState();
+      renderProfileView();
+      if(state.profile.shareData){ sendRegistration(); showToast(ICONS.check, "Datos compartidos", "Tu ficha quedó registrada."); }
+      else showToast(ICONS.check, "Ya no compartes tus datos", "Lo enviado antes sigue en el registro del administrador.");
+      break;
+    }
     case "skip-splash": endSplash(); break;
     case "ob-next": obNext(); break;
     case "ob-back": obBack(); break;
@@ -4676,6 +4989,13 @@ setInterval(function(){
 /* ============================= INIT ============================= */
 function init(){
   state = loadState();
+  /* El panel se desbloquea abriendo la app con ?admin en la dirección; queda
+     recordado en este dispositivo para no tener que repetirlo. */
+  if(/[?&]admin\b/.test(location.search)){
+    state.ui.admin = true;
+    saveState();
+  }
+
   if(!state.ui.currentView) state.ui.currentView = "dashboard";
   if(!state.ui.exerciseFilter) state.ui.exerciseFilter = "Todos";
   applyTheme(state.profile.theme || "neon");

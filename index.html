@@ -2,11 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>PULSE — Neural Gym Analytics</title>
+<title>APULSO — Analítica de gimnasio</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="PULSE: analítica de gimnasio, rutinas, ejercicios y logros con interfaz futurista estilo TRON.">
+<meta name="description" content="APULSO: analítica de gimnasio, rutinas, ejercicios, cardio y logros.">
 <meta name="theme-color" content="#060a10">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060a10'/%3E%3Cpath d='M14 34 L24 34 L28 20 L36 46 L40 34 L50 34' fill='none' stroke='%2322e8ff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="APULSO">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -199,8 +205,10 @@ a{color:inherit;}
 .streak-chip-side span{font-size:11.5px;color:var(--text-dim);display:block;}
 
 .topbar{
-  position:sticky;top:0;z-index:30;height:var(--topbar-h);
-  display:flex;align-items:center;gap:14px;padding:0 22px;
+  position:sticky;top:0;z-index:30;
+  height:calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-top:env(safe-area-inset-top);
+  display:flex;align-items:center;gap:14px;padding-left:22px;padding-right:22px;
   background:rgba(6,10,16,.72);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
 }
@@ -522,6 +530,124 @@ a{color:inherit;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
+/* ---------------- pantalla de bienvenida ---------------- */
+#splash{
+  position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px;
+  background:radial-gradient(120% 90% at 50% 35%, #0d2030 0%, #071019 55%, #03070c 100%);
+  transition:opacity .55s ease, visibility .55s ease;
+}
+#splash.gone{opacity:0;visibility:hidden;pointer-events:none;}
+#splash img{
+  width:min(62vw,270px);height:auto;display:block;
+  filter:drop-shadow(0 0 40px rgba(34,232,255,.28));
+  animation:splashIn 1s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes splashIn{from{opacity:0;transform:scale(.88) translateY(14px);}to{opacity:1;transform:none;}}
+.splash-ring{width:34px;height:34px;transform:rotate(-90deg);}
+.splash-ring circle{fill:none;stroke-width:3;stroke-linecap:round;}
+.splash-ring .bg{stroke:rgba(255,255,255,.12);}
+.splash-ring .fg{stroke:var(--cyan);stroke-dasharray:97.4;stroke-dashoffset:97.4;animation:splashRing 5s linear forwards;}
+@keyframes splashRing{to{stroke-dashoffset:0;}}
+.splash-skip{
+  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 30px);
+  background:none;border:none;color:var(--text-faint);font:600 12.5px Inter,sans-serif;
+  letter-spacing:.06em;cursor:pointer;padding:12px 20px;
+}
+@media (prefers-reduced-motion:reduce){#splash img{animation:none;}}
+
+/* ---------------- onboarding ---------------- */
+#onboard{
+  position:fixed;inset:0;z-index:380;display:none;flex-direction:column;
+  background:radial-gradient(120% 80% at 50% 0%, var(--bg2) 0%, var(--bg) 60%);
+  padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 20px);
+  overflow-y:auto;
+}
+#onboard.open{display:flex;}
+.ob-shell{width:100%;max-width:440px;margin:auto;}
+.ob-steps{display:flex;gap:6px;margin-bottom:24px;}
+.ob-steps i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .3s ease;}
+.ob-steps i.on{background:var(--cyan);box-shadow:0 0 10px var(--cyan-dim);}
+.ob-eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:7px;}
+.ob-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1.2;margin-bottom:8px;}
+.ob-sub{font-size:13.5px;color:var(--text-dim);line-height:1.55;margin-bottom:22px;}
+.ob-body{animation:fadeUp .3s ease;}
+.ob-foot{display:flex;gap:10px;margin-top:24px;}
+.ob-foot .btn{flex:1;justify-content:center;}
+.ob-opts{display:grid;gap:10px;}
+.ob-opt{
+  display:flex;align-items:center;gap:13px;text-align:left;cursor:pointer;
+  padding:15px;border-radius:15px;border:1px solid var(--border);
+  background:linear-gradient(160deg,var(--surf-1),var(--surf-2));color:var(--text);
+  transition:border-color .2s ease, box-shadow .2s ease, transform .16s ease;
+}
+.ob-opt:active{transform:scale(.99);}
+.ob-opt.on{border-color:color-mix(in srgb, var(--cyan) 55%, transparent);box-shadow:0 0 0 1px color-mix(in srgb, var(--cyan) 35%, transparent), 0 0 26px -12px var(--cyan);}
+.ob-opt .ob-num{
+  flex:none;width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;
+  background:color-mix(in srgb, var(--cyan) 14%, transparent);color:var(--cyan);
+  border:1px solid color-mix(in srgb, var(--cyan) 26%, transparent);
+}
+.ob-opt.on .ob-num{background:var(--cyan);color:#04141a;border-color:transparent;}
+.ob-opt b{display:block;font-size:14.5px;margin-bottom:2px;}
+.ob-opt span{display:block;font-size:12px;color:var(--text-dim);line-height:1.45;}
+.ob-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ob-logo{width:96px;height:auto;display:block;margin:0 auto 20px;filter:drop-shadow(0 0 26px var(--cyan-dim));}
+
+/* ---------------- cardio por tiempo ---------------- */
+.cardio-effort{display:flex;gap:7px;margin:2px 0 12px;flex-wrap:wrap;}
+.ce-chip{
+  flex:1;min-width:76px;padding:9px 6px;border-radius:11px;cursor:pointer;text-align:center;
+  border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text-dim);
+  font-size:12px;font-weight:700;transition:border-color .2s ease,color .2s ease,background .2s ease;
+}
+.ce-chip b{display:block;font-size:12.5px;color:inherit;}
+.ce-chip i{display:block;font-style:normal;font-size:10.5px;font-weight:600;opacity:.8;margin-top:2px;}
+.ce-chip.on{
+  color:var(--text);border-color:color-mix(in srgb, var(--cyan) 45%, transparent);
+  background:color-mix(in srgb, var(--cyan) 12%, transparent);
+}
+.cardio-head,.cardio-row{
+  display:grid;grid-template-columns:34px minmax(0,1fr) minmax(0,1fr) 44px;gap:9px;align-items:center;
+}
+.cardio-head{margin-bottom:8px;}
+.cardio-head span{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text-dim);text-align:center;}
+.cardio-head span:first-child{text-align:left;}
+.cardio-row{margin-bottom:9px;}
+.cardio-kcal{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;
+  padding:11px 13px;border-radius:12px;font-size:12.5px;color:var(--text-dim);
+  background:color-mix(in srgb, var(--green) 8%, transparent);
+  border:1px solid color-mix(in srgb, var(--green) 22%, transparent);
+}
+.cardio-kcal b{font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--green);}
+@media (max-width:480px){
+  .cardio-head,.cardio-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;}
+}
+
+/* ---------------- salud y energía ---------------- */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.metric{
+  padding:14px;border-radius:15px;border:1px solid var(--border);
+  background:linear-gradient(160deg,var(--surf-1),var(--surf-2));
+}
+.metric .m-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+.metric .m-val{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;margin-top:5px;line-height:1;}
+.metric .m-unit{font-size:12px;font-weight:600;color:var(--text-dim);margin-left:3px;}
+.metric .m-note{font-size:11.5px;color:var(--text-dim);margin-top:5px;line-height:1.4;}
+.cal-plan{display:grid;gap:9px;margin-top:13px;}
+.cal-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-radius:13px;border:1px solid var(--border);
+  background:rgba(255,255,255,.028);
+}
+.cal-row.is-main{border-color:color-mix(in srgb, var(--cyan) 34%, transparent);background:color-mix(in srgb, var(--cyan) 7%, transparent);}
+.cal-row .c-name{font-size:13px;font-weight:700;}
+.cal-row .c-desc{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+.cal-row b{font-family:'Space Grotesk',sans-serif;font-size:17px;flex:none;}
+.metric-empty{font-size:13px;color:var(--text-dim);line-height:1.55;}
+
 .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;}
 .theme-card{
   text-align:left;padding:14px;border-radius:16px;cursor:pointer;
@@ -700,7 +826,7 @@ a{color:inherit;}
 .rest-mini-pill b{font-variant-numeric:tabular-nums;}
 .rmp-dot{width:7px;height:7px;border-radius:50%;background:#04141a;animation:blinkDot 1s ease-in-out infinite;}
 @keyframes blinkDot{0%,100%{opacity:1;}50%{opacity:.25;}}
-@media (max-width:900px){.rest-mini-pill{bottom:calc(var(--bottomnav-h) + 14px);}}
+@media (max-width:900px){.rest-mini-pill{bottom:calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 14px);}}
 
 /* progress */
 .calendar-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px;overflow-x:auto;padding-bottom:6px;}
@@ -861,11 +987,15 @@ a{color:inherit;}
   .sidebar.open{transform:translateX(0);}
   .main-col{margin-left:0;}
   .hamburger{display:flex;}
-  .content{padding:18px 16px 96px;}
+  .content{padding:18px 16px calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 30px);}
+  /* El indicador de inicio del iPhone se suma a la altura; si se restara del
+     alto fijo, los iconos quedarían aplastados contra el borde. */
   .bottom-nav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;height:var(--bottomnav-h);z-index:50;
-    background:rgba(6,10,16,.9);backdrop-filter:blur(14px);border-top:1px solid var(--border);
-    justify-content:space-around;align-items:center;padding-bottom:env(safe-area-inset-bottom);
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;
+    height:calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+    padding-bottom:env(safe-area-inset-bottom);
+    background:rgba(6,10,16,.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);
+    justify-content:space-around;align-items:center;
   }
   .bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:10px;font-weight:700;background:none;border:none;cursor:pointer;padding:6px 10px;}
   .bn-item svg{width:20px;height:20px;}
@@ -888,6 +1018,23 @@ a{color:inherit;}
 </head>
 <body>
 
+<div id="splash">
+  <img src="logo.png" alt="APULSO" width="600" height="600">
+  <svg class="splash-ring" viewBox="0 0 36 36" aria-hidden="true">
+    <circle class="bg" cx="18" cy="18" r="15.5"/>
+    <circle class="fg" cx="18" cy="18" r="15.5"/>
+  </svg>
+  <button class="splash-skip" data-action="skip-splash">Tocar para entrar</button>
+</div>
+
+<div id="onboard" role="dialog" aria-modal="true" aria-label="Configuración inicial">
+  <div class="ob-shell">
+    <div class="ob-steps" id="obSteps"></div>
+    <div class="ob-body" id="obBody"></div>
+    <div class="ob-foot" id="obFoot"></div>
+  </div>
+</div>
+
 <div class="bg-fx" aria-hidden="true">
   <div class="bg-grid"></div>
   <div class="bg-glow g1"></div>
@@ -903,8 +1050,8 @@ a{color:inherit;}
         <svg viewBox="0 0 24 24" fill="none" stroke="#04141a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h4l2-7 4 14 2-7h6"/></svg>
       </div>
       <div>
-        <div class="brand-name">PULSE</div>
-        <div class="brand-sub">Neural Fitness OS</div>
+        <div class="brand-name">APULSO</div>
+        <div class="brand-sub">Tu fuerza, medida</div>
       </div>
     </div>
     <div class="nav-item" data-nav="dashboard">
@@ -1142,6 +1289,12 @@ a{color:inherit;}
             <div class="chart-wrap" id="chartBodyweight"></div>
             <div class="chart-meta" id="weighInNext" style="margin-top:10px;margin-bottom:0;"></div>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h3 style="font-size:15px;margin-bottom:4px;">Salud y energía</h3>
+          <div class="section-sub" style="margin-bottom:13px;">Calculado con tus medidas y tu nivel de actividad.</div>
+          <div id="healthPanel"></div>
         </div>
 
         <div class="card" style="margin-top:16px;">
@@ -1702,7 +1855,8 @@ function seedRoutines(exercises){
 function defaultState(){
   const exercises = seedExercises();
   return {
-    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null, theme:"neon", avatar:defaultAvatar() },
+    profile:{ name:"Atleta", createdAt:todayISO(), soundOn:SOUND_KEY_DEFAULT, weightLog:[], weighInSnooze:null,
+              theme:"neon", gender:"", age:null, height:null, activity:0, onboarded:false, avatar:defaultAvatar() },
     exercises,
     routines: seedRoutines(exercises),
     workouts: [],
@@ -1796,6 +1950,7 @@ function loadState(){
     parsed.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     if(parsed.profile.weighInSnooze === undefined) parsed.profile.weighInSnooze = null;
     if(!THEMES[parsed.profile.theme]) parsed.profile.theme = "neon";
+    if(parsed.profile.onboarded === undefined) parsed.profile.onboarded = !!(parsed.profile.height && parsed.profile.age);
     parsed.workouts = Array.isArray(parsed.workouts) ? parsed.workouts : [];
     parsed.achievements = parsed.achievements && typeof parsed.achievements==="object" ? parsed.achievements : {};
     parsed.xp = Number.isFinite(parsed.xp) ? parsed.xp : 0;
@@ -1803,7 +1958,7 @@ function loadState(){
     parsed.ui = parsed.ui || { currentView:"dashboard", exerciseFilter:"Todos" };
     return parsed;
   }catch(err){
-    console.warn("PULSE: no se pudo leer el estado guardado.", err);
+    console.warn("APULSO: no se pudo leer el estado guardado.", err);
     /* Keep the unreadable bytes: they may still be rescued by hand. */
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1827,6 +1982,7 @@ function migrateState(st){
   st.profile.weightLog.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   if(st.profile.weighInSnooze === undefined) st.profile.weighInSnooze = null;
   if(!THEMES[st.profile.theme]) st.profile.theme = "neon";
+  if(st.profile.onboarded === undefined) st.profile.onboarded = !!(st.profile.height && st.profile.age);
   st.workouts = Array.isArray(st.workouts) ? st.workouts : [];
   st.achievements = st.achievements && typeof st.achievements==="object" ? st.achievements : {};
   st.xp = Number.isFinite(st.xp) ? st.xp : 0;
@@ -1840,7 +1996,7 @@ function saveState(){
   try{
     json = JSON.stringify(state);
   }catch(err){
-    console.warn("PULSE: no se pudo serializar el estado.", err);
+    console.warn("APULSO: no se pudo serializar el estado.", err);
     return;
   }
   let previous = null;
@@ -1848,7 +2004,7 @@ function saveState(){
   try{
     localStorage.setItem(STORAGE_KEY, json);
   }catch(err){
-    console.warn("PULSE: no se pudo guardar el estado.", err);
+    console.warn("APULSO: no se pudo guardar el estado.", err);
     showToast(ICONS.x, "Almacenamiento lleno", "No se pudieron guardar los cambios. Exporta tus datos por seguridad.");
     return;
   }
@@ -1875,7 +2031,7 @@ function writeBackups(previous, json){
     while(keys.length > DAILY_KEEP){ localStorage.removeItem(keys.shift()); }
   }catch(err){
     /* A full quota must never break saving the state itself. */
-    console.warn("PULSE: no se pudo escribir la copia de seguridad.", err);
+    console.warn("APULSO: no se pudo escribir la copia de seguridad.", err);
   }
 }
 
@@ -1885,8 +2041,18 @@ function computeStats(){
   let totalVolume = 0, totalSets = 0, prCount = 0;
   const bestByExercise = {};
   const muscleSets = {};
+  let totalKcal = 0, totalCardioSeconds = 0;
   workouts.forEach(w=>{
     w.exercises.forEach(we=>{
+      if(we.cardio){
+        totalKcal += num(we.kcal,0);
+        totalCardioSeconds += num(we.seconds,0);
+        totalSets += we.sets.length;
+        const exC = state.exercises.find(e=>e.id===we.exerciseId);
+        const mC = exC ? exC.muscle : "Cardio";
+        muscleSets[mC] = (muscleSets[mC]||0) + we.sets.length;
+        return;
+      }
       we.sets.forEach(s=>{
         if(!s.done) return;
         totalSets++;
@@ -1914,6 +2080,7 @@ function computeStats(){
   return {
     totalWorkouts: workouts.length,
     totalVolume: Math.round(totalVolume),
+    totalKcal: Math.round(totalKcal), totalCardioSeconds,
     totalSets, prCount, streak,
     bestByExercise, muscleSets,
     level: level.level, xpIntoLevel: level.into, xpNeeded: level.need
@@ -2012,8 +2179,17 @@ function spawnCelebrationParticles(){
   }
   wrap.appendChild(frag);
 }
+/* La bienvenida y el cuestionario inicial van por encima de la celebración: si
+   una se abriera ahí quedaría atrapada detrás. Espera a que terminen. */
+function celebrationsBlocked(){
+  const splash = document.getElementById("splash");
+  const onboard = document.getElementById("onboard");
+  return (splash && !splash.classList.contains("gone")) || (onboard && onboard.classList.contains("open"));
+}
+
 function showNextCelebration(){
   if(!celebrateQueue.length) return;
+  if(celebrationsBlocked()){ setTimeout(showNextCelebration, 600); return; }
   clearTimeout(celebrateAutoTimer);
   const item = celebrateQueue[0];
   const overlay = document.getElementById("celebrateOverlay");
@@ -2221,6 +2397,14 @@ function renderDashboard(){
 function workoutVolume(w){
   return w.exercises.reduce((sum,we)=>sum + we.sets.filter(s=>s.done).reduce((a,s)=>a+num(s.weight,0)*num(s.reps,0),0), 0);
 }
+/* Calorías de cardio registradas en un entrenamiento. */
+function workoutKcal(w){
+  return w.exercises.reduce((sum,we)=>sum + (we.cardio ? num(we.kcal,0) : 0), 0);
+}
+function workoutCardioSeconds(w){
+  return w.exercises.reduce((sum,we)=>sum + (we.cardio ? num(we.seconds,0) : 0), 0);
+}
+
 /* Volume is measured in completed series; kilos stay available as a secondary
    read-out in tooltips and in the profile. */
 function workoutSets(w){
@@ -2838,13 +3022,18 @@ function startRoutine(routineId){
     exercises: r.exercises.map(re=>{
       const ex = state.exercises.find(e=>e.id===re.exerciseId);
       const prevBest = findLastPerformance(re.exerciseId);
+      const cardio = !!ex && ex.muscle === "Cardio";
       return {
         exerciseId: re.exerciseId,
         name: ex ? ex.name : "Ejercicio",
         muscle: ex ? ex.muscle : null,
+        cardio,
+        effort: cardio ? (lastCardioEffort(re.exerciseId) || "moderado") : null,
         prevBest,
         prevSets: lastSessionSets(re.exerciseId),
-        sets: re.sets.map(s=>({ targetReps:s.reps, targetWeight:s.weight, reps:s.reps, weight:s.weight, done:false, isPR:false }))
+        sets: re.sets.map(s=>cardio
+          ? { seconds: 600, done:false }
+          : { targetReps:s.reps, targetWeight:s.weight, reps:s.reps, weight:s.weight, done:false, isPR:false })
       };
     })
   };
@@ -2903,12 +3092,16 @@ function renderSessionView(){
       const ex = state.exercises.find(e=>e.id===se.exerciseId);
       const color = ex ? muscleColor(ex.muscle) : PALETTE.chartFrom;
       const prevSets = se.prevSets || [];
-      return `<div class="session-ex">
-        <div class="session-ex-head">
+      const head = `<div class="session-ex-head">
           <div class="br-icon icon-badge" style="width:36px;height:36px;${muscleBadgeStyle(color)}">${ex ? muscleIcon(ex.muscle) : ICONS.dumbbell}</div>
           <h4>${escapeHtml(se.name)}</h4>
-          <div class="prev">${se.prevBest ? "Mejor marca · "+se.prevBest.weight+" kg × "+se.prevBest.reps : "Sin historial previo"}</div>
-        </div>
+          <div class="prev">${se.cardio
+            ? "Se mide en tiempo"
+            : (se.prevBest ? "Mejor marca · "+se.prevBest.weight+" kg × "+se.prevBest.reps : "Sin historial previo")}</div>
+        </div>`;
+      if(se.cardio) return renderCardioBlock(se, exIdx, head);
+      return `<div class="session-ex">
+        ${head}
         <div class="set-head">
           <span>Serie</span>
           <span class="col-prev">Anterior</span>
@@ -3063,10 +3256,22 @@ function finishSession(){
     routineName: session.routineName,
     date: todayISO(),
     durationSeconds: Math.floor((Date.now()-session.startedAt)/1000),
-    exercises: session.exercises.map(se=>({
-      exerciseId: se.exerciseId,
-      sets: se.sets.filter(s=>s.done).map(s=>({ weight:num(s.weight,0), reps:num(s.reps,0), done:true }))
-    }))
+    exercises: session.exercises.map(se=>{
+      if(se.cardio){
+        const met = cardioProfile(se.name)[se.effort || "moderado"];
+        const done = se.sets.filter(s=>s.done);
+        const seconds = done.reduce((a,s)=>a+num(s.seconds,0), 0);
+        return {
+          exerciseId: se.exerciseId, cardio:true, effort: se.effort || "moderado", met,
+          seconds, kcal: Math.round(cardioKcal(seconds, met, currentWeight())),
+          sets: done.map(s=>({ seconds:num(s.seconds,0), done:true }))
+        };
+      }
+      return {
+        exerciseId: se.exerciseId,
+        sets: se.sets.filter(s=>s.done).map(s=>({ weight:num(s.weight,0), reps:num(s.reps,0), done:true }))
+      };
+    })
   };
   state.workouts.push(workout);
   const vol = workoutVolume(workout);
@@ -3078,7 +3283,9 @@ function finishSession(){
      can never cost the athlete the session they just finished. */
   saveState();
   navigate("dashboard");
-  showToast(ICONS.bolt, "Entrenamiento completado", `+${xpGain} XP · ${totalSetsDone} series de volumen`);
+  const kcal = workoutKcal(workout);
+  showToast(ICONS.bolt, "Entrenamiento completado",
+    `+${xpGain} XP · ${totalSetsDone} series${kcal ? ` · ${kcal} kcal de cardio` : ""}`);
   askIntensity(workout.id);
 }
 
@@ -3335,6 +3542,7 @@ function renderProfileView(){
     emptyMsg:"Registra tu peso corporal para ver tu evolución."
   });
 
+  renderHealthPanel();
   renderThemePicker();
   renderWeighInNotice();
   renderBackupState();
@@ -3406,6 +3614,333 @@ function saveProfileSettings(){
   } else {
     showToast(ICONS.check, "Cambios guardados", "Tu perfil se actualizó.");
   }
+}
+
+/* ===================== BIENVENIDA Y CONFIGURACIÓN INICIAL ===================== */
+let splashTimer = null;
+let obStep = 0;
+let obDraft = null;
+
+function startSplash(){
+  const el = document.getElementById("splash");
+  if(!el) return;
+  splashTimer = setTimeout(endSplash, 5000);
+}
+
+function endSplash(){
+  clearTimeout(splashTimer);
+  splashTimer = null;
+  const el = document.getElementById("splash");
+  if(!el || el.classList.contains("gone")) return;
+  el.classList.add("gone");
+  if(!state.profile.onboarded){ startOnboarding(); return; }
+  setTimeout(showNextCelebration, 400);
+  setTimeout(()=>maybePromptWeighIn(0), 900);
+}
+
+function startOnboarding(){
+  obStep = 0;
+  obDraft = {
+    name: state.profile.name && state.profile.name !== "Atleta" ? state.profile.name : "",
+    gender: state.profile.gender || "",
+    age: state.profile.age || "",
+    height: state.profile.height || "",
+    weight: currentWeight() || "",
+    activity: state.profile.activity || 0
+  };
+  document.getElementById("onboard").classList.add("open");
+  renderOnboarding();
+}
+
+const OB_STEPS = 4;
+
+function renderOnboarding(){
+  document.getElementById("obSteps").innerHTML =
+    Array.from({length:OB_STEPS}, (_,i)=>`<i class="${i<=obStep?"on":""}"></i>`).join("");
+  const body = document.getElementById("obBody");
+  const foot = document.getElementById("obFoot");
+
+  if(obStep === 0){
+    body.innerHTML = `
+      <img class="ob-logo" src="logo.png" alt="">
+      <div class="ob-eyebrow">Bienvenido</div>
+      <h2 class="ob-title">¿Cómo te llamamos?</h2>
+      <p class="ob-sub">Cuatro preguntas rápidas y la app queda a tu medida. Puedes cambiarlo todo después.</p>
+      <div class="field"><label>Tu nombre</label>
+        <input type="text" id="obName" maxlength="30" placeholder="Ej: Matías" value="${escapeHtml(obDraft.name)}"></div>`;
+  } else if(obStep === 1){
+    const opts = [["mujer","Mujer"],["hombre","Hombre"],["otro","Prefiero no decirlo"]];
+    body.innerHTML = `
+      <div class="ob-eyebrow">Paso 2 de 4</div>
+      <h2 class="ob-title">¿Con qué te identificas?</h2>
+      <p class="ob-sub">Lo usamos solo para calcular tu metabolismo basal: la fórmula cambia según el sexo biológico. Si prefieres no decirlo usamos el promedio de ambas.</p>
+      <div class="ob-opts">${opts.map(([v,l])=>`
+        <button class="ob-opt ${obDraft.gender===v?"on":""}" data-action="ob-gender" data-value="${v}">
+          <b style="margin:0;">${l}</b></button>`).join("")}</div>`;
+  } else if(obStep === 2){
+    body.innerHTML = `
+      <div class="ob-eyebrow">Paso 3 de 4</div>
+      <h2 class="ob-title">Tus medidas de hoy</h2>
+      <p class="ob-sub">Con esto calculamos tu IMC, tu metabolismo basal y las calorías que quemas al día.</p>
+      <div class="ob-grid2">
+        <div class="field"><label>Edad</label>
+          <input type="number" id="obAge" inputmode="numeric" min="12" max="100" placeholder="30" value="${obDraft.age||""}"></div>
+        <div class="field"><label>Estatura (cm)</label>
+          <input type="number" id="obHeight" inputmode="numeric" min="120" max="230" placeholder="175" value="${obDraft.height||""}"></div>
+      </div>
+      <div class="field"><label>Peso actual (kg)</label>
+        <input type="number" id="obWeight" inputmode="decimal" min="30" max="300" step="0.1" placeholder="75" value="${obDraft.weight||""}"></div>`;
+  } else {
+    body.innerHTML = `
+      <div class="ob-eyebrow">Paso 4 de 4</div>
+      <h2 class="ob-title">¿Qué tan activo eres?</h2>
+      <p class="ob-sub">Elige el nivel que más se parezca a tu semana normal, contando trabajo y entrenamiento.</p>
+      <div class="ob-opts">${ACTIVITY_LEVELS.map(a=>`
+        <button class="ob-opt ${obDraft.activity===a.level?"on":""}" data-action="ob-activity" data-value="${a.level}">
+          <span class="ob-num">${a.level}</span>
+          <span style="min-width:0;"><b>${escapeHtml(a.name)}</b><span>${escapeHtml(a.desc)}</span></span>
+        </button>`).join("")}</div>`;
+  }
+
+  foot.innerHTML =
+    (obStep > 0 ? `<button class="btn btn-ghost" data-action="ob-back">Atrás</button>` : "") +
+    `<button class="btn btn-primary" data-action="ob-next">${obStep === OB_STEPS-1 ? "Empezar" : "Continuar"}</button>`;
+}
+
+/* Guarda lo escrito en el paso actual y valida antes de avanzar. */
+function obCapture(){
+  if(obStep === 0){
+    const v = (document.getElementById("obName").value || "").trim();
+    if(!v){ showToast(ICONS.x, "Falta tu nombre", "Escribe cómo quieres que te llamemos."); return false; }
+    obDraft.name = v;
+  } else if(obStep === 1){
+    if(!obDraft.gender){ showToast(ICONS.x, "Elige una opción", "La necesitamos para calcular tu metabolismo."); return false; }
+  } else if(obStep === 2){
+    const age = num(document.getElementById("obAge").value, null);
+    const h = num(document.getElementById("obHeight").value, null);
+    const w = num(document.getElementById("obWeight").value, null);
+    if(age===null || age<12 || age>100){ showToast(ICONS.x, "Edad no válida", "Ingresa una edad entre 12 y 100 años."); return false; }
+    if(h===null || h<120 || h>230){ showToast(ICONS.x, "Estatura no válida", "Ingresa tu estatura en centímetros, entre 120 y 230."); return false; }
+    if(w===null || w<30 || w>300){ showToast(ICONS.x, "Peso no válido", "Ingresa un peso entre 30 y 300 kg."); return false; }
+    obDraft.age = age; obDraft.height = h; obDraft.weight = w;
+  } else if(obStep === 3){
+    if(!obDraft.activity){ showToast(ICONS.x, "Elige tu nivel", "Toca el nivel que mejor describa tu semana."); return false; }
+  }
+  return true;
+}
+
+function obNext(){
+  if(!obCapture()) return;
+  if(obStep < OB_STEPS-1){ obStep++; renderOnboarding(); return; }
+  finishOnboarding();
+}
+
+function obBack(){
+  obCapture();
+  if(obStep > 0){ obStep--; renderOnboarding(); }
+}
+
+function obSet(field, value){
+  obDraft[field] = value;
+  renderOnboarding();
+}
+
+function finishOnboarding(){
+  const p = state.profile;
+  p.name = obDraft.name;
+  p.gender = obDraft.gender;
+  p.age = obDraft.age;
+  p.height = obDraft.height;
+  p.activity = obDraft.activity;
+  p.onboarded = true;
+  recordBodyWeight(obDraft.weight);
+  saveState();
+  document.getElementById("onboard").classList.remove("open");
+  renderRoute();
+  setTimeout(showNextCelebration, 400);
+  setTimeout(()=>maybePromptWeighIn(0), 2000);
+  const m = healthMetrics();
+  showToast(ICONS.sparkle, `Todo listo, ${p.name}`,
+    m ? `Tu gasto diario estimado es de ${Math.round(m.tdee).toLocaleString('es-CL')} kcal.` : "Ya puedes empezar a entrenar.");
+}
+
+/* Actualiza sólo el contador de calorías: redibujar el bloque entero mientras
+   se escribe le quitaría el foco al campo. */
+function updateCardioReadout(exIdx){
+  const se = session.exercises[exIdx];
+  if(!se || !se.cardio) return;
+  const block = document.querySelectorAll(".session-ex")[exIdx];
+  const out = block && block.querySelector(".cardio-kcal");
+  if(!out) return;
+  const met = cardioProfile(se.name)[se.effort || "moderado"];
+  const kg = currentWeight();
+  const totalSec = se.sets.reduce((a,s)=>a + (s.done ? num(s.seconds,0) : 0), 0);
+  out.querySelector("span").textContent = `${fmtDuration(totalSec)} min a ${String(met).replace(".",",")} MET${kg ? "" : " · falta tu peso para afinar el cálculo"}`;
+  out.querySelector("b").textContent = `${Math.round(cardioKcal(totalSec, met, kg))} kcal`;
+}
+
+/* Última intensidad usada en este ejercicio, para no repetir la elección. */
+function lastCardioEffort(exerciseId){
+  for(let i = state.workouts.length - 1; i >= 0; i--){
+    const we = state.workouts[i].exercises.find(x=>x.exerciseId === exerciseId);
+    if(we && we.effort) return we.effort;
+  }
+  return null;
+}
+
+/* Cardio no son series ni kilos: son minutos a una intensidad, y de ahí salen
+   las calorías. */
+function renderCardioBlock(se, exIdx, head){
+  const prof = cardioProfile(se.name);
+  const effort = se.effort || "moderado";
+  const met = prof[effort];
+  const kg = currentWeight();
+  const totalSec = se.sets.reduce((a,s)=>a + (s.done ? num(s.seconds,0) : 0), 0);
+  const kcal = cardioKcal(totalSec, met, kg);
+  return `<div class="session-ex">
+    ${head}
+    <div class="cardio-effort">
+      ${CARDIO_EFFORTS.map((key,i)=>`
+        <button class="ce-chip ${key===effort?"on":""}" data-action="set-effort" data-ex="${exIdx}" data-effort="${key}">
+          <b>${key.charAt(0).toUpperCase()+key.slice(1)}</b>
+          <i>${escapeHtml(prof.nombre[i])}</i>
+        </button>`).join("")}
+    </div>
+    <div class="cardio-head">
+      <span>#</span><span>Minutos</span><span>Segundos</span><span>Hecho</span>
+    </div>
+    ${se.sets.map((s,setIdx)=>{
+      const sec = num(s.seconds,0);
+      return `<div class="cardio-row ${s.done?'is-done':''}">
+        <div class="sr-n">${setIdx+1}</div>
+        <label class="sr-field" aria-label="Minutos, bloque ${setIdx+1}">
+          <input type="number" inputmode="numeric" min="0" max="600" step="1" value="${Math.floor(sec/60)}"
+            data-action="cardio-min" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
+          <span class="sr-unit">min</span>
+        </label>
+        <label class="sr-field" aria-label="Segundos, bloque ${setIdx+1}">
+          <input type="number" inputmode="numeric" min="0" max="59" step="1" value="${sec%60}"
+            data-action="cardio-sec" data-ex="${exIdx}" data-set="${setIdx}" ${s.done?'disabled':''}>
+          <span class="sr-unit">seg</span>
+        </label>
+        <button class="sr-check ${s.done?'done':''}" data-action="toggle-set-done" data-ex="${exIdx}" data-set="${setIdx}"
+          aria-label="${s.done?'Desmarcar':'Marcar'} bloque ${setIdx+1}">${ICONS.check}</button>
+      </div>`;
+    }).join("")}
+    <div class="cardio-kcal">
+      <span>${fmtDuration(totalSec)} min a ${String(met).replace(".",",")} MET${kg ? "" : " · falta tu peso para afinar el cálculo"}</span>
+      <b>${Math.round(kcal)} kcal</b>
+    </div>
+    <button class="btn btn-sm btn-ghost" style="margin-top:10px;" data-action="session-add-set" data-ex="${exIdx}">+ Otro bloque</button>
+  </div>`;
+}
+
+/* ======================= SALUD Y ENERGÍA =======================
+   Fórmulas estándar:
+   · IMC = peso / estatura²  (OMS)
+   · TMB por Mifflin-St Jeor (1990), hoy la ecuación predictiva de referencia:
+       hombres  10·kg + 6,25·cm − 5·edad + 5
+       mujeres  10·kg + 6,25·cm − 5·edad − 161
+     Sin género declarado se usa el punto medio de ambas constantes (−78).
+   · TDEE = TMB × factor de actividad (1,2 a 1,9).
+   · Calorías del cardio por MET: kcal = MET × 3,5 × kg / 200 × minutos
+     (fórmula avalada por el ACSM; 1 MET = 3,5 ml O₂/kg/min).
+------------------------------------------------------------------ */
+const ACTIVITY_LEVELS = [
+  { level:1, factor:1.2,   name:"Muy poco activo",
+    desc:"Trabajo sentado y casi nada de ejercicio. Menos de un día de actividad a la semana." },
+  { level:2, factor:1.375, name:"Poco activo",
+    desc:"Caminas algo en el día o entrenas suave 1 o 2 veces por semana." },
+  { level:3, factor:1.55,  name:"Moderadamente activo",
+    desc:"Entrenas 3 o 4 días por semana, o pasas buena parte del día de pie." },
+  { level:4, factor:1.725, name:"Muy activo",
+    desc:"Entrenas fuerte 5 o 6 días por semana, o tu trabajo es físico." },
+  { level:5, factor:1.9,   name:"Extremadamente activo",
+    desc:"Entrenas a diario, a veces dos veces al día, o haces trabajo físico pesado." }
+];
+const ACTIVITY_BY_LEVEL = {};
+ACTIVITY_LEVELS.forEach(a=>{ ACTIVITY_BY_LEVEL[a.level] = a; });
+
+function currentWeight(){
+  const log = state.profile.weightLog;
+  if(log && log.length) return log[log.length-1].weight;
+  return num(state.profile.weight, null);
+}
+
+/* Devuelve null mientras falte algún dato, para no mostrar números inventados. */
+function healthMetrics(){
+  const p = state.profile;
+  const kg = currentWeight();
+  const cm = num(p.height, null);
+  const age = num(p.age, null);
+  if(!kg || !cm || !age) return null;
+
+  const m = cm / 100;
+  const bmi = kg / (m*m);
+  const bmiCat =
+    bmi < 18.5 ? { label:"Bajo peso",  color:"var(--blue)" } :
+    bmi < 25   ? { label:"Peso normal", color:"var(--green)" } :
+    bmi < 30   ? { label:"Sobrepeso",  color:"#ffc94d" } :
+                 { label:"Obesidad",   color:"var(--danger)" };
+
+  const genderConst = p.gender === "hombre" ? 5 : p.gender === "mujer" ? -161 : -78;
+  const bmr = 10*kg + 6.25*cm - 5*age + genderConst;
+  const act = ACTIVITY_BY_LEVEL[p.activity] || ACTIVITY_BY_LEVEL[3];
+  const tdee = bmr * act.factor;
+
+  return {
+    kg, cm, age, bmi, bmiCat, bmr, tdee, activity:act,
+    cut:  tdee - 500,      /* ≈ 0,5 kg por semana */
+    cutSoft: tdee * 0.85,
+    bulk: tdee + 300,
+    approxGender: p.gender !== "hombre" && p.gender !== "mujer"
+  };
+}
+
+/* MET por ejercicio de cardio y nivel de esfuerzo, según el Compendium of
+   Physical Activities. Cada actividad trae sus tres intensidades publicadas. */
+const CARDIO_MET = {
+  "carrera":    { suave:8.3,  moderado:9.8,  intenso:11.8, nombre:["Correr 8 km/h","Correr 9,7 km/h","Correr 11,3 km/h o más"] },
+  "caminata":   { suave:3.5,  moderado:5.0,  intenso:7.0,  nombre:["Caminar 4,8 km/h","Caminar 6,4 km/h","Caminar muy rápido o en pendiente"] },
+  "bicicleta":  { suave:5.5,  moderado:7.0,  intenso:10.5, nombre:["50-100 W","100-150 W","150-200 W"] },
+  "eliptica":   { suave:4.6,  moderado:5.0,  intenso:7.0,  nombre:["Suave","Moderado","Fuerte"] },
+  "remo":       { suave:4.8,  moderado:7.0,  intenso:8.5,  nombre:["<100 W","100-150 W",">150 W"] },
+  "cuerda":     { suave:8.8,  moderado:11.8, intenso:12.3, nombre:["Lento","Moderado","Rápido"] },
+  "escalador":  { suave:6.0,  moderado:9.0,  intenso:11.0, nombre:["Suave","Moderado","Fuerte"] },
+  "natacion":   { suave:5.3,  moderado:5.8,  intenso:9.8,  nombre:["Suave","Moderado","Fuerte"] },
+  "generico":   { suave:5.0,  moderado:7.0,  intenso:9.0,  nombre:["Suave","Moderado","Fuerte"] }
+};
+const CARDIO_EFFORTS = ["suave","moderado","intenso"];
+
+/* Elige la tabla MET a partir del nombre del ejercicio. */
+function cardioProfile(name){
+  const n = String(name||"").toLowerCase();
+  if(/corr|trot|carrera|running|sprint/.test(n)) return CARDIO_MET.carrera;
+  if(/camin|marcha|walk|trotadora|cinta/.test(n)) return CARDIO_MET.caminata;
+  if(/bici|spinning|ciclo/.test(n))               return CARDIO_MET.bicicleta;
+  if(/elipt|eliptic/.test(n))                     return CARDIO_MET.eliptica;
+  if(/remo|remador|rowing/.test(n))               return CARDIO_MET.remo;
+  if(/cuerda|salt|comba/.test(n))                 return CARDIO_MET.cuerda;
+  if(/escal|escalad|stair|grada/.test(n))         return CARDIO_MET.escalador;
+  if(/nata|nadar|pisc/.test(n))                   return CARDIO_MET.natacion;
+  return CARDIO_MET.generico;
+}
+
+function isCardio(exerciseId){
+  const ex = state.exercises.find(e=>e.id===exerciseId);
+  return !!ex && ex.muscle === "Cardio";
+}
+
+/* kcal = MET × 3,5 × kg / 200 × minutos */
+function cardioKcal(seconds, met, kg){
+  const w = kg || currentWeight() || 70;
+  return (met * 3.5 * w / 200) * (num(seconds,0) / 60);
+}
+
+function fmtDuration(seconds){
+  const s = Math.max(0, Math.round(num(seconds,0)));
+  const m = Math.floor(s/60), r = s%60;
+  return `${m}:${String(r).padStart(2,"0")}`;
 }
 
 /* ===================== WEEKLY BODY-WEIGHT CHECK-IN ===================== */
@@ -3523,9 +4058,9 @@ function importData(file){
   reader.onload = ev=>{
     let parsed;
     try{ parsed = JSON.parse(ev.target.result); }
-    catch(err){ showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de PULSE."); return; }
+    catch(err){ showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de APULSO."); return; }
     if(!validState(parsed)){
-      showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de PULSE.");
+      showToast(ICONS.x, "Archivo no válido", "Ese archivo no es una copia de APULSO.");
       return;
     }
     const incoming = contentScore(parsed);
@@ -3544,6 +4079,51 @@ function importData(file){
     });
   };
   reader.readAsText(file);
+}
+
+function renderHealthPanel(){
+  const el = document.getElementById("healthPanel");
+  if(!el) return;
+  const m = healthMetrics();
+  if(!m){
+    el.innerHTML = `<p class="metric-empty">Faltan datos para calcular tus métricas. Completa tu edad, estatura y peso en Ajustes y aparecerán aquí tu IMC, tu metabolismo basal y tus calorías diarias.</p>
+      <button class="btn btn-sm btn-primary" style="margin-top:12px;" data-action="edit-body-data">Completar mis datos</button>`;
+    return;
+  }
+  const act = m.activity;
+  el.innerHTML = `
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="m-label">IMC</div>
+        <div class="m-val" style="color:${m.bmiCat.color};">${fmtNum(Math.round(m.bmi*10)/10)}</div>
+        <div class="m-note">${escapeHtml(m.bmiCat.label)} · ${fmtNum(m.kg)} kg y ${m.cm} cm</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">Metabolismo basal</div>
+        <div class="m-val">${Math.round(m.bmr).toLocaleString('es-CL')}<span class="m-unit">kcal</span></div>
+        <div class="m-note">Lo que gastas en reposo, sin moverte.</div>
+      </div>
+    </div>
+    <div class="metric" style="margin-top:11px;">
+      <div class="m-label">Gasto energético diario (TDEE)</div>
+      <div class="m-val" style="color:var(--cyan);">${Math.round(m.tdee).toLocaleString('es-CL')}<span class="m-unit">kcal al día</span></div>
+      <div class="m-note">Nivel ${act.level} · ${escapeHtml(act.name)} (×${String(act.factor).replace('.',',')})${m.approxGender ? " · estimación promedio por no declarar sexo" : ""}</div>
+    </div>
+    <div class="cal-plan">
+      <div class="cal-row">
+        <div><div class="c-name">Bajar de peso</div><div class="c-desc">Déficit de 500 kcal ≈ 0,5 kg por semana</div></div>
+        <b style="color:var(--blue);">${Math.round(m.cut).toLocaleString('es-CL')}</b>
+      </div>
+      <div class="cal-row is-main">
+        <div><div class="c-name">Mantener</div><div class="c-desc">Tu gasto diario estimado</div></div>
+        <b style="color:var(--cyan);">${Math.round(m.tdee).toLocaleString('es-CL')}</b>
+      </div>
+      <div class="cal-row">
+        <div><div class="c-name">Ganar masa</div><div class="c-desc">Superávit de 300 kcal, subida controlada</div></div>
+        <b style="color:var(--green);">${Math.round(m.bulk).toLocaleString('es-CL')}</b>
+      </div>
+    </div>
+    <p class="field-hint" style="margin-top:12px;">Estimaciones con la fórmula Mifflin-St Jeor. Son una referencia, no un plan médico.</p>`;
 }
 
 function renderThemePicker(){
@@ -3909,7 +4489,16 @@ document.addEventListener("click", function(e){
       const exIdx = parseInt(actionEl.dataset.ex,10);
       const se = session.exercises[exIdx];
       const last = se.sets[se.sets.length-1];
-      se.sets.push({ targetReps:last?last.targetReps:10, targetWeight:last?last.targetWeight:20, reps:last?last.reps:10, weight:last?last.weight:20, done:false, isPR:false });
+      se.sets.push(se.cardio
+        ? { seconds: last ? num(last.seconds,600) : 600, done:false }
+        : { targetReps:last?last.targetReps:10, targetWeight:last?last.targetWeight:20, reps:last?last.reps:10, weight:last?last.weight:20, done:false, isPR:false });
+      saveState();
+      renderSessionView();
+      break;
+    }
+    case "set-effort": {
+      const exIdx = parseInt(actionEl.dataset.ex,10);
+      session.exercises[exIdx].effort = actionEl.dataset.effort;
       saveState();
       renderSessionView();
       break;
@@ -3926,6 +4515,12 @@ document.addEventListener("click", function(e){
     case "save-profile": saveProfileSettings(); break;
     case "set-intensity": setIntensity(actionEl.getAttribute("data-level")); break;
     case "skip-intensity": skipIntensity(); break;
+    case "skip-splash": endSplash(); break;
+    case "ob-next": obNext(); break;
+    case "ob-back": obBack(); break;
+    case "ob-gender": obSet("gender", actionEl.getAttribute("data-value")); break;
+    case "ob-activity": obSet("activity", parseInt(actionEl.getAttribute("data-value"),10)); break;
+    case "edit-body-data": startOnboarding(); break;
     case "set-theme": setTheme(actionEl.getAttribute("data-theme")); break;
     case "open-weigh-in": openWeighIn(); break;
     case "weigh-in-step": stepWeighIn(num(actionEl.getAttribute("data-step"), 0)); break;
@@ -3999,7 +4594,11 @@ document.addEventListener("keydown", function(e){
 
 document.addEventListener("keydown", function(e){
   if(e.key === "Enter" && e.target.id === "weighInValue"){ e.preventDefault(); saveWeighIn(); }
+  if(e.key === "Enter" && document.getElementById("onboard").classList.contains("open")
+     && /^ob(Name|Age|Height|Weight)$/.test(e.target.id || "")){ e.preventDefault(); obNext(); }
 });
+
+document.getElementById("splash").addEventListener("click", endSplash);
 
 document.addEventListener("pointerover", function(e){
   const btn = e.target.closest ? e.target.closest("[data-preview]") : null;
@@ -4029,6 +4628,17 @@ document.addEventListener("input", function(e){
     const exIdx = parseInt(e.target.dataset.ex,10), setIdx = parseInt(e.target.dataset.set,10);
     session.exercises[exIdx].sets[setIdx].reps = clamp(num(e.target.value,0),0,999);
     saveState();
+  }
+  if(e.target.matches("[data-action='cardio-min']") || e.target.matches("[data-action='cardio-sec']")){
+    const exIdx = parseInt(e.target.dataset.ex,10), setIdx = parseInt(e.target.dataset.set,10);
+    const set = session.exercises[exIdx].sets[setIdx];
+    const cur = num(set.seconds,0);
+    const isMin = e.target.matches("[data-action='cardio-min']");
+    const mins = isMin ? clamp(num(e.target.value,0),0,600) : Math.floor(cur/60);
+    const secs = isMin ? cur%60 : clamp(num(e.target.value,0),0,59);
+    set.seconds = mins*60 + secs;
+    saveState();
+    updateCardioReadout(exIdx);
   }
 });
 
@@ -4077,6 +4687,7 @@ function init(){
   if(recoveryNotice && recoveryNotice.kind === "restored") saveState();
   checkAchievements();
   renderRoute();
+  startSplash();
   if(recoveryNotice){
     setTimeout(()=>{
       if(recoveryNotice.kind === "restored"){
@@ -4086,7 +4697,6 @@ function init(){
       }
     }, 700);
   }
-  setTimeout(()=>maybePromptWeighIn(0), 900);
 }
 
 init();

@@ -559,11 +559,11 @@ a{color:inherit;}
 .sp-orb.o2{width:580px;height:580px;background:var(--green);bottom:-230px;right:-190px;}
 /* Charco de luz bajo la marca: contenido, del tamaño del logo, no de la pantalla. */
 .sp-pool{
-  position:absolute;left:50%;top:46%;width:min(96vw,430px);aspect-ratio:1.45/1;
+  position:absolute;left:50%;top:45%;width:min(120vw,540px);aspect-ratio:1.4/1;
   transform:translate(-50%,-50%) scale(.9);border-radius:50%;
-  background:radial-gradient(ellipse at 38% 50%, rgba(34,232,255,.34), rgba(34,232,255,0) 62%),
-             radial-gradient(ellipse at 64% 54%, rgba(43,255,168,.34), rgba(43,255,168,0) 62%);
-  filter:blur(38px);opacity:0;
+  background:radial-gradient(ellipse at 38% 50%, rgba(34,232,255,.3), rgba(34,232,255,0) 68%),
+             radial-gradient(ellipse at 64% 54%, rgba(43,255,168,.3), rgba(43,255,168,0) 68%);
+  filter:blur(54px);opacity:0;
 }
 .sp-vignette{
   position:absolute;inset:0;pointer-events:none;
@@ -581,9 +581,9 @@ a{color:inherit;}
 .sp-layer img{width:100%;height:auto;display:block;clip-path:inset(0 100% 0 0);}
 /* El resplandor va en el contenedor y el recorte en la imagen: al revés,
    clip-path corta la sombra y se ve el borde recto del rectángulo. */
-.sp-base{filter:drop-shadow(0 0 26px rgba(34,232,255,.3));}
-#splash.ready .sp-base img{ animation: markWipe .70s cubic-bezier(.24,.7,.22,1) .06s both; }
-#splash.ready .sp-base{ animation: markBloom .74s cubic-bezier(.3,.8,.3,1) .76s both; }
+.sp-base{filter:drop-shadow(0 0 34px rgba(34,232,255,.26)) drop-shadow(0 0 72px rgba(43,255,168,.14));}
+#splash.ready .sp-base img{ animation: markWipe .96s cubic-bezier(.24,.7,.22,1) .08s both; }
+#splash.ready .sp-base{ animation: markBloom 1.2s cubic-bezier(.3,.8,.3,1) 1.18s both; }
 /* Nada de capas con mezcla: dentro de un contexto de apilamiento aislado
    dejan el rectángulo del grupo. El destello va como filtro sobre la propia
    imagen, que ya tiene el fondo recortado, así sólo toca sus píxeles. */
@@ -602,14 +602,14 @@ a{color:inherit;}
 
 /* ---- la secuencia arranca cuando la imagen ya está decodificada ---- */
 #splash.ready .splash-mark{
-  animation: markRise .58s cubic-bezier(.2,.9,.28,1) both,
-             markForce .82s cubic-bezier(.36,.06,.24,1) .70s both;
+  animation: markRise .72s cubic-bezier(.2,.9,.28,1) both,
+             markForce 1.28s cubic-bezier(.36,.06,.24,1) 1.12s both;
 }
 
-#splash.ready .sp-pool{ animation: poolPulse 1.25s cubic-bezier(.3,.7,.3,1) .5s both; }
-#splash.ready .splash-word{ animation: wordUp .46s cubic-bezier(.2,.85,.25,1) 1.3s both; }
-#splash.ready .splash-tag{ animation: wordUp .46s ease 1.5s both; }
-#splash.ready .splash-skip{ animation: wordUp .4s ease 1.74s both; }
+#splash.ready .sp-pool{ animation: poolPulse 2.1s cubic-bezier(.3,.7,.3,1) .72s both; }
+#splash.ready .splash-word{ animation: wordUp .5s cubic-bezier(.2,.85,.25,1) 2.06s both; }
+#splash.ready .splash-tag{ animation: wordUp .5s ease 2.3s both; }
+#splash.ready .splash-skip{ animation: wordUp .42s ease 2.56s both; }
 
 @keyframes markRise{ from{opacity:0;transform:translateY(14px) scale(.95);} to{opacity:1;transform:none;} }
 @keyframes markWipe{ from{clip-path:inset(0 100% 0 0);} to{clip-path:inset(-14% -14% -14% -14%);} }
@@ -617,20 +617,22 @@ a{color:inherit;}
 /* El gesto: toma impulso, empuja, aguanta con un temblor mínimo y suelta.
    Amplitud corta a propósito; lo que lo vende es el ritmo, no el tamaño. */
 @keyframes markForce{
-  0%   { transform:rotate(0deg)    scale(1); }
-  14%  { transform:rotate(.7deg)   scale(.982); }
-  36%  { transform:rotate(-1.85deg) scale(1.055); }
-  46%  { transform:rotate(-1.5deg)  scale(1.045); }
-  54%  { transform:rotate(-1.82deg) scale(1.053); }
-  62%  { transform:rotate(-1.58deg) scale(1.046); }
-  70%  { transform:rotate(-1.75deg) scale(1.05); }
-  100% { transform:rotate(0deg)    scale(1); }
+  0%   { transform:rotate(0deg)     scale(1); }
+  11%  { transform:rotate(.7deg)    scale(.982); }   /* toma impulso */
+  27%  { transform:rotate(-1.85deg) scale(1.055); }  /* empuja */
+  36%  { transform:rotate(-1.52deg) scale(1.044); }  /* aguanta: el temblor */
+  44%  { transform:rotate(-1.84deg) scale(1.054); }
+  52%  { transform:rotate(-1.56deg) scale(1.045); }
+  60%  { transform:rotate(-1.82deg) scale(1.053); }
+  68%  { transform:rotate(-1.6deg)  scale(1.046); }
+  76%  { transform:rotate(-1.78deg) scale(1.05); }
+  100% { transform:rotate(0deg)     scale(1); }      /* suelta */
 }
 @keyframes markBloom{
-  0%  { filter:drop-shadow(0 0 26px rgba(34,232,255,.3)) brightness(1) saturate(1); }
-  34% { filter:drop-shadow(0 0 54px rgba(43,255,168,.62)) brightness(1.28) saturate(1.16); }
-  70% { filter:drop-shadow(0 0 40px rgba(43,255,168,.42)) brightness(1.12) saturate(1.07); }
-  100%{ filter:drop-shadow(0 0 26px rgba(34,232,255,.3)) brightness(1) saturate(1); }
+  0%  { filter:drop-shadow(0 0 34px rgba(34,232,255,.26)) drop-shadow(0 0 72px rgba(43,255,168,.14)) brightness(1) saturate(1); }
+  30% { filter:drop-shadow(0 0 60px rgba(43,255,168,.6)) drop-shadow(0 0 110px rgba(43,255,168,.3)) brightness(1.26) saturate(1.15); }
+  72% { filter:drop-shadow(0 0 46px rgba(43,255,168,.4)) drop-shadow(0 0 90px rgba(43,255,168,.2)) brightness(1.1) saturate(1.06); }
+  100%{ filter:drop-shadow(0 0 34px rgba(34,232,255,.26)) drop-shadow(0 0 72px rgba(43,255,168,.14)) brightness(1) saturate(1); }
 }
 @keyframes poolPulse{
   0%{opacity:0;transform:translate(-50%,-50%) scale(.86);}
@@ -3989,7 +3991,7 @@ let splashTimer = null;
 let obStep = 0;
 let obDraft = null;
 
-const SPLASH_MS = 2250;   /* lo que dura la animación completa */
+const SPLASH_MS = 3250;   /* lo que dura la animación completa */
 
 /* La cuenta no empieza hasta que la marca está decodificada: si arrancara con
    la página, en un móvil lento la animación se vería a medias o nada. */

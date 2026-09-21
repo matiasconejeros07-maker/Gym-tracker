@@ -172,7 +172,14 @@ a{color:inherit;}
   z-index:40;
   transition:transform .28s ease;
 }
-.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 22px;}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 10px 22px;}
+.brand-logo{width:36px;height:auto;flex:none;filter:drop-shadow(0 0 14px var(--cyan-dim));}
+.topbar-logo{
+  width:34px;height:auto;flex:none;display:none;
+  filter:drop-shadow(0 0 10px var(--cyan-dim));
+}
+@media (max-width:900px){ .topbar-logo{display:block;} }
+@media (max-width:359px){ .topbar-logo{display:none;} }
 .brand-mark{
   width:40px;height:40px;border-radius:12px;
   background:radial-gradient(120% 130% at 28% 20%, #8ff5ff 0%, var(--cyan) 40%, var(--blue) 100%);
@@ -182,7 +189,7 @@ a{color:inherit;}
 }
 .brand-mark svg{width:20px;height:20px;}
 .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:17px;letter-spacing:.06em;color:var(--text);}
-.brand-sub{font-size:10.5px;color:var(--text-faint);letter-spacing:.16em;text-transform:uppercase;margin-top:1px;}
+.brand-sub{font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-top:1px;white-space:nowrap;}
 
 .nav-item{
   display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--radius-sm);
@@ -531,30 +538,65 @@ a{color:inherit;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
 /* ---------------- pantalla de bienvenida ---------------- */
+/* La marca entra de izquierda a derecha: primero el monograma, y el brazo se
+   despliega detrás; después tensa, como quien aprieta el bíceps. */
 #splash{
   position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:26px;
-  background:radial-gradient(120% 90% at 50% 35%, #0d2030 0%, #071019 55%, #03070c 100%);
-  transition:opacity .55s ease, visibility .55s ease;
+  align-items:center;justify-content:center;
+  background:radial-gradient(125% 95% at 46% 38%, #0e2436 0%, #071019 52%, #02060b 100%);
+  transition:opacity .45s ease, visibility .45s ease;
+  overflow:hidden;
 }
 #splash.gone{opacity:0;visibility:hidden;pointer-events:none;}
-#splash img{
-  width:min(62vw,270px);height:auto;display:block;
-  filter:drop-shadow(0 0 40px rgba(34,232,255,.28));
-  animation:splashIn 1s cubic-bezier(.2,.8,.25,1) both;
+.splash-stage{position:relative;display:flex;flex-direction:column;align-items:center;}
+.splash-mark{
+  position:relative;width:min(72vw,330px);
+  transform-origin: 24% 64%;   /* el codo imaginario: el brazo es lo que se mueve */
+  will-change: transform, opacity, filter;
+  opacity:0;
+  filter:drop-shadow(0 0 40px rgba(34,232,255,.3));
 }
-@keyframes splashIn{from{opacity:0;transform:scale(.88) translateY(14px);}to{opacity:1;transform:none;}}
-.splash-ring{width:34px;height:34px;transform:rotate(-90deg);}
-.splash-ring circle{fill:none;stroke-width:3;stroke-linecap:round;}
-.splash-ring .bg{stroke:rgba(255,255,255,.12);}
-.splash-ring .fg{stroke:var(--cyan);stroke-dasharray:97.4;stroke-dashoffset:97.4;animation:splashRing 5s linear forwards;}
-@keyframes splashRing{to{stroke-dashoffset:0;}}
+#splash.ready .splash-mark{
+  animation: markRise .62s cubic-bezier(.16,.9,.3,1) both,
+             markFlex .54s cubic-bezier(.34,1.5,.44,1) .76s both,
+             markGlow .58s ease-out .76s both;
+}
+.splash-mark img{ width:100%;height:auto;display:block;clip-path: inset(0 100% 0 0); }
+#splash.ready .splash-mark img{ animation: markWipe .76s cubic-bezier(.22,.72,.2,1) .08s both; }
+/* El logo es una imagen recortada: un filtro sólo toca sus píxeles, así que el
+   brillo del esfuerzo se enciende en el metal sin manchar el fondo. */
+.splash-word{ width:min(56vw,245px);margin-top:14px;opacity:0; }
+#splash.ready .splash-word{ animation: wordUp .5s cubic-bezier(.2,.8,.25,1) 1.06s both; }
+.splash-word img{width:100%;height:auto;display:block;filter:drop-shadow(0 0 18px rgba(43,255,168,.22));}
+.splash-tag{
+  margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--text-faint);opacity:0;
+}
+#splash.ready .splash-tag{ animation: wordUp .5s ease 1.3s both; }
+@keyframes markRise{ from{opacity:0;transform:translateY(16px) scale(.94);} to{opacity:1;transform:none;} }
+@keyframes markWipe{ from{clip-path:inset(0 100% 0 0);} to{clip-path:inset(-10% -10% -10% -10%);} }
+/* dos tiempos: tensa y suelta */
+@keyframes markFlex{
+  0%{transform:scale(1);}
+  38%{transform:scale(1.085) translateX(1.5%);}
+  62%{transform:scale(1.025) translateX(.4%);}
+  100%{transform:scale(1);}
+}
+@keyframes markGlow{
+  0%{ filter:drop-shadow(0 0 40px rgba(34,232,255,.3)) brightness(1); }
+  38%{ filter:drop-shadow(0 0 60px rgba(43,255,168,.62)) brightness(1.3) saturate(1.18); }
+  100%{ filter:drop-shadow(0 0 40px rgba(34,232,255,.3)) brightness(1); }
+}
+@keyframes wordUp{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
 .splash-skip{
-  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 30px);
-  background:none;border:none;color:var(--text-faint);font:600 12.5px Inter,sans-serif;
-  letter-spacing:.06em;cursor:pointer;padding:12px 20px;
+  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 26px);
+  background:none;border:none;color:var(--text-faint);font:600 12px Inter,sans-serif;
+  letter-spacing:.08em;cursor:pointer;padding:12px 20px;opacity:0;
 }
-@media (prefers-reduced-motion:reduce){#splash img{animation:none;}}
+#splash.ready .splash-skip{ animation: wordUp .4s ease 1.55s both; }
+@media (prefers-reduced-motion:reduce){
+  .splash-mark,.splash-mark img,.splash-word,.splash-tag,.splash-skip{animation-duration:.01ms !important;animation-delay:0ms !important;}
+}
 
 /* ---------------- onboarding ---------------- */
 #onboard{
@@ -1044,12 +1086,14 @@ a{color:inherit;}
 <body>
 
 <div id="splash">
-  <img src="logo.png" alt="APULSO" width="600" height="600">
-  <svg class="splash-ring" viewBox="0 0 36 36" aria-hidden="true">
-    <circle class="bg" cx="18" cy="18" r="15.5"/>
-    <circle class="fg" cx="18" cy="18" r="15.5"/>
-  </svg>
-  <button class="splash-skip" data-action="skip-splash">Tocar para entrar</button>
+  <div class="splash-stage">
+    <div class="splash-mark">
+      <img src="mark.webp" alt="APULSO" width="560" height="420">
+    </div>
+    <div class="splash-word"><img src="word.webp" alt="" width="480" height="44"></div>
+    <div class="splash-tag">Tu fuerza, medida</div>
+  </div>
+  <button class="splash-skip" data-action="skip-splash">Entrar</button>
 </div>
 
 <div id="onboard" role="dialog" aria-modal="true" aria-label="Configuración inicial">
@@ -1071,9 +1115,7 @@ a{color:inherit;}
   <div class="overlay-scrim" id="scrim"></div>
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="brand-mark icon-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#04141a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h4l2-7 4 14 2-7h6"/></svg>
-      </div>
+      <img class="brand-logo" src="mark.webp" alt="" width="560" height="420">
       <div>
         <div class="brand-name">APULSO</div>
         <div class="brand-sub">Tu fuerza, medida</div>
@@ -1118,6 +1160,7 @@ a{color:inherit;}
       <button class="hamburger" id="btnHamburger" aria-label="Abrir menú">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
+      <img class="topbar-logo" src="mark.webp" alt="APULSO" width="560" height="420">
       <div class="topbar-title">
         <div class="page-title" id="pageTitle">Dashboard</div>
         <div class="page-sub" id="pageSub">Resumen de tu rendimiento</div>
@@ -3890,10 +3933,23 @@ let splashTimer = null;
 let obStep = 0;
 let obDraft = null;
 
+const SPLASH_MS = 2050;   /* lo que dura la animación completa */
+
+/* La cuenta no empieza hasta que la marca está decodificada: si arrancara con
+   la página, en un móvil lento la animación se vería a medias o nada. */
 function startSplash(){
   const el = document.getElementById("splash");
   if(!el) return;
-  splashTimer = setTimeout(endSplash, 5000);
+  const img = el.querySelector(".splash-mark img");
+  const go = () => {
+    if(el.classList.contains("ready")) return;
+    el.classList.add("ready");
+    splashTimer = setTimeout(endSplash, SPLASH_MS);
+  };
+  if(img && img.decode) img.decode().then(go).catch(go);
+  else if(img && !img.complete) img.addEventListener("load", go, {once:true});
+  else go();
+  setTimeout(go, 1200);   /* red lenta o imagen que no carga: no dejar la app trabada */
 }
 
 function endSplash(){
@@ -3931,7 +3987,7 @@ function renderOnboarding(){
 
   if(obStep === 0){
     body.innerHTML = `
-      <img class="ob-logo" src="logo.png" alt="">
+      <img class="ob-logo" src="mark.webp" alt="">
       <div class="ob-eyebrow">Bienvenido</div>
       <h2 class="ob-title">¿Cómo te llamamos?</h2>
       <p class="ob-sub">Cuatro preguntas rápidas y la app queda a tu medida. Puedes cambiarlo todo después.</p>

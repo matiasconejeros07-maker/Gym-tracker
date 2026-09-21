@@ -537,65 +537,115 @@ a{color:inherit;}
 #modalWeighIn .modal-foot .btn{justify-content:center;white-space:nowrap;}
 .weigh-hint{font-size:12.5px;line-height:1.5;color:var(--text-faint);margin-top:12px;}
 .field-hint{font-size:12px;line-height:1.5;color:var(--text-faint);margin-top:6px;}
-/* ---------------- pantalla de bienvenida ---------------- */
-/* La marca entra de izquierda a derecha: primero el monograma, y el brazo se
-   despliega detrás; después tensa, como quien aprieta el bíceps. */
+/* ---------------- pantalla de bienvenida ----------------
+   Criterio: movimientos cortos y precisos, luz que sólo toca el logo (nunca un
+   lavado de color sobre la pantalla) y un espacio que es el mismo de la app,
+   para que al entrar no haya salto. El brillo del esfuerzo se hace con una
+   copia del propio PNG en mezcla aditiva: así jamás aparece una caja. */
 #splash{
   position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  background:radial-gradient(125% 95% at 46% 38%, #0e2436 0%, #071019 52%, #02060b 100%);
-  transition:opacity .45s ease, visibility .45s ease;
+  background:#04080e;
+  transition:opacity .5s cubic-bezier(.4,0,.2,1), visibility .5s;
   overflow:hidden;
 }
 #splash.gone{opacity:0;visibility:hidden;pointer-events:none;}
-.splash-stage{position:relative;display:flex;flex-direction:column;align-items:center;}
+
+.sp-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+/* Sin rejilla en la bienvenida: su plano en perspectiva aterriza como una banda
+   rectangular detrás del logo y lo hace ver pegado sobre un recorte. */
+.sp-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16;}
+.sp-orb.o1{width:520px;height:520px;background:var(--cyan);top:-170px;left:-160px;}
+.sp-orb.o2{width:580px;height:580px;background:var(--green);bottom:-230px;right:-190px;}
+/* Charco de luz bajo la marca: contenido, del tamaño del logo, no de la pantalla. */
+.sp-pool{
+  position:absolute;left:50%;top:46%;width:min(96vw,430px);aspect-ratio:1.45/1;
+  transform:translate(-50%,-50%) scale(.9);border-radius:50%;
+  background:radial-gradient(ellipse at 38% 50%, rgba(34,232,255,.34), rgba(34,232,255,0) 62%),
+             radial-gradient(ellipse at 64% 54%, rgba(43,255,168,.34), rgba(43,255,168,0) 62%);
+  filter:blur(38px);opacity:0;
+}
+.sp-vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(125% 90% at 50% 46%, transparent 42%, rgba(2,5,9,.55) 82%, rgba(2,5,9,.85) 100%);
+}
+
+.splash-stage{position:relative;display:flex;flex-direction:column;align-items:center;z-index:2;}
 .splash-mark{
   position:relative;width:min(72vw,330px);
-  transform-origin: 24% 64%;   /* el codo imaginario: el brazo es lo que se mueve */
-  will-change: transform, opacity, filter;
+  transform-origin:60% 90%;      /* la base queda plantada; el brazo es lo que sube */
+  will-change:transform;
   opacity:0;
-  filter:drop-shadow(0 0 40px rgba(34,232,255,.3));
 }
-#splash.ready .splash-mark{
-  animation: markRise .62s cubic-bezier(.16,.9,.3,1) both,
-             markFlex .54s cubic-bezier(.34,1.5,.44,1) .76s both,
-             markGlow .58s ease-out .76s both;
-}
-.splash-mark img{ width:100%;height:auto;display:block;clip-path: inset(0 100% 0 0); }
-#splash.ready .splash-mark img{ animation: markWipe .76s cubic-bezier(.22,.72,.2,1) .08s both; }
-/* El logo es una imagen recortada: un filtro sólo toca sus píxeles, así que el
-   brillo del esfuerzo se enciende en el metal sin manchar el fondo. */
-.splash-word{ width:min(56vw,245px);margin-top:14px;opacity:0; }
-#splash.ready .splash-word{ animation: wordUp .5s cubic-bezier(.2,.8,.25,1) 1.06s both; }
-.splash-word img{width:100%;height:auto;display:block;filter:drop-shadow(0 0 18px rgba(43,255,168,.22));}
+.sp-layer{position:relative;}
+.sp-layer img{width:100%;height:auto;display:block;clip-path:inset(0 100% 0 0);}
+/* El resplandor va en el contenedor y el recorte en la imagen: al revés,
+   clip-path corta la sombra y se ve el borde recto del rectángulo. */
+.sp-base{filter:drop-shadow(0 0 26px rgba(34,232,255,.3));}
+#splash.ready .sp-base img{ animation: markWipe .70s cubic-bezier(.24,.7,.22,1) .06s both; }
+#splash.ready .sp-base{ animation: markBloom .74s cubic-bezier(.3,.8,.3,1) .76s both; }
+/* Nada de capas con mezcla: dentro de un contexto de apilamiento aislado
+   dejan el rectángulo del grupo. El destello va como filtro sobre la propia
+   imagen, que ya tiene el fondo recortado, así sólo toca sus píxeles. */
+
+.splash-word{width:min(56vw,246px);margin-top:20px;opacity:0;}
+.splash-word img{width:100%;height:auto;display:block;filter:drop-shadow(0 0 16px rgba(43,255,168,.26));}
 .splash-tag{
-  margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;
+  margin-top:12px;font-size:10.5px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;
   color:var(--text-faint);opacity:0;
 }
-#splash.ready .splash-tag{ animation: wordUp .5s ease 1.3s both; }
-@keyframes markRise{ from{opacity:0;transform:translateY(16px) scale(.94);} to{opacity:1;transform:none;} }
-@keyframes markWipe{ from{clip-path:inset(0 100% 0 0);} to{clip-path:inset(-10% -10% -10% -10%);} }
-/* dos tiempos: tensa y suelta */
-@keyframes markFlex{
-  0%{transform:scale(1);}
-  38%{transform:scale(1.085) translateX(1.5%);}
-  62%{transform:scale(1.025) translateX(.4%);}
-  100%{transform:scale(1);}
-}
-@keyframes markGlow{
-  0%{ filter:drop-shadow(0 0 40px rgba(34,232,255,.3)) brightness(1); }
-  38%{ filter:drop-shadow(0 0 60px rgba(43,255,168,.62)) brightness(1.3) saturate(1.18); }
-  100%{ filter:drop-shadow(0 0 40px rgba(34,232,255,.3)) brightness(1); }
-}
-@keyframes wordUp{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
 .splash-skip{
-  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 26px);
+  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 26px);z-index:3;
   background:none;border:none;color:var(--text-faint);font:600 12px Inter,sans-serif;
   letter-spacing:.08em;cursor:pointer;padding:12px 20px;opacity:0;
 }
-#splash.ready .splash-skip{ animation: wordUp .4s ease 1.55s both; }
+
+/* ---- la secuencia arranca cuando la imagen ya está decodificada ---- */
+#splash.ready .splash-mark{
+  animation: markRise .58s cubic-bezier(.2,.9,.28,1) both,
+             markForce .82s cubic-bezier(.36,.06,.24,1) .70s both;
+}
+
+#splash.ready .sp-pool{ animation: poolPulse 1.25s cubic-bezier(.3,.7,.3,1) .5s both; }
+#splash.ready .splash-word{ animation: wordUp .46s cubic-bezier(.2,.85,.25,1) 1.3s both; }
+#splash.ready .splash-tag{ animation: wordUp .46s ease 1.5s both; }
+#splash.ready .splash-skip{ animation: wordUp .4s ease 1.74s both; }
+
+@keyframes markRise{ from{opacity:0;transform:translateY(14px) scale(.95);} to{opacity:1;transform:none;} }
+@keyframes markWipe{ from{clip-path:inset(0 100% 0 0);} to{clip-path:inset(-14% -14% -14% -14%);} }
+
+/* El gesto: toma impulso, empuja, aguanta con un temblor mínimo y suelta.
+   Amplitud corta a propósito; lo que lo vende es el ritmo, no el tamaño. */
+@keyframes markForce{
+  0%   { transform:rotate(0deg)    scale(1); }
+  14%  { transform:rotate(.7deg)   scale(.982); }
+  36%  { transform:rotate(-1.85deg) scale(1.055); }
+  46%  { transform:rotate(-1.5deg)  scale(1.045); }
+  54%  { transform:rotate(-1.82deg) scale(1.053); }
+  62%  { transform:rotate(-1.58deg) scale(1.046); }
+  70%  { transform:rotate(-1.75deg) scale(1.05); }
+  100% { transform:rotate(0deg)    scale(1); }
+}
+@keyframes markBloom{
+  0%  { filter:drop-shadow(0 0 26px rgba(34,232,255,.3)) brightness(1) saturate(1); }
+  34% { filter:drop-shadow(0 0 54px rgba(43,255,168,.62)) brightness(1.28) saturate(1.16); }
+  70% { filter:drop-shadow(0 0 40px rgba(43,255,168,.42)) brightness(1.12) saturate(1.07); }
+  100%{ filter:drop-shadow(0 0 26px rgba(34,232,255,.3)) brightness(1) saturate(1); }
+}
+@keyframes poolPulse{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.86);}
+  26%{opacity:.55;transform:translate(-50%,-50%) scale(1);}
+  46%{opacity:.85;transform:translate(-50%,-50%) scale(1.06);}
+  100%{opacity:.6;transform:translate(-50%,-50%) scale(1);}
+}
+@keyframes wordUp{ from{opacity:0;transform:translateY(9px);} to{opacity:1;transform:none;} }
+
 @media (prefers-reduced-motion:reduce){
-  .splash-mark,.splash-mark img,.splash-word,.splash-tag,.splash-skip{animation-duration:.01ms !important;animation-delay:0ms !important;}
+  #splash.ready .splash-mark,#splash.ready .sp-base img,#splash.ready .sp-base,
+  #splash.ready .splash-word,#splash.ready .splash-tag,#splash.ready .splash-skip,
+  #splash.ready .sp-pool{
+    animation-duration:.01ms !important;animation-delay:0ms !important;
+  }
 }
 
 /* ---------------- onboarding ---------------- */
@@ -1086,13 +1136,19 @@ a{color:inherit;}
 <body>
 
 <div id="splash">
+  <div class="sp-bg" aria-hidden="true">
+    <div class="sp-orb o1"></div>
+    <div class="sp-orb o2"></div>
+    <div class="sp-pool"></div>
+  </div>
   <div class="splash-stage">
     <div class="splash-mark">
-      <img src="mark.webp" alt="APULSO" width="560" height="420">
+      <div class="sp-layer sp-base"><img src="mark.webp" alt="APULSO" width="560" height="420"></div>
     </div>
     <div class="splash-word"><img src="word.webp" alt="" width="480" height="44"></div>
     <div class="splash-tag">Tu fuerza, medida</div>
   </div>
+  <div class="sp-vignette" aria-hidden="true"></div>
   <button class="splash-skip" data-action="skip-splash">Entrar</button>
 </div>
 
@@ -3933,7 +3989,7 @@ let splashTimer = null;
 let obStep = 0;
 let obDraft = null;
 
-const SPLASH_MS = 2050;   /* lo que dura la animación completa */
+const SPLASH_MS = 2250;   /* lo que dura la animación completa */
 
 /* La cuenta no empieza hasta que la marca está decodificada: si arrancara con
    la página, en un móvil lento la animación se vería a medias o nada. */

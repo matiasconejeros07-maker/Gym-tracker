@@ -626,13 +626,6 @@ a{color:inherit;}
   .cardio-head,.cardio-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;}
 }
 
-.ob-consent{
-  display:flex;gap:11px;align-items:flex-start;margin-top:16px;padding:13px;
-  border-radius:13px;border:1px solid var(--border);background:rgba(255,255,255,.03);
-  font-size:12.5px;color:var(--text-dim);line-height:1.5;cursor:pointer;
-}
-.ob-consent input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--cyan);}
-
 /* ---------------- panel de administración ---------------- */
 .adm-state{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:13px;
@@ -1623,7 +1616,7 @@ const STORAGE_KEY = "pulse_gym_state_v1";
    teléfono y no salen de ahí. Para saber quién entra por el enlace hace falta
    un lugar donde guardarlos. Pega abajo la URL del Apps Script que está en
    backend/registro.gs y cada persona que complete el cuestionario quedará
-   registrada, siempre que acepte compartirlo.
+   registrada.
 
    Vacío = no se envía nada a ninguna parte.
 --------------------------------------------------------------------------- */
@@ -3755,8 +3748,8 @@ function renderAdminView(){
           <li>Implementar → Aplicación web → acceso "Cualquier usuario". Copia la URL <code>/exec</code>.</li>
           <li>Pega esa URL en <code>index.html</code>, en la constante <code>SYNC_ENDPOINT</code>, y sube el cambio.</li>
         </ol>
-        <p>Desde ese momento, cada persona que complete el cuestionario y acepte compartir
-        sus datos aparecerá aquí y en tu hoja.</p>
+        <p>Desde ese momento, cada persona que complete el cuestionario aparecerá
+        aquí y en tu hoja.</p>
       </div>`;
     return;
   }
@@ -3829,7 +3822,7 @@ function renderAdminView(){
       <button class="btn btn-ghost" data-action="admin-forget-key">Cerrar sesión de admin</button>
     </div>`
     : `<p class="metric-empty" style="margin-top:14px;">Todavía no hay registros. Comparte tu enlace:
-       cada persona que complete el cuestionario y acepte compartir sus datos aparecerá aquí.</p>`}`;
+       cada persona que complete el cuestionario aparecerá aquí.</p>`}`;
 }
 
 function adminExportCsv(){
@@ -3917,7 +3910,6 @@ function endSplash(){
 function startOnboarding(){
   obStep = 0;
   obDraft = {
-    share: state.profile.onboarded ? !!state.profile.shareData : true,
     name: state.profile.name && state.profile.name !== "Atleta" ? state.profile.name : "",
     gender: state.profile.gender || "",
     age: state.profile.age || "",
@@ -3976,14 +3968,7 @@ function renderOnboarding(){
         <button class="ob-opt ${obDraft.activity===a.level?"on":""}" data-action="ob-activity" data-value="${a.level}">
           <span class="ob-num">${a.level}</span>
           <span style="min-width:0;"><b>${escapeHtml(a.name)}</b><span>${escapeHtml(a.desc)}</span></span>
-        </button>`).join("")}</div>
-      ${syncEnabled() ? `
-      <label class="ob-consent">
-        <input type="checkbox" id="obShare" ${obDraft.share ? "checked" : ""}>
-        <span>Compartir mi nombre y mis medidas con quien administra APULSO.
-        Sirve para saber cuánta gente usa la app. Puedes desactivarlo ahora o
-        más tarde desde tu perfil.</span>
-      </label>` : ""}`;
+        </button>`).join("")}</div>`;
   }
 
   foot.innerHTML =
@@ -4008,8 +3993,6 @@ function obCapture(){
     if(w===null || w<30 || w>300){ showToast(ICONS.x, "Peso no válido", "Ingresa un peso entre 30 y 300 kg."); return false; }
     obDraft.age = age; obDraft.height = h; obDraft.weight = w;
   } else if(obStep === 3){
-    const share = document.getElementById("obShare");
-    if(share) obDraft.share = share.checked;
     if(!obDraft.activity){ showToast(ICONS.x, "Elige tu nivel", "Toca el nivel que mejor describa tu semana."); return false; }
   }
   return true;
@@ -4039,7 +4022,9 @@ function finishOnboarding(){
   p.height = obDraft.height;
   p.activity = obDraft.activity;
   p.onboarded = true;
-  p.shareData = syncEnabled() ? !!obDraft.share : false;
+  /* Fase de pruebas: si hay un destino configurado, la ficha se registra sin
+     preguntar. El interruptor del perfil sigue permitiendo desactivarlo. */
+  p.shareData = syncEnabled();
   recordBodyWeight(obDraft.weight);
   saveState();
   sendRegistration();

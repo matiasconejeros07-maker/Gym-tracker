@@ -16,8 +16,8 @@ ficha y la escribe en una hoja de cálculo. Es gratis y no necesita servidor.
 5. Pega esa URL en `index.html`, en la constante `SYNC_ENDPOINT`, y sube el
    cambio.
 
-Desde ese momento, cada persona que complete el cuestionario inicial **y acepte
-compartir sus datos** queda registrada. El panel se abre añadiendo `?admin` a
+Desde ese momento, cada persona que complete el cuestionario inicial queda
+registrada. El perfil incluye un interruptor para desactivarlo por dispositivo. El panel se abre añadiendo `?admin` a
 la dirección de la app; la clave se pide una vez y se guarda sólo en ese
 dispositivo, así que nadie más puede leer los registros.
 

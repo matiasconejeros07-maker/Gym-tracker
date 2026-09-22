@@ -146,6 +146,30 @@ a{color:inherit;}
 ::-webkit-scrollbar-thumb:hover{background:rgba(93,214,255,.45);}
 
 
+/* ---------- chapa clásica: inicio y gráficos ----------
+   Matías prefirió conservar aquí el estilo anterior al cristal. */
+.icon-badge{
+  --badge-bevel:
+    inset 0 1.5px 1px rgba(255,255,255,.45),
+    inset 0 -4px 7px rgba(0,0,0,.4),
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 10px 20px -10px rgba(0,0,0,.65);
+  position:relative;
+  box-shadow:var(--badge-bevel);
+  border:1px solid rgba(255,255,255,.08);
+}
+.icon-badge::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, rgba(255,255,255,0) 60%);
+  pointer-events:none;
+}
+.icon-badge::after{
+  content:'';position:absolute;left:12%;top:8%;width:46%;height:26%;border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(255,255,255,.55), rgba(255,255,255,.18) 48%, rgba(255,255,255,0) 76%);
+  pointer-events:none;
+}
+.icon-badge > svg, .icon-badge > .badge-content{position:relative;z-index:1;}
+
 /* ---------- background fx ---------- */
 .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
 .bg-grid{
@@ -317,7 +341,13 @@ a{color:inherit;}
   background:radial-gradient(circle closest-side, var(--kpi-color,var(--cyan)) 0 26%,
     color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, transparent) 56%,
     color-mix(in srgb, var(--kpi-color,var(--cyan)) 12%, transparent) 80%, transparent 100%);}
-.kpi .kpi-icon{margin-bottom:14px;--gi:48%;}
+.kpi .kpi-icon{
+  width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(155deg, color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, white 15%), color-mix(in srgb, var(--kpi-color,var(--cyan)) 65%, black 25%));
+  color:#04141a;margin-bottom:14px;
+  box-shadow:var(--badge-bevel), 0 0 16px -6px var(--kpi-color,var(--cyan));
+}
+.kpi .kpi-icon svg{width:18px;height:18px;}
 .kpi .kpi-val{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;letter-spacing:.01em;}
 .kpi .kpi-label{font-size:12.5px;color:var(--text-dim);margin-top:3px;font-weight:600;}
 .kpi .kpi-delta{font-size:11.5px;margin-top:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;}
@@ -344,7 +374,19 @@ a{color:inherit;}
 .chart-tip b{display:block;font-family:'Space Grotesk',sans-serif;font-size:14.5px;font-weight:700;color:var(--text);}
 .chart-tip span{display:block;font-size:11.5px;color:var(--text-dim);margin-top:1px;}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 16px;color:var(--text-dim);}
-.empty-state .es-ico{margin-bottom:15px;--gi:44%;}
+.empty-state .es-ico.glass{margin-bottom:15px;--gi:44%;}
+.empty-state .es-ico:not(.glass){
+  width:62px;height:62px;border-radius:19px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:15px;color:var(--cyan);
+  background:linear-gradient(160deg, color-mix(in srgb, var(--cyan) 17%, transparent), rgba(255,255,255,.02) 70%);
+  border:1px solid color-mix(in srgb, var(--cyan) 24%, transparent);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.2),
+    inset 0 -7px 13px rgba(0,0,0,.34),
+    0 12px 24px -15px #000,
+    0 0 32px -14px var(--cyan-dim);
+}
+.empty-state .es-ico:not(.glass) svg{width:27px;height:27px;opacity:1;}
 .empty-state b{color:var(--text);font-size:15px;}
 .empty-state span{font-size:12.5px;max-width:260px;margin-top:5px;line-height:1.5;}
 
@@ -2759,7 +2801,7 @@ function renderDashboard(){
   ];
   document.getElementById("dashKpis").innerHTML = kpis.map(k=>`
     <div class="card kpi" style="--kpi-color:${k.color}">
-      <div class="kpi-icon glass" style="--s:42px;${glassFilter(k.color)}">${glassIcon(k.icon)}</div>
+      <div class="kpi-icon icon-badge">${k.icon}</div>
       <div class="kpi-val">${k.val}</div>
       <div class="kpi-label">${k.label}</div>
     </div>`).join("");
@@ -2800,7 +2842,7 @@ function renderDashboard(){
   // suggestion: routine not done in longest time, or first routine
   const suggestionEl = document.getElementById("dashSuggestion");
   if(!state.routines.length){
-    suggestionEl.innerHTML = emptyState(ICONS.layers, "Sin rutinas todavía", "Crea tu primera rutina para recibir sugerencias.");
+    suggestionEl.innerHTML = emptyStateFlat(ICONS.layers, "Sin rutinas todavía", "Crea tu primera rutina para recibir sugerencias.");
   } else {
     const best = state.routines.reduce((acc,r)=>{
       const last = lastPerformedISO(r.id);
@@ -2812,7 +2854,7 @@ function renderDashboard(){
     const last = lastPerformedISO(best.id);
     suggestionEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div class="glass" style="--s:46px;--gi:47%;${glassFilter('var(--cyan)')}">${glassIcon(ICONS.layers)}</div>
+        <div class="ex-icon icon-badge" style="width:46px;height:46px;border-radius:13px;background:linear-gradient(155deg, color-mix(in srgb, var(--cyan) 55%, white 15%), color-mix(in srgb, var(--cyan) 65%, black 20%));">${ICONS.layers}</div>
         <div style="flex:1;min-width:140px;">
           <div style="font-weight:700;font-size:16px;">${escapeHtml(best.name)}</div>
           <div class="chart-meta">${best.exercises.length} ejercicios · ${last ? "Última vez "+fmtDate(last) : "Nunca realizada"}</div>
@@ -2829,7 +2871,7 @@ function renderDashboard(){
     .slice(0,4);
   const prEl = document.getElementById("dashPRs");
   if(!prList.length){
-    prEl.innerHTML = emptyState(ICONS.trophy, "Aún sin récords", "Completa entrenamientos para registrar tus mejores marcas.");
+    prEl.innerHTML = emptyStateFlat(ICONS.trophy, "Aún sin récords", "Completa entrenamientos para registrar tus mejores marcas.");
   } else {
     prEl.innerHTML = prList.map(x=>`
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);">
@@ -2864,6 +2906,10 @@ function lastPerformedISO(routineId){
 }
 
 /* ============================= CHART RENDERERS (SVG) ============================= */
+/* Inicio y gráficos conservan la chapa clásica: así lo pidió Matías. */
+function emptyStateFlat(icon, title, sub){
+  return `<div class="empty-state"><div class="es-ico">${icon}</div><b>${escapeHtml(title)}</b><span>${escapeHtml(sub)}</span></div>`;
+}
 function emptyState(icon, title, sub){
   return `<div class="empty-state"><div class="es-ico glass" style="--s:62px;${glassFilter('var(--cyan)')}">${glassIcon(icon)}</div><b>${escapeHtml(title)}</b><span>${escapeHtml(sub)}</span></div>`;
 }
@@ -2949,7 +2995,7 @@ function axisChrome(scale, plot){
 function renderBarChart(data, prefix, opts){
   opts = opts || {};
   if(!data.length || data.every(d=>d.value<=0)){
-    return emptyState(ICONS.bars, "Sin actividad reciente", "Registra un entrenamiento para ver tu volumen aquí.");
+    return emptyStateFlat(ICONS.bars, "Sin actividad reciente", "Registra un entrenamiento para ver tu volumen aquí.");
   }
   const w = 520, h = 210, gap = 14;
   const plot = { left: 46, top: 12, w: w - 46 - 8, h: h - 12 - 30 };
@@ -2976,7 +3022,7 @@ function renderBarChart(data, prefix, opts){
 function renderLineChart(points, prefix, opts){
   opts = opts || {};
   if(!points.length){
-    return emptyState(ICONS.trend, "Sin datos suficientes", opts.emptyMsg || "Registra más datos para ver tu progresión.");
+    return emptyStateFlat(ICONS.trend, "Sin datos suficientes", opts.emptyMsg || "Registra más datos para ver tu progresión.");
   }
   const w = 520, h = 210;
   const plot = { left: 46, top: 14, w: w - 46 - 14, h: h - 14 - 30 };
@@ -3067,7 +3113,7 @@ function drawChart(containerId, kind, points, opts){
 function renderDonutChart(segments, prefix){
   segments = segments.filter(s=>s.value>0);
   if(!segments.length){
-    return emptyState(ICONS.donut, "Sin datos de entrenamiento", "Completa series para ver tu distribución muscular.");
+    return emptyStateFlat(ICONS.donut, "Sin datos de entrenamiento", "Completa series para ver tu distribución muscular.");
   }
   const total = segments.reduce((a,s)=>a+s.value,0) || 1;
   const size = 180, r = 68, cx = size/2, cy = size/2, circ = 2*Math.PI*r;
@@ -3900,7 +3946,7 @@ function renderProgressView(){
   const exercisesWithData = state.exercises.filter(e=>state.workouts.some(w=>w.exercises.some(we=>we.exerciseId===e.id)));
   if(!exercisesWithData.length){
     select.innerHTML = `<option>Sin datos</option>`;
-    document.getElementById("chartExerciseProgress").innerHTML = emptyState(ICONS.trend,"Sin historial","Registra entrenamientos para ver tu progresión por ejercicio.");
+    document.getElementById("chartExerciseProgress").innerHTML = emptyStateFlat(ICONS.trend,"Sin historial","Registra entrenamientos para ver tu progresión por ejercicio.");
   } else {
     const prevSelected = select.dataset.selected;
     select.innerHTML = exercisesWithData.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join("");

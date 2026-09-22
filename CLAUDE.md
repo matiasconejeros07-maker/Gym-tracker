@@ -24,6 +24,18 @@ una app de pago, no entra. Cuando dudes entre "suficiente" y "impecable", impeca
 - **Mide, no supongas.** Contraste, simetría, memoria de las capas, tiempos: todo
   eso se comprueba con una prueba real en el navegador antes de decir que está bien.
 
+## El formato: chapa de cristal
+
+Es el lenguaje visual de la app, definido por la lámina de emblemas que aprobó
+Matías. Vive en la clase `.glass` de `index.html`: cristal cian con la luz desde
+arriba a la izquierda, media luna de brillo en esa esquina, fondo hondo abajo a la
+derecha, bisel luminoso justo por dentro del canto y halo de neón. `--s` es el lado
+en píxeles y todos los grosores salen de ahí. Los demás colores se sacan girando el
+matiz (`glassToneStyle`), nunca con desenfoques.
+
+Los emblemas del avatar (`emblemas/*.webp`) son los glifos exactos de esa lámina,
+separados de su cristal. No se redibujan ni se sustituyen sin que él lo pida.
+
 ## Rendimiento en iPhone (no lo deshagas)
 
 Safari mata la pestaña por memoria si la página pide texturas grandes, y ampliar con

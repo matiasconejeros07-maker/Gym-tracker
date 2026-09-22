@@ -1042,11 +1042,42 @@ a{color:inherit;}
 .ach-progress > div{height:100%;background:var(--blue);}
 
 /* profile */
+/* ---------- chapa de cristal ----------
+   El formato de la app. Calibrada píxel a píxel contra la lámina de emblemas
+   que aprobó Matías: luz desde arriba a la izquierda, media luna de brillo en
+   esa esquina, fondo hondo abajo a la derecha, un bisel luminoso justo por
+   dentro del canto y halo de neón fuera. --s es el lado en píxeles: todos los
+   grosores salen de ahí, así a 40px se ve igual que a 240px. Sin filtros de
+   desenfoque: solo degradados y sombras, que no disparan la memoria al ampliar. */
+.glass{
+  --s:54px;
+  position:relative; flex:none; width:var(--s); height:var(--s); border-radius:25.5%;
+  background:
+    radial-gradient(38% 30% at 21% 17%, rgba(255,255,255,.95) 0%, rgba(235,255,255,.55) 30%, rgba(200,252,255,.14) 62%, rgba(200,252,255,0) 80%),
+    linear-gradient(90deg, rgba(110,244,255,.5) 2.5%, rgba(110,244,255,.14) 8%, rgba(110,244,255,0) 15%),
+    linear-gradient(180deg, rgba(150,252,255,.6) 1.5%, rgba(150,252,255,.18) 8%, rgba(150,252,255,0) 17%),
+    radial-gradient(60% 55% at 82% 86%, rgba(0,58,92,.42) 0%, rgba(0,58,92,0) 100%),
+    linear-gradient(160deg, #6ff1fc 0%, #27dcee 18%, #0cc6e2 40%, #06b3d6 58%, #049dc8 76%, #067fab 92%, #0a8cb6 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--s)*.007) rgba(0,52,78,.7),
+    inset 0 0 calc(var(--s)*.03) calc(var(--s)*.004) rgba(0,60,86,.32),
+    0 0 calc(var(--s)*.16) calc(var(--s)*-.02) rgba(34,232,255,.5);
+}
+.glass::before{
+  content:''; position:absolute; inset:calc(var(--s)*.03); border-radius:23.6%; pointer-events:none;
+  border:calc(var(--s)*.019) solid rgba(172,252,255,.98);
+  box-shadow:0 0 calc(var(--s)*.04) rgba(70,236,255,.7), inset 0 0 calc(var(--s)*.04) rgba(70,236,255,.55);
+  -webkit-mask:linear-gradient(168deg,#000 0%,rgba(0,0,0,.86) 40%,rgba(0,0,0,.78) 64%,#000 100%);
+          mask:linear-gradient(168deg,#000 0%,rgba(0,0,0,.86) 40%,rgba(0,0,0,.78) 64%,#000 100%);
+}
+/* El emblema ocupa la chapa entera: su lienzo ya trae el margen y el centrado. */
+.glass-glyph{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;
+  -webkit-user-drag:none;user-select:none;pointer-events:none;}
+
 /* avatars */
-.avatar-art{display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden;}
-.avatar-emblem{display:flex;align-items:center;justify-content:center;color:#04141a;position:relative;z-index:1;}
-.avatar-emblem svg{width:100%;height:100%;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));}
-.avatar-initials{color:#04141a;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:.02em;position:relative;z-index:1;}
+.avatar-art{display:flex;align-items:center;justify-content:center;flex:none;}
+.avatar-initials{color:#04171f;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:.02em;position:relative;z-index:1;
+  text-shadow:0 1px 0 rgba(170,250,255,.55);}
 .avatar-img{object-fit:cover;display:block;flex:none;border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 2px 3px rgba(255,255,255,.12), 0 8px 18px -10px #000;}
 
 .avatar-shell{position:relative;flex:none;cursor:pointer;background:none;border:none;padding:0;line-height:0;}
@@ -1063,11 +1094,11 @@ a{color:inherit;}
 .av-section-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);margin:18px 0 10px;}
 .av-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px;}
 .av-option{
-  position:relative;padding:5px;border-radius:17px;background:none;border:2px solid transparent;cursor:pointer;
+  position:relative;padding:5px;border-radius:19px;background:none;border:2.5px solid transparent;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:transform .14s ease, border-color .14s ease;
 }
 .av-option:hover{transform:translateY(-2px);}
-.av-option.selected{border-color:var(--cyan);box-shadow:0 0 16px -4px var(--cyan-dim);}
+.av-option.selected{border-color:#35ecff;box-shadow:0 0 14px -1px rgba(34,232,255,.75), inset 0 0 9px -1px rgba(34,232,255,.45);}
 .av-tones{display:flex;gap:10px;flex-wrap:wrap;}
 .av-tone{width:36px;height:36px;border-radius:12px;border:2px solid transparent;cursor:pointer;padding:0;transition:transform .14s ease;}
 .av-tone:hover{transform:translateY(-2px);}
@@ -1859,14 +1890,12 @@ const SOUND_KEY_DEFAULT = true;
 const GLYPH = inner => '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
 const BMIR = d => `<path d="${d}"/><path d="${d}" transform="translate(96,0) scale(-1,1)"/>`;
 
-/* Silueta del avatar «atleta». Vive aquí sola: los iconos de grupo muscular ya
-   no la usan, pero el retrato del perfil sí. */
+/* Silueta anatómica que usan los iconos de grupo muscular (BODY_BASE). */
 const BODY_TORSO = "M48 20.8 L36.2 25.4 C31.4 27.6 28.4 31.2 27.5 35.8 C26.7 40.2 27.3 44.8 29 48.9 C30.7 53 33.1 56.5 35.8 59.4 C37.6 61.4 38.5 63.6 38.5 66.2 C38.5 69.8 37.3 73 35.2 75.9 C33.8 77.9 33 80.7 33.2 83.5 L34 96 L44.6 96 C45.2 89.5 46.6 83 47.98 78 Z";
 const BODY_ARM = "M30.6 27.6 C24.2 29.2 18.6 32.8 14.9 38.4 C12.1 42.7 11.2 47.8 12.3 52.8 C13.2 57 14.8 61 17 64.7 C18.6 67.4 19.6 70.4 20 73.5 L20.6 78.2 C21 81.4 24.4 83.2 27.2 81.7 C29.2 80.6 30.3 78.4 29.9 76.2 L28.6 68.6 C28.2 66.2 28.2 63.7 28.7 61.3 L30.3 53.4 C30.8 50.9 30.7 48.4 30.1 46 L28.6 40.2 C28 38 28.2 35.7 29.1 33.6 L30.6 27.6 Z";
 
 /* Equipment marks: solid forms so they hold up at 14px in the card meta line. */
 const FGLYPH = inner => '<svg viewBox="0 0 48 48" fill="currentColor">'+inner+'</svg>';
-const LOTUS_PETAL = "M24 8.5C28.8 15 31.4 21.6 31.4 27.4c0 4.1-3.1 7-7.4 7s-7.4-2.9-7.4-7c0-5.8 2.6-12.4 7.4-18.9Z";
 const EQUIP_ICONS = {
   barra: FGLYPH(`<rect x="4" y="21.4" width="40" height="5.2" rx="2.6"/><rect x="10.5" y="14" width="5.6" height="20" rx="2.4"/><rect x="18" y="9.5" width="5" height="29" rx="2.2"/><rect x="25" y="9.5" width="5" height="29" rx="2.2"/><rect x="31.9" y="14" width="5.6" height="20" rx="2.4"/>`),
   mancuernas: FGLYPH(`<rect x="16" y="21.4" width="16" height="5.2" rx="2.6"/><rect x="8.5" y="15" width="5.4" height="18" rx="2.4"/><rect x="15" y="10.5" width="5" height="27" rx="2.2"/><rect x="28" y="10.5" width="5" height="27" rx="2.2"/><rect x="34.1" y="15" width="5.4" height="18" rx="2.4"/>`),
@@ -1957,43 +1986,24 @@ const AVATAR_TONES = {
   orquidea:["#ffe3f5","#ff9ae0","#8e2e86"],
   coral:  ["#ffe4d6","#ff8a5c","#a83a2a"]
 };
-const AVATAR_EMBLEMS = {
-  atleta:    `<svg viewBox="0 0 96 96" fill="currentColor"><ellipse cx="48" cy="11.5" rx="8" ry="9"/><path d="M43 18h10v7.4c0 1.4-.9 2.6-2.3 3l-2.7.7-2.7-.7c-1.4-.4-2.3-1.6-2.3-3V18Z"/>${BMIR(BODY_TORSO)}${BMIR(BODY_ARM)}</svg>`,
-  brazos:    FGLYPH(`<rect x="5" y="29" width="26" height="13" rx="6.5"/><ellipse cx="18.5" cy="27" rx="10.5" ry="8.5"/><rect x="25.5" y="9" width="13" height="28" rx="6.5"/><circle cx="32" cy="11" r="7.5"/>`),
-  barra:     EQUIP_ICONS.barra,
-  mancuerna: EQUIP_ICONS.mancuernas,
-  pesa:      FGLYPH(`<path fill-rule="evenodd" d="M24 5.5c-6.4 0-11.2 4.7-11.2 11 0 1.5.3 3 .8 4.4C8.8 24.4 6 30.2 6 36.4 6 40.6 8.4 43 12.6 43h22.8c4.2 0 6.6-2.4 6.6-6.6 0-6.2-2.8-12-7.6-15.5.5-1.4.8-2.9.8-4.4 0-6.3-4.8-11-11.2-11Zm0 6.2c2.9 0 4.9 2 4.9 4.8 0 1-.3 2-.8 2.8h-8.2c-.5-.8-.8-1.8-.8-2.8 0-2.8 2-4.8 4.9-4.8Z"/>`),
-  pulso:     FGLYPH(`<path d="M4.5 21.4h8.2l4.4-9.6c.9-2 3.8-1.9 4.6.1l5.9 15.4 3.3-7.2c.5-1 1.4-1.6 2.5-1.6h10.1c1.5 0 2.7 1.2 2.7 2.7s-1.2 2.7-2.7 2.7h-8.3l-5.2 11.3c-.9 2-3.8 1.9-4.6-.1L19.5 19.8l-2.6 5.6c-.5 1-1.4 1.6-2.5 1.6H4.5c-1.5 0-2.7-1.2-2.7-2.8s1.2-2.8 2.7-2.8Z"/>`),
-  rayo:      FGLYPH(`<path d="M28.4 3.5 9.8 29.2c-1 1.4 0 3.3 1.7 3.3h9.1l-3.2 12.4c-.5 2 2 3.4 3.3 1.7l18.5-25.4c1-1.4 0-3.4-1.7-3.4h-9.2l3.1-11.2c.6-2-2-3.4-3-1.1Z"/>`),
-  trofeo:    FGLYPH(`<path d="M13 5h22c1.4 0 2.5 1.1 2.5 2.5V10h4.3c2.6 0 4.7 2.1 4.7 4.7 0 6.1-4.4 11.2-10.2 12.2-1.7 3.9-5.2 6.8-9.5 7.7V39h5.4c1.5 0 2.7 1.2 2.7 2.8s-1.2 2.7-2.7 2.7H16.8c-1.5 0-2.7-1.2-2.7-2.7s1.2-2.8 2.7-2.8h5.4v-4.4c-4.3-.9-7.8-3.8-9.5-7.7C6.9 25.9 2.5 20.8 2.5 14.7 2.5 12.1 4.6 10 7.2 10h3.3V7.5C10.5 6.1 11.6 5 13 5Zm-2.5 10.5H8c-.2 0-.3.1-.3.3 0 2.8 1.5 5.2 3.7 6.4-.5-1.5-.8-3-.8-4.6v-2.1Zm27 0v2.1c0 1.6-.3 3.1-.8 4.6 2.2-1.2 3.7-3.6 3.7-6.4 0-.2-.1-.3-.3-.3h-2.6Z"/>`),
-  llama:     FGLYPH(`<path d="M24 3.5c2.5 7.2-6.9 9.7-6.9 19.3 0 4 3.1 7.1 6.9 7.1s6.9-3.1 6.9-7.1c0-2-.9-4.6-.9-4.6 5 2.6 8.1 9.2 8.1 14.8 0 8.4-6.7 15.2-15.1 15.2S7.9 41.4 7.9 33c0-12.2 8.1-17.2 16.1-29.5Z"/>`),
-  medalla:   FGLYPH(`<path d="M14.2 4h7.4l-6 13.2c-1.6.6-3.1 1.5-4.4 2.6L5 8.7C3.9 6.6 5.4 4 7.8 4h6.4Zm19.6 0h-6.4l6 13.2c1.6.6 3.1 1.5 4.4 2.6L43 8.7C44.1 6.6 42.6 4 40.2 4h-6.4Z"/><path fill-rule="evenodd" d="M24 19c-7.7 0-14 6.3-14 14s6.3 14 14 14 14-6.3 14-14-6.3-14-14-14Zm0 6.6a7.4 7.4 0 1 1 0 14.8 7.4 7.4 0 0 1 0-14.8Z"/>`),
-  diana:     FGLYPH(`<path fill-rule="evenodd" d="M24 3.5C12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24 35.3 3.5 24 3.5Zm0 6.6c7.7 0 13.9 6.2 13.9 13.9S31.7 37.9 24 37.9 10.1 31.7 10.1 24 16.3 10.1 24 10.1Z"/><path fill-rule="evenodd" d="M24 15.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2Zm0 5.8a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/>`),
-  corredor:  FGLYPH(`<circle cx="30.5" cy="8.5" r="5.5"/><path d="M38.4 21.8c-.9-1.6-2.8-2.3-4.5-1.7l-2.6.9-8.5-4.4c-1.3-.7-2.9-.5-4 .5l-7.4 6.7c-1.4 1.3-1.5 3.4-.2 4.8 1.3 1.4 3.4 1.5 4.8.2l5.7-5.2 3.3 1.7-5.6 7.9c-1 1.5-.9 3.5.3 4.8l7.7 8.3c1.3 1.4 3.4 1.5 4.8.2 1.4-1.3 1.5-3.4.2-4.8l-6-6.5 6.4-9c.6-.9.8-2 .5-3l3.6 1.4 4.6 6.8c1 1.5 3.1 1.9 4.6.9 1.5-1 1.9-3.1.9-4.6l-5.2-7.7c-.4-.6-1-1.1-1.7-1.3l-1.7-.6Z"/><path d="M4 18.5h7.5M2.5 26.5H9M6 34.5h5.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"/>`),
-  loto:      FGLYPH(`<g transform="translate(-1.68,1.9) scale(1.07)">
-    <path d="${LOTUS_PETAL}" transform="rotate(-62 24 30)" opacity=".6"/>
-    <path d="${LOTUS_PETAL}" transform="rotate(62 24 30)" opacity=".6"/>
-    <path d="${LOTUS_PETAL}" transform="rotate(-31 24 30)" opacity=".82"/>
-    <path d="${LOTUS_PETAL}" transform="rotate(31 24 30)" opacity=".82"/>
-    <path d="${LOTUS_PETAL}"/></g>`),
-  mariposa:  FGLYPH(`
-    <path d="M23 15.2C18.6 7.6 10.8 4 7 7.4 2.6 11.2 5.5 20.7 13.1 24.1c3.3 1.5 7 1.4 9.9.3Z"/>
-    <path d="M23 26.3c-3.6 1.5-9 3-12 6.7-3.1 3.9-.9 9.2 3.8 9.2 4.4 0 7.6-5 8.2-10.7Z"/>
-    <path d="M25 15.2C29.4 7.6 37.2 4 41 7.4c4.4 3.8 1.5 13.3-6.1 16.7-3.3 1.5-7 1.4-9.9.3Z"/>
-    <path d="M25 26.3c3.6 1.5 9 3 12 6.7 3.1 3.9.9 9.2-3.8 9.2-4.4 0-7.6-5-8.2-10.7Z"/>
-    <rect x="22.4" y="12.4" width="3.2" height="26.4" rx="1.6"/>
-    <circle cx="24" cy="10.8" r="3"/>
-    <path d="M25.7 9.4c1.4-2.8 3.8-4.4 6.6-5M22.3 9.4c-1.4-2.8-3.8-4.4-6.6-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>`),
-  corona:    FGLYPH(`
-    <path d="M7.9 38.4 4.2 14.1c-.3-2.1 2.2-3.4 3.8-2L16.4 19 21.9 7.6c.9-1.8 3.4-1.8 4.2 0L31.6 19l8.4-6.9c1.6-1.4 4.1-.1 3.8 2l-3.7 24.3H7.9Z"/>
-    <rect x="7.6" y="40.4" width="32.8" height="4.6" rx="2.3"/>
-    <circle cx="24" cy="27" r="3.1" opacity=".34"/>
-    <circle cx="14" cy="29" r="2.3" opacity=".34"/>
-    <circle cx="34" cy="29" r="2.3" opacity=".34"/>`),
-  diamante:  FGLYPH(`<path fill-rule="evenodd" d="M15.4 5.5h17.2c.9 0 1.8.4 2.3 1.2l6.9 9.4c.7 1 .7 2.3 0 3.2L26.4 41.2c-1.2 1.6-3.6 1.6-4.8 0L6.2 19.3c-.7-.9-.7-2.2 0-3.2l6.9-9.4c.5-.8 1.4-1.2 2.3-1.2Zm.8 6-3.6 5h6.2l1.9-5h-4.5Zm10.9 0h-4.2l-1.9 5h8l-1.9-5Zm6.7 0h-4.5l1.9 5h6.2l-3.6-5ZM35.6 22.5h-5.3l-3.1 9.6 8.4-9.6Zm-11.6 10.7 3.5-10.7h-7l3.5 10.7ZM17.7 22.5h-5.3l8.4 9.6-3.1-9.6Z"/>`),
-  escudo:    FGLYPH(`<path d="M24 3.5 7.5 9.2c-1.2.4-2 1.5-2 2.8v12.3c0 9.6 6.4 18.1 16.4 21.9.7.3 1.5.3 2.2 0 10-3.8 16.4-12.3 16.4-21.9V12c0-1.3-.8-2.4-2-2.8L24 3.5Zm0 12.8c1.6 0 2.9 1.3 2.9 2.9v3.3h3.3c1.6 0 2.9 1.3 2.9 2.9s-1.3 2.9-2.9 2.9h-3.3v3.3c0 1.6-1.3 2.9-2.9 2.9s-2.9-1.3-2.9-2.9v-3.3h-3.3c-1.6 0-2.9-1.3-2.9-2.9s1.3-2.9 2.9-2.9h3.3v-3.3c0-1.6 1.3-2.9 2.9-2.9Z"/>`)
-};
-const AVATAR_LIST = Object.keys(AVATAR_EMBLEMS);
+/* Los 17 emblemas son los de la lámina que aprobó Matías, recortados de ella uno
+   a uno: el glifo exacto, separado de su cristal, centrado y a escala común. El
+   cristal lo pone .glass, igual para todos. Están en emblemas/<id>.webp. */
+const AVATAR_LIST = ["atleta","atletaF","brazos","mancuerna","pesa","pulso","rayo","trofeo",
+  "llama","medalla","diana","corredor","loto","mariposa","corona","diamante","escudo"];
+const AVATAR_NAMES = { atleta:"Atleta", atletaF:"Atleta mujer", brazos:"Bíceps", mancuerna:"Mancuerna",
+  pesa:"Pesa rusa", pulso:"Pulso", rayo:"Rayo", trofeo:"Trofeo", llama:"Llama", medalla:"Medalla",
+  diana:"Diana", corredor:"Corredor", loto:"Loto", mariposa:"Mariposa", corona:"Corona",
+  diamante:"Diamante", escudo:"Escudo" };
+/* La lámina es cian; los demás tonos se sacan girando el matiz de la chapa entera.
+   hue-rotate no desenfoca ni agranda la capa: no cuesta memoria. */
+const GLASS_TONE = { green:[-40,1.15], blue:[35,1.1], teal:[-20,1.05], ice:[0,.5,1.18], mint:[-30,.8,1.06],
+  rosa:[150,1.15], violeta:[70,1.1], ambar:[-128,1.3], orquidea:[135,1,1.06], coral:[-170,1.2] };
+function glassToneStyle(tone){
+  const t = GLASS_TONE[tone];
+  if(!t) return "";
+  return `filter:hue-rotate(${t[0]}deg) saturate(${t[1]})${t[2] ? ` brightness(${t[2]})` : ""};`;
+}
 const AVATAR_TONE_LIST = Object.keys(AVATAR_TONES);
 
 function defaultAvatar(){ return { type:"emblem", id:"atleta", tone:"cyan" }; }
@@ -2010,15 +2020,15 @@ function avatarMarkup(av, size, radius){
   if(av.type === "photo" && av.data){
     return `<img class="avatar-img" src="${av.data}" alt="Foto de perfil" style="width:${size}px;height:${size}px;border-radius:${r}px;">`;
   }
-  const tone = AVATAR_TONES[av.tone] || AVATAR_TONES.cyan;
-  const bg = `radial-gradient(125% 130% at 28% 20%, ${tone[0]} 0%, ${tone[1]} 45%, ${tone[2]} 100%)`;
+  const tinte = glassToneStyle(av.tone);
   if(av.type === "initials"){
-    return `<div class="avatar-art icon-badge" style="width:${size}px;height:${size}px;border-radius:${r}px;background:${bg};">
+    return `<div class="glass avatar-art" style="--s:${size}px;${tinte}">
       <span class="avatar-initials" style="font-size:${Math.round(size*0.38)}px;">${escapeHtml(avatarInitials(state.profile.name))}</span></div>`;
   }
-  const emblem = AVATAR_EMBLEMS[av.id] || AVATAR_EMBLEMS.atleta;
-  return `<div class="avatar-art icon-badge" style="width:${size}px;height:${size}px;border-radius:${r}px;background:${bg};">
-    <span class="avatar-emblem" style="width:${Math.round(size*0.56)}px;height:${Math.round(size*0.56)}px;">${emblem}</span></div>`;
+  /* Quien tuviera un emblema que ya no existe vuelve al primero, no a un hueco. */
+  const id = AVATAR_LIST.includes(av.id) ? av.id : "atleta";
+  return `<div class="glass avatar-art" style="--s:${size}px;${tinte}">
+    <img class="glass-glyph" src="emblemas/${id}.webp" alt="" decoding="async" draggable="false"></div>`;
 }
 
 const ICONS = {
@@ -4893,7 +4903,7 @@ function renderAvatarModal(){
 
   document.getElementById("avGrid").innerHTML = AVATAR_LIST.map(id=>{
     const selected = av.type==="emblem" && av.id===id;
-    return `<button class="av-option ${selected?'selected':''}" data-action="set-avatar-emblem" data-emblem="${id}" aria-label="Emblema ${id}" ${selected?'aria-pressed="true"':''}>
+    return `<button class="av-option ${selected?'selected':''}" data-action="set-avatar-emblem" data-emblem="${id}" aria-label="Emblema ${AVATAR_NAMES[id]||id}" ${selected?'aria-pressed="true"':''}>
       ${avatarMarkup({type:"emblem", id, tone}, 54, 16)}
     </button>`;
   }).join("");

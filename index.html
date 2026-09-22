@@ -145,28 +145,6 @@ a{color:inherit;}
 ::-webkit-scrollbar-thumb{background:rgba(93,214,255,.25);border-radius:8px;}
 ::-webkit-scrollbar-thumb:hover{background:rgba(93,214,255,.45);}
 
-/* ---------- premium 3D icon badges ---------- */
-.icon-badge{
-  --badge-bevel:
-    inset 0 1.5px 1px rgba(255,255,255,.45),
-    inset 0 -4px 7px rgba(0,0,0,.4),
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    0 10px 20px -10px rgba(0,0,0,.65);
-  position:relative;
-  box-shadow:var(--badge-bevel);
-  border:1px solid rgba(255,255,255,.08);
-}
-.icon-badge::before{
-  content:'';position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(160deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, rgba(255,255,255,0) 60%);
-  pointer-events:none;
-}
-.icon-badge::after{
-  content:'';position:absolute;left:12%;top:8%;width:46%;height:26%;border-radius:50%;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,.55), rgba(255,255,255,.18) 48%, rgba(255,255,255,0) 76%);
-  pointer-events:none;
-}
-.icon-badge > svg, .icon-badge > .badge-content{position:relative;z-index:1;}
 
 /* ---------- background fx ---------- */
 .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
@@ -339,13 +317,7 @@ a{color:inherit;}
   background:radial-gradient(circle closest-side, var(--kpi-color,var(--cyan)) 0 26%,
     color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, transparent) 56%,
     color-mix(in srgb, var(--kpi-color,var(--cyan)) 12%, transparent) 80%, transparent 100%);}
-.kpi .kpi-icon{
-  width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(155deg, color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, white 15%), color-mix(in srgb, var(--kpi-color,var(--cyan)) 65%, black 25%));
-  color:#04141a;margin-bottom:14px;
-  box-shadow:var(--badge-bevel), 0 0 16px -6px var(--kpi-color,var(--cyan));
-}
-.kpi .kpi-icon svg{width:18px;height:18px;}
+.kpi .kpi-icon{margin-bottom:14px;--gi:48%;}
 .kpi .kpi-val{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;letter-spacing:.01em;}
 .kpi .kpi-label{font-size:12.5px;color:var(--text-dim);margin-top:3px;font-weight:600;}
 .kpi .kpi-delta{font-size:11.5px;margin-top:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;}
@@ -372,18 +344,7 @@ a{color:inherit;}
 .chart-tip b{display:block;font-family:'Space Grotesk',sans-serif;font-size:14.5px;font-weight:700;color:var(--text);}
 .chart-tip span{display:block;font-size:11.5px;color:var(--text-dim);margin-top:1px;}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 16px;color:var(--text-dim);}
-.empty-state .es-ico{
-  width:62px;height:62px;border-radius:19px;display:flex;align-items:center;justify-content:center;
-  margin-bottom:15px;color:var(--cyan);
-  background:linear-gradient(160deg, color-mix(in srgb, var(--cyan) 17%, transparent), rgba(255,255,255,.02) 70%);
-  border:1px solid color-mix(in srgb, var(--cyan) 24%, transparent);
-  box-shadow:
-    inset 0 1.5px 1px rgba(255,255,255,.2),
-    inset 0 -7px 13px rgba(0,0,0,.34),
-    0 12px 24px -15px #000,
-    0 0 32px -14px var(--cyan-dim);
-}
-.empty-state .es-ico svg{width:27px;height:27px;opacity:1;}
+.empty-state .es-ico{margin-bottom:15px;--gi:44%;}
 .empty-state b{color:var(--text);font-size:15px;}
 .empty-state span{font-size:12.5px;max-width:260px;margin-top:5px;line-height:1.5;}
 
@@ -410,8 +371,7 @@ a{color:inherit;}
 .ex-list{display:flex;flex-direction:column;gap:26px;}
 .ex-group-head{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
 .ex-group-head h3{font-size:14px;font-weight:700;letter-spacing:.04em;}
-.ex-group-ico{display:inline-flex;width:28px;height:28px;flex:none;}
-.ex-group-ico svg{width:28px;height:28px;}
+.ex-group-ico svg{width:25px;height:25px;}
 .ex-group-count{
   font-size:11px;font-weight:700;color:var(--text-dim);background:rgba(255,255,255,.06);
   padding:2px 8px;border-radius:999px;
@@ -427,7 +387,6 @@ a{color:inherit;}
 .ex-card .ex-foot{margin-top:auto;}
 .ex-card:hover{border-color:color-mix(in srgb, var(--c,var(--blue)) 40%, transparent);transform:translateY(-3px);box-shadow:0 16px 30px -20px rgba(0,0,0,.8);}
 .ex-card .ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.ex-card .ex-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none;color:#04141a;}
 .ex-card .ex-icon svg{width:40px;height:40px;}
 .ex-card h4{font-size:15px;margin-top:13px;font-weight:700;line-height:1.3;}
 .ex-card .ex-meta{font-size:12px;color:var(--text-dim);margin-top:6px;}
@@ -455,11 +414,7 @@ a{color:inherit;}
 .routine-card .rc-bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
 .routine-card .rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px;}
 .rc-muscles{display:flex;}
-.rc-m-ico{
-  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#04141a;
-  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.45), inset 0 -3px 5px rgba(0,0,0,.35), 0 4px 10px -6px #000;
-  margin-right:-5px;border:1.5px solid var(--panel);
-}
+.rc-m-ico{margin-right:-5px;outline:2px solid var(--panel);}
 .rc-m-ico:last-child{margin-right:0;}
 .rc-m-ico svg{width:27px;height:27px;}
 .routine-card h3{font-size:17px;margin-bottom:8px;}
@@ -520,8 +475,7 @@ a{color:inherit;}
   display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);
   border-radius:var(--radius-md);background:rgba(255,255,255,.02);
 }
-.builder-row .br-icon{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;color:#04141a;}
-.builder-row .br-icon svg{width:16px;height:16px;}
+
 .builder-row .br-name{font-weight:700;font-size:14.5px;flex:1;min-width:80px;}
 .builder-row .br-sets{font-size:12px;color:var(--text-dim);}
 .builder-row .br-actions{display:flex;gap:4px;}
@@ -887,8 +841,7 @@ a{color:inherit;}
   border-color:color-mix(in srgb, var(--cyan) 30%, transparent);
   box-shadow:0 0 26px -16px var(--cyan-dim);
 }
-.weigh-notice .wn-ico{flex:none;width:42px;height:42px;border-radius:13px;}
-.weigh-notice .wn-ico svg{width:21px;height:21px;}
+.weigh-notice .wn-ico{--gi:46%;}
 .weigh-notice b{display:block;font-size:14.5px;margin-bottom:3px;}
 .weigh-notice p{font-size:13px;color:var(--text-dim);line-height:1.5;margin-bottom:11px;}
 .weigh-notice .wn-actions{display:flex;gap:9px;flex-wrap:wrap;}
@@ -896,13 +849,9 @@ a{color:inherit;}
 .picker-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;}
 .picker-item:last-child{border-bottom:none;}
 .picker-item:hover{background:color-mix(in srgb, var(--cyan) 6%, transparent);}
-.picker-item .pi-ico{
-  width:28px;height:28px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#04141a;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.4), inset 0 -2px 4px rgba(0,0,0,.3);
-}
-.picker-item .pi-ico svg{width:23px;height:23px;}
-.builder-row .br-icon svg{width:27px;height:27px;}
-.session-ex-head .br-icon svg{width:30px;height:30px;}
+.picker-item .pi-ico svg{width:25px;height:25px;}
+.builder-row .br-icon svg{width:30px;height:30px;}
+.session-ex-head .br-icon svg{width:33px;height:33px;}
 
 /* workout session */
 .session-bar{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius-lg);border:1px solid var(--border-strong);background:linear-gradient(160deg,rgba(16,32,48,.95),rgba(9,17,26,.97));margin-bottom:18px;flex-wrap:wrap;}
@@ -1052,6 +1001,7 @@ a{color:inherit;}
 .glass{
   --s:54px;
   position:relative; flex:none; width:var(--s); height:var(--s); border-radius:25.5%;
+  display:flex; align-items:center; justify-content:center;
   background:
     radial-gradient(38% 30% at 21% 17%, rgba(255,255,255,.95) 0%, rgba(235,255,255,.55) 30%, rgba(200,252,255,.14) 62%, rgba(200,252,255,0) 80%),
     linear-gradient(90deg, rgba(110,244,255,.5) 2.5%, rgba(110,244,255,.14) 8%, rgba(110,244,255,0) 15%),
@@ -1070,6 +1020,18 @@ a{color:inherit;}
   -webkit-mask:linear-gradient(168deg,#000 0%,rgba(0,0,0,.86) 40%,rgba(0,0,0,.78) 64%,#000 100%);
           mask:linear-gradient(168deg,#000 0%,rgba(0,0,0,.86) 40%,rgba(0,0,0,.78) 64%,#000 100%);
 }
+/* Lo que va dentro se pinta por encima del bisel. */
+.glass > :not(.glass-glyph){position:relative;z-index:1;}
+/* Iconos de línea o macizos sobre el cristal: tinta casi negra con un filo de
+   luz alrededor, igual que los glifos de la lámina. El filo es la misma forma
+   con un trazo más grueso detrás, sin filtros. */
+.gi{display:block;width:var(--gi,48%);height:var(--gi,48%);}
+.gi > span{position:absolute;inset:0;display:block;}
+.glass .gi .gi-rim svg,.glass .gi .gi-ink svg{width:100%;height:100%;display:block;overflow:visible;}
+.gi-rim{color:rgba(205,251,255,.92);}
+.gi-f .gi-rim svg *{stroke:currentColor;stroke-width:2.4px;stroke-linejoin:round;}
+.gi-s .gi-rim svg *{stroke-width:4.4px;}
+.gi-ink{color:#04151d;}
 /* El emblema ocupa la chapa entera: su lienzo ya trae el margen y el centrado. */
 .glass-glyph{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;
   -webkit-user-drag:none;user-select:none;pointer-events:none;}
@@ -1100,9 +1062,9 @@ a{color:inherit;}
 .av-option:hover{transform:translateY(-2px);}
 .av-option.selected{border-color:#35ecff;box-shadow:0 0 14px -1px rgba(34,232,255,.75), inset 0 0 9px -1px rgba(34,232,255,.45);}
 .av-tones{display:flex;gap:10px;flex-wrap:wrap;}
-.av-tone{width:36px;height:36px;border-radius:12px;border:2px solid transparent;cursor:pointer;padding:0;transition:transform .14s ease;}
+.av-tone{cursor:pointer;padding:0;border:none;transition:transform .14s ease;}
 .av-tone:hover{transform:translateY(-2px);}
-.av-tone.selected{border-color:#fff;box-shadow:0 0 14px -3px var(--cyan-dim);}
+.av-tone.selected{outline:2.5px solid #fff;outline-offset:3px;}
 .av-upload-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
 .av-upload-row .btn{flex:1;justify-content:center;min-width:150px;}
 .av-preview{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--radius-md);background:rgba(255,255,255,.03);border:1px solid var(--border);}
@@ -1239,7 +1201,7 @@ a{color:inherit;}
     display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;
     height:calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
     padding-bottom:env(safe-area-inset-bottom);
-    background:rgba(6,10,16,.92);border-top:1px solid var(--border);
+    background:rgba(6,10,16,.985);border-top:1px solid var(--border);
     justify-content:space-around;align-items:center;
   }
   .bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:10px;font-weight:700;background:none;border:none;cursor:pointer;padding:6px 10px;}
@@ -1518,7 +1480,7 @@ a{color:inherit;}
         </div>
 
         <div class="card weigh-notice hidden" id="weighInNotice">
-          <div class="wn-ico icon-badge"></div>
+          <div class="wn-ico glass" style="--s:44px"></div>
           <div style="min-width:0;">
             <b id="weighInNoticeTitle">Control semanal de peso</b>
             <p id="weighInNoticeMsg"></p>
@@ -1567,7 +1529,7 @@ a{color:inherit;}
         </div>
 
         <div class="card weigh-notice hidden" id="recoveryNotice" style="margin-top:16px;">
-          <div class="wn-ico icon-badge"></div>
+          <div class="wn-ico glass" style="--s:44px"></div>
           <div style="min-width:0;">
             <b id="recoveryTitle">Copia de seguridad</b>
             <p id="recoveryMsg"></p>
@@ -1933,6 +1895,34 @@ const MUSCLE_HL = {
   "Cardio": `<path d="M48 61c-1.1 0-2.1-.4-2.9-1.2l-9-8.8c-2.2-2.1-3.4-5-3.4-8 0-4.9 3.9-8.8 8.8-8.8 2.4 0 4.7 1 6.3 2.7l.2.2.2-.2c1.6-1.7 3.9-2.7 6.3-2.7 4.9 0 8.8 3.9 8.8 8.8 0 3-1.2 5.9-3.4 8l-9 8.8c-.8.8-1.8 1.2-2.9 1.2Z"/>`
 };
 
+/* La misma figura, para ir sobre cristal: cuerpo en tinta oscura con filo de luz
+   y el músculo trabajado encendido en claro, como la estrella del trofeo o la
+   cruz del escudo de la lámina. Los colores van en el marco cian: el filtro de
+   la chapa los lleva al color del grupo. */
+function muscleIconGlass(m){
+  const hl = MUSCLE_HL[m] || MUSCLE_HL["Pecho"];
+  const id = "mg" + (++muscleSeq);
+  const cuerpo = `<ellipse cx="48" cy="10.5" rx="7.4" ry="8.4"/><path d="M43.4 16.5h9.2v5.6c0 1.2-.8 2.3-2 2.6l-2.6.7-2.6-.7c-1.2-.3-2-1.4-2-2.6v-5.6Z"/>${BMIR(BODY_TORSO)}${BMIR(BODY_ARM)}`;
+  const pulso = m === "Cardio"
+    ? `<g fill="none" stroke="#e6fdff" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 71h8l3.5-7 5 13 4-8 2.5 4h12"/></g>` : "";
+  return `<svg viewBox="0 0 96 96" aria-hidden="true">
+    <defs>
+      <radialGradient id="${id}" cx="50%" cy="50%" r="60%">
+        <stop offset="0%" stop-color="#e9feff" stop-opacity=".7"/><stop offset="100%" stop-color="#9ff3ff" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="${id}f" x1="0" y1="0" x2=".3" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#b9f7ff"/><stop offset="100%" stop-color="#5fe3f5"/>
+      </linearGradient>
+    </defs>
+    <g fill="none" stroke="rgba(200,250,255,.92)" stroke-width="4.4" stroke-linejoin="round">${cuerpo}</g>
+    <g fill="#04151d">${cuerpo}</g>
+    <g fill="rgba(110,225,250,.16)"><rect x="47.2" y="31" width="1.6" height="32" rx=".8"/><path d="M37.4 49.6h21.2v1.7H37.4z"/><path d="M38.8 58.4h18.4v1.4H38.8z" opacity=".7"/></g>
+    <g fill="url(#${id})" transform="translate(48 52) scale(1.4) translate(-48 -52)">${hl}</g>
+    <g fill="url(#${id}f)">${hl}</g>
+    ${pulso}
+  </svg>`;
+}
+
 function muscleIcon(m){
   const c = muscleColor(m);
   const hl = MUSCLE_HL[m] || MUSCLE_HL["Pecho"];
@@ -1999,6 +1989,51 @@ const AVATAR_NAMES = { atleta:"Atleta", atletaF:"Atleta mujer", brazos:"Bíceps"
    hue-rotate no desenfoca ni agranda la capa: no cuesta memoria. */
 const GLASS_TONE = { green:[-40,1.15], blue:[35,1.1], teal:[-20,1.05], ice:[0,.5,1.18], mint:[-30,.8,1.06],
   rosa:[150,1.15], violeta:[70,1.1], ambar:[-128,1.3], orquidea:[135,1,1.06], coral:[-170,1.2] };
+/* Cualquier otro color (grupos musculares, cuadros del inicio, temas) se saca
+   interpolando el giro entre los tonos ya afinados, por su matiz. */
+function hexToHsl(hex){
+  const m = String(hex).trim().replace('#','');
+  const v = m.length===3 ? m.split('').map(c=>c+c).join('') : m;
+  const r=parseInt(v.slice(0,2),16)/255, g=parseInt(v.slice(2,4),16)/255, b=parseInt(v.slice(4,6),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2;
+  if(mx===mn) return [0,0,l];
+  const d=mx-mn, sa = l>.5 ? d/(2-mx-mn) : d/(mx+mn);
+  let h = mx===r ? (g-b)/d+(g<b?6:0) : mx===g ? (b-r)/d+2 : (r-g)/d+4;
+  return [h*60, sa, l];
+}
+/* Anclas: tonos saturados del selector, ordenados por matiz, con su giro. */
+const GLASS_ANCLAS = [["coral",-170],["ambar",-128],["green",-40],["teal",-20],["cyan",0],
+  ["blue",35],["violeta",70],["orquidea",135],["rosa",150]];
+let glassAnclas = null;
+function glassFilter(color){
+  if(!color) return "";
+  let hex = String(color).trim();
+  if(hex.startsWith("var(")) hex = getComputedStyle(document.body).getPropertyValue(hex.slice(4,-1)).trim();
+  if(!/^#?[0-9a-f]{3,8}$/i.test(hex)) return "";
+  const [h,sa,l] = hexToHsl(hex);
+  if(sa < .22) return "filter:saturate(.25) brightness(1.02);";
+  if(!glassAnclas) glassAnclas = GLASS_ANCLAS.map(([t,rot])=>{
+    const tt = GLASS_TONE[t] || [0,1];
+    return { h:hexToHsl(AVATAR_TONES[t][1])[0], rot, sat:tt[1] };
+  }).sort((a,b)=>a.h-b.h);
+  const A = glassAnclas;
+  let lo = A[A.length-1], hi = { ...A[0], h:A[0].h+360, rot:A[0].rot+360 }, hh = h;
+  if(h >= A[0].h && h <= A[A.length-1].h){
+    for(let i=0;i<A.length-1;i++) if(h>=A[i].h && h<=A[i+1].h){ lo=A[i]; hi=A[i+1]; break; }
+  } else if(h < A[0].h) hh = h+360;
+  const t = hi.h===lo.h ? 0 : (hh-lo.h)/(hi.h-lo.h);
+  let rot = lo.rot + (hi.rot-lo.rot)*t; if(rot>180) rot-=360;
+  let sat = t<.5 ? lo.sat : hi.sat, bri = 1;
+  /* Los pasteles piden un cristal más claro y menos intenso. */
+  if(l > .7){ sat *= Math.max(.5, 1-(l-.7)*1.6); bri = 1+(l-.7)*1.5; }
+  if(Math.abs(rot)<2 && Math.abs(sat-1)<.02 && bri===1) return "";
+  return `filter:hue-rotate(${Math.round(rot)}deg) saturate(${sat.toFixed(2)})${bri!==1?` brightness(${bri.toFixed(2)})`:""};`;
+}
+/* Glifo de línea o macizo, en tinta oscura con filo de luz, para ir sobre cristal. */
+function glassIcon(svg){
+  const trazo = /fill="none"/.test(svg);
+  return `<span class="gi ${trazo?'gi-s':'gi-f'}"><span class="gi-rim">${svg}</span><span class="gi-ink">${svg}</span></span>`;
+}
 function glassToneStyle(tone){
   const t = GLASS_TONE[tone];
   if(!t) return "";
@@ -2724,7 +2759,7 @@ function renderDashboard(){
   ];
   document.getElementById("dashKpis").innerHTML = kpis.map(k=>`
     <div class="card kpi" style="--kpi-color:${k.color}">
-      <div class="kpi-icon icon-badge">${k.icon}</div>
+      <div class="kpi-icon glass" style="--s:42px;${glassFilter(k.color)}">${glassIcon(k.icon)}</div>
       <div class="kpi-val">${k.val}</div>
       <div class="kpi-label">${k.label}</div>
     </div>`).join("");
@@ -2777,7 +2812,7 @@ function renderDashboard(){
     const last = lastPerformedISO(best.id);
     suggestionEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div class="ex-icon icon-badge" style="width:46px;height:46px;border-radius:13px;background:linear-gradient(155deg, color-mix(in srgb, var(--cyan) 55%, white 15%), color-mix(in srgb, var(--cyan) 65%, black 20%));">${ICONS.layers}</div>
+        <div class="glass" style="--s:46px;--gi:47%;${glassFilter('var(--cyan)')}">${glassIcon(ICONS.layers)}</div>
         <div style="flex:1;min-width:140px;">
           <div style="font-weight:700;font-size:16px;">${escapeHtml(best.name)}</div>
           <div class="chart-meta">${best.exercises.length} ejercicios · ${last ? "Última vez "+fmtDate(last) : "Nunca realizada"}</div>
@@ -2830,7 +2865,7 @@ function lastPerformedISO(routineId){
 
 /* ============================= CHART RENDERERS (SVG) ============================= */
 function emptyState(icon, title, sub){
-  return `<div class="empty-state"><div class="es-ico">${icon}</div><b>${escapeHtml(title)}</b><span>${escapeHtml(sub)}</span></div>`;
+  return `<div class="empty-state"><div class="es-ico glass" style="--s:62px;${glassFilter('var(--cyan)')}">${glassIcon(icon)}</div><b>${escapeHtml(title)}</b><span>${escapeHtml(sub)}</span></div>`;
 }
 
 /* ---- chart scales & formatting ---------------------------------------- */
@@ -3080,12 +3115,6 @@ function renderCalendarHeatmap(weeks){
 }
 
 /* ============================= EXERCISES VIEW ============================= */
-/* Dark glass chip: the body map carries the colour, so the badge stays neutral. */
-function muscleBadgeStyle(color){
-  return `background:linear-gradient(160deg, color-mix(in srgb, ${color} 15%, rgba(255,255,255,.04)), rgba(255,255,255,.02));
-          border-color:color-mix(in srgb, ${color} 26%, transparent);
-          box-shadow:inset 0 1.5px 1px rgba(255,255,255,.16), inset 0 -4px 8px rgba(0,0,0,.4), 0 0 14px -8px ${color};`;
-}
 
 function exerciseUsage(exerciseId){
   let sessions = 0, bestWeight = 0, bestReps = 0;
@@ -3111,7 +3140,7 @@ function exerciseCard(e){
     : `<span class="ex-pr ex-pr-empty">Sin registros</span>`;
   return `<article class="ex-card" style="--c:${color}">
     <div class="ex-top">
-      <div class="ex-icon icon-badge" style="${muscleBadgeStyle(color)}">${muscleIcon(e.muscle)}</div>
+      <div class="ex-icon glass" style="--s:48px;${glassFilter(color)}">${muscleIconGlass(e.muscle)}</div>
       <button class="card-kebab" data-action="card-menu" data-kind="exercise" data-id="${e.id}" aria-label="Opciones de ${escapeHtml(e.name)}" aria-haspopup="menu">${ICONS.kebab}</button>
     </div>
     <h4>${escapeHtml(e.name)}${e.custom ? `<span class="custom-dot" title="Ejercicio personalizado"></span>` : ""}</h4>
@@ -3158,7 +3187,7 @@ function renderExercisesView(){
     const color = muscleColor(m);
     return `<section class="ex-group">
       <header class="ex-group-head">
-        <span class="ex-group-ico" style="color:${color}">${muscleIcon(m)}</span>
+        <span class="ex-group-ico glass" style="--s:30px;${glassFilter(color)}">${muscleIconGlass(m)}</span>
         <h3>${escapeHtml(m)}</h3>
         <span class="ex-group-count">${items.length}</span>
         <span class="ex-group-line" style="background:linear-gradient(90deg, color-mix(in srgb, ${color} 45%, transparent), transparent);"></span>
@@ -3256,7 +3285,7 @@ function renderRoutinesView(){
     return `<article class="routine-card">
       <div class="rc-bar" style="background:${color};box-shadow:0 0 12px ${color};"></div>
       <div class="rc-head">
-        <div class="rc-muscles">${muscles.slice(0,3).map(m=>`<span class="rc-m-ico" style="${muscleBadgeStyle(muscleColor(m))}" title="${escapeHtml(m)}">${muscleIcon(m)}</span>`).join("")}</div>
+        <div class="rc-muscles">${muscles.slice(0,3).map(m=>`<span class="rc-m-ico glass" style="--s:34px;${glassFilter(muscleColor(m))}" title="${escapeHtml(m)}">${muscleIconGlass(m)}</span>`).join("")}</div>
         <button class="card-kebab" data-action="card-menu" data-kind="routine" data-id="${r.id}" aria-label="Opciones de ${escapeHtml(r.name)}" aria-haspopup="menu">${ICONS.kebab}</button>
       </div>
       ${flag}
@@ -3357,7 +3386,7 @@ function renderExercisePicker(){
   }
   el.innerHTML = state.exercises.map(e=>`
     <div class="picker-item" data-action="add-ex-to-builder" data-id="${e.id}">
-      <span class="pi-ico" style="${muscleBadgeStyle(muscleColor(e.muscle))}">${muscleIcon(e.muscle)}</span>
+      <span class="pi-ico glass" style="--s:30px;${glassFilter(muscleColor(e.muscle))}">${muscleIconGlass(e.muscle)}</span>
       ${escapeHtml(e.name)}
       <span style="margin-left:auto;color:var(--text-faint);font-size:11.5px;">${escapeHtml(e.muscle)}</span>
     </div>`).join("");
@@ -3384,7 +3413,7 @@ function renderRoutineBuilderList(){
       </div>`).join("");
     return `<div class="builder-row" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="br-icon icon-badge" style="${muscleBadgeStyle(color)}">${ex ? muscleIcon(ex.muscle) : ICONS.dumbbell}</div>
+        <div class="br-icon glass" style="--s:36px;${glassFilter(color)}">${ex ? muscleIconGlass(ex.muscle) : glassIcon(ICONS.dumbbell)}</div>
         <div class="br-name">${escapeHtml(name)}</div>
         <div class="br-actions">
           <button class="btn btn-icon btn-sm" data-action="move-ex-up" data-idx="${idx}" ${idx===0?'disabled':''}>${ICONS.up}</button>
@@ -3506,7 +3535,7 @@ function renderSessionView(){
       const color = ex ? muscleColor(ex.muscle) : PALETTE.chartFrom;
       const prevSets = se.prevSets || [];
       const head = `<div class="session-ex-head">
-          <div class="br-icon icon-badge" style="width:36px;height:36px;${muscleBadgeStyle(color)}">${ex ? muscleIcon(ex.muscle) : ICONS.dumbbell}</div>
+          <div class="br-icon glass" style="--s:40px;${glassFilter(color)}">${ex ? muscleIconGlass(ex.muscle) : glassIcon(ICONS.dumbbell)}</div>
           <h4>${escapeHtml(se.name)}</h4>
           <div class="prev">${se.cardio
             ? "Se mide en tiempo"
@@ -4042,7 +4071,7 @@ function renderWeighInNotice(){
 
   notice.classList.toggle("hidden", !st.due);
   if(!st.due) return;
-  notice.querySelector(".wn-ico").innerHTML = ICONS.scale;
+  notice.querySelector(".wn-ico").innerHTML = glassIcon(ICONS.scale);
   document.getElementById("weighInNoticeTitle").textContent = "Toca tu medición semanal";
   document.getElementById("weighInNoticeMsg").textContent =
     `Han pasado ${st.elapsed} días desde tu última medición (${fmtNum(st.last.weight)} kg, el ${fmtDateLong(st.last.date)}). Mídete hoy para mantener la progresión semana a semana.`;
@@ -4845,7 +4874,7 @@ function renderRecoveryNotice(){
   if(!card) return;
   if(!recoveryNotice){ card.classList.add("hidden"); return; }
   card.classList.remove("hidden");
-  card.querySelector(".wn-ico").innerHTML = ICONS.layers;
+  card.querySelector(".wn-ico").innerHTML = glassIcon(ICONS.layers);
   const title = document.getElementById("recoveryTitle");
   const msg = document.getElementById("recoveryMsg");
   const actions = document.getElementById("recoveryActions");
@@ -4909,10 +4938,9 @@ function renderAvatarModal(){
   }).join("");
 
   document.getElementById("avTones").innerHTML = AVATAR_TONE_LIST.map(t=>{
-    const c = AVATAR_TONES[t];
     const selected = av.type!=="photo" && tone===t;
-    return `<button class="av-tone ${selected?'selected':''}" data-action="set-avatar-tone" data-tone="${t}" aria-label="Color ${t}"
-      style="background:radial-gradient(125% 130% at 28% 20%, ${c[0]} 0%, ${c[1]} 45%, ${c[2]} 100%);"></button>`;
+    return `<button class="av-tone glass ${selected?'selected':''}" data-action="set-avatar-tone" data-tone="${t}" aria-label="Color ${t}"
+      style="--s:38px;${glassToneStyle(t)}"></button>`;
   }).join("");
 }
 

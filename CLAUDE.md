@@ -44,9 +44,14 @@ los dedos multiplica ese coste por el cuadrado del zoom. Por eso:
 - **Nada de `filter: blur()` en capas grandes.** Un desenfoque reserva una textura
   del tamaño del elemento más el radio por los cuatro lados. Los resplandores se
   pintan con `radial-gradient`.
-- **Nada de `mix-blend-mode` ni `filter` repetidos** en elementos de lista (las
-  chapas de ejercicio son decenas). El brillo va dentro del SVG, con degradados.
-- **`backdrop-filter` solo donde se note**, y con radio corto.
+- **Nada de `mix-blend-mode`, `drop-shadow` ni desenfoques repetidos** en
+  elementos de lista (las chapas de ejercicio son decenas). El brillo va dentro
+  del SVG, con degradados. Los filtros de color (`hue-rotate`, `saturate`,
+  `brightness`) sí se permiten en las chapas de cristal: no agrandan la capa ni
+  la desenfocan, y medido en la biblioteca de ejercicios, con 40 chapas teñidas
+  en pantalla, el navegador sigue con las mismas 12 capas que sin ellas.
+- **`backdrop-filter` solo donde se note**, y con radio corto. La barra inferior
+  no lo lleva: su fondo es casi opaco para que no se lea el contenido detrás.
 - Al ampliar, `visualViewport.scale > 1` pone la clase `zoomed` en el `body` y el CSS
   apaga fondos animados y desenfoques hasta que se suelte el pellizco.
 

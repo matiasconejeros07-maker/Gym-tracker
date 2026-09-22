@@ -111,6 +111,18 @@ button, a, label, summary, [data-action], [data-nav], [data-filter],
   touch-action: manipulation;
 }
 
+/* Mientras el usuario mantiene la pantalla ampliada, lo decorativo se apaga.
+   Ampliar obliga al navegador a volver a rasterizar cada capa con efecto a la
+   nueva escala, y en un iPhone eso es justo lo que agota la memoria. Al soltar
+   el pellizco vuelve todo solo. */
+body.zoomed .bg-glows,
+body.zoomed .bg-grid{ animation:none; }
+body.zoomed .topbar,
+body.zoomed .menu-backdrop.open,
+body.zoomed .modal-overlay,
+body.zoomed .rest-overlay,
+body.zoomed .celebrate-overlay{ backdrop-filter:none; }
+
 *,*::before,*::after{box-sizing:border-box;}
 html{-webkit-text-size-adjust:100%;}
 body{
@@ -146,16 +158,15 @@ a{color:inherit;}
 }
 .icon-badge::before{
   content:'';position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(160deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,.08) 38%, rgba(255,255,255,0) 60%);
-  mix-blend-mode:overlay;
+  background:linear-gradient(160deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.06) 38%, rgba(255,255,255,0) 60%);
   pointer-events:none;
 }
 .icon-badge::after{
   content:'';position:absolute;left:12%;top:8%;width:46%;height:26%;border-radius:50%;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,.55), rgba(255,255,255,0) 70%);
-  filter:blur(1px);pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(255,255,255,.55), rgba(255,255,255,.18) 48%, rgba(255,255,255,0) 76%);
+  pointer-events:none;
 }
-.icon-badge > svg, .icon-badge > .badge-content{position:relative;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));}
+.icon-badge > svg, .icon-badge > .badge-content{position:relative;z-index:1;}
 
 /* ---------- background fx ---------- */
 .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
@@ -171,12 +182,33 @@ a{color:inherit;}
   animation:gridDrift 14s linear infinite;
 }
 @keyframes gridDrift{from{background-position:0 0,0 0;}to{background-position:0 42px,42px 0;}}
-.bg-glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.26;animation:drift 22s ease-in-out infinite alternate;}
-.bg-glow.g1{width:520px;height:520px;background:var(--cyan);top:-160px;left:-120px;}
-.bg-glow.g2{width:600px;height:600px;background:var(--green);bottom:-220px;right:-160px;animation-delay:-8s;}
-.bg-glow.g3{width:420px;height:420px;background:var(--blue);top:40%;left:60%;animation-delay:-14s;}
-@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,-30px) scale(1.12);}}
-@media (prefers-reduced-motion:reduce){.bg-grid,.bg-glow{animation:none;}}
+/* Los tres resplandores son UNA capa del tamaño de la pantalla pintada con tres
+   degradados, no tres círculos desenfocados. Un filter:blur(70px) obliga a
+   WebKit a reservar una textura del círculo MÁS el radio del desenfoque por los
+   cuatro lados (un círculo de 600px pasa a ocupar 1020px) y a rehacerla cada vez
+   que cambia la escala de la página. Al ampliar con los dedos eso se multiplica
+   por el cuadrado del zoom y Safari mata la pestaña por falta de memoria: era el
+   "Ocurrió un problema varias veces". Un degradado se dibuja a cualquier escala
+   sin guardar nada. */
+.bg-glows{
+  position:absolute;inset:0;opacity:.26;
+  background:
+    radial-gradient(400px 400px at 140px 100px,
+      var(--cyan) 0 26%, color-mix(in srgb, var(--cyan) 84%, transparent) 42%,
+      color-mix(in srgb, var(--cyan) 56%, transparent) 56%, color-mix(in srgb, var(--cyan) 29%, transparent) 69%,
+      color-mix(in srgb, var(--cyan) 11%, transparent) 81%, transparent 100%),
+    radial-gradient(440px 440px at calc(100% - 140px) calc(100% - 80px),
+      var(--green) 0 26%, color-mix(in srgb, var(--green) 84%, transparent) 42%,
+      color-mix(in srgb, var(--green) 56%, transparent) 56%, color-mix(in srgb, var(--green) 29%, transparent) 69%,
+      color-mix(in srgb, var(--green) 11%, transparent) 81%, transparent 100%),
+    radial-gradient(350px 350px at calc(60% + 210px) calc(40% + 210px),
+      var(--blue) 0 26%, color-mix(in srgb, var(--blue) 84%, transparent) 42%,
+      color-mix(in srgb, var(--blue) 56%, transparent) 56%, color-mix(in srgb, var(--blue) 29%, transparent) 69%,
+      color-mix(in srgb, var(--blue) 11%, transparent) 81%, transparent 100%);
+  animation:drift 22s ease-in-out infinite alternate;
+}
+@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(22px,-16px) scale(1.06);}}
+@media (prefers-reduced-motion:reduce){.bg-grid,.bg-glows{animation:none;}}
 
 /* ---------- app shell ---------- */
 .app{position:relative;z-index:1;min-height:100vh;display:flex;}
@@ -185,7 +217,6 @@ a{color:inherit;}
   background:linear-gradient(180deg,rgba(9,16,26,.92),rgba(6,10,16,.96));
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;padding:22px 14px;gap:6px;
-  backdrop-filter:blur(14px);
   z-index:40;
   transition:transform .28s ease;
 }
@@ -233,7 +264,7 @@ a{color:inherit;}
   height:calc(var(--topbar-h) + env(safe-area-inset-top));
   padding-top:env(safe-area-inset-top);
   display:flex;align-items:center;gap:14px;padding-left:22px;padding-right:22px;
-  background:rgba(6,10,16,.72);backdrop-filter:blur(14px);
+  background:rgba(6,10,16,.72);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
 }
 .hamburger{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:10px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;}
@@ -304,7 +335,10 @@ a{color:inherit;}
 @media (max-width:600px){.grid-kpi{grid-template-columns:1fr 1fr;}.grid-3{grid-template-columns:1fr;}}
 
 .kpi{position:relative;overflow:hidden;}
-.kpi::after{content:'';position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:var(--kpi-color,var(--cyan));opacity:.12;filter:blur(20px);}
+.kpi::after{content:'';position:absolute;right:-70px;top:-70px;width:190px;height:190px;border-radius:50%;opacity:.12;
+  background:radial-gradient(circle closest-side, var(--kpi-color,var(--cyan)) 0 26%,
+    color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, transparent) 56%,
+    color-mix(in srgb, var(--kpi-color,var(--cyan)) 12%, transparent) 80%, transparent 100%);}
 .kpi .kpi-icon{
   width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(155deg, color-mix(in srgb, var(--kpi-color,var(--cyan)) 55%, white 15%), color-mix(in srgb, var(--kpi-color,var(--cyan)) 65%, black 25%));
@@ -571,16 +605,25 @@ a{color:inherit;}
 .sp-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 /* Sin rejilla en la bienvenida: su plano en perspectiva aterriza como una banda
    rectangular detrás del logo y lo hace ver pegado sobre un recorte. */
-.sp-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16;}
-.sp-orb.o1{width:520px;height:520px;background:var(--cyan);top:-170px;left:-160px;}
-.sp-orb.o2{width:580px;height:580px;background:var(--green);bottom:-230px;right:-190px;}
+.sp-orb{
+  position:absolute;border-radius:50%;opacity:.16;
+  background:radial-gradient(circle closest-side,
+    var(--glow) 0 18%,
+    color-mix(in srgb, var(--glow) 80%, transparent) 38%,
+    color-mix(in srgb, var(--glow) 52%, transparent) 54%,
+    color-mix(in srgb, var(--glow) 26%, transparent) 68%,
+    color-mix(in srgb, var(--glow) 9%, transparent) 82%,
+    transparent 100%);
+}
+.sp-orb.o1{--glow:var(--cyan);width:880px;height:880px;top:-350px;left:-340px;}
+.sp-orb.o2{--glow:var(--green);width:940px;height:940px;bottom:-410px;right:-370px;}
 /* Charco de luz bajo la marca: contenido, del tamaño del logo, no de la pantalla. */
 .sp-pool{
   position:absolute;left:50%;top:45%;width:min(120vw,540px);aspect-ratio:1.4/1;
   transform:translate(-50%,-50%) scale(.9);border-radius:50%;
-  background:radial-gradient(ellipse at 38% 50%, rgba(34,232,255,.3), rgba(34,232,255,0) 68%),
-             radial-gradient(ellipse at 64% 54%, rgba(43,255,168,.3), rgba(43,255,168,0) 68%);
-  filter:blur(54px);opacity:0;
+  background:radial-gradient(ellipse at 38% 50%, rgba(34,232,255,.30) 0%, rgba(34,232,255,.17) 34%, rgba(34,232,255,.05) 62%, rgba(34,232,255,0) 85%),
+             radial-gradient(ellipse at 64% 54%, rgba(43,255,168,.30) 0%, rgba(43,255,168,.17) 34%, rgba(43,255,168,.05) 62%, rgba(43,255,168,0) 85%);
+  opacity:0;
 }
 .sp-vignette{
   position:absolute;inset:0;pointer-events:none;
@@ -936,7 +979,7 @@ a{color:inherit;}
 .rest-overlay{
   position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;
   background:radial-gradient(120% 100% at 50% 38%, color-mix(in srgb, var(--green) 16%, transparent), rgba(3,6,10,.96) 65%);
-  backdrop-filter:blur(14px);padding:20px;
+  backdrop-filter:blur(9px);padding:20px;
 }
 .rest-overlay.open{display:flex;}
 .rest-card{text-align:center;padding:20px;max-width:380px;width:100%;animation:celebrateIn .35s ease;}
@@ -988,15 +1031,10 @@ a{color:inherit;}
 .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
 .ach-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center;background:rgba(255,255,255,.015);position:relative;}
 .ach-card.unlocked{border-color:var(--border-strong);background:linear-gradient(160deg,color-mix(in srgb, var(--cyan) 8%, transparent),color-mix(in srgb, var(--green) 5%, transparent));}
-.ach-icon{width:60px;height:60px;border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);}
-.ach-card.unlocked .ach-icon{
-  background:radial-gradient(120% 130% at 28% 20%, #bfffe9 0%, var(--green) 32%, var(--cyan) 70%, var(--blue) 100%);
-  box-shadow:var(--badge-bevel), 0 0 26px -4px var(--cyan-dim);
-  animation:achShine 3.2s ease-in-out infinite;
-}
-@keyframes achShine{0%,100%{filter:brightness(1);}50%{filter:brightness(1.15);}}
-.ach-icon svg{width:26px;height:26px;color:var(--text-faint);}
-.ach-card.unlocked .ach-icon svg{color:#04141a;}
+.ach-icon{width:74px;height:74px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
+.ach-icon .medal{width:100%;height:100%;display:block;}
+/* La medalla aún sin ganar se ve, pero apagada: da la meta sin cantar victoria. */
+.ach-card:not(.unlocked) .ach-icon{opacity:.5;}
 .ach-card h4{font-size:14.5px;margin-bottom:5px;}
 .ach-card p{font-size:12px;color:var(--text-dim);line-height:1.4;}
 .ach-card .ach-date{font-size:10.5px;color:var(--green);margin-top:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
@@ -1068,7 +1106,7 @@ a{color:inherit;}
 .celebrate-overlay{
   position:fixed;inset:0;
   background:radial-gradient(120% 100% at 50% 30%, color-mix(in srgb, var(--cyan) 14%, transparent), rgba(3,6,10,.94) 60%);
-  display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(7px);
   overflow:hidden;
 }
 .celebrate-overlay.open{display:flex;}
@@ -1088,22 +1126,50 @@ a{color:inherit;}
 .celebrate-card{position:relative;text-align:center;padding:44px 36px;max-width:400px;animation:celebrateIn .45s cubic-bezier(.2,.9,.3,1.3);}
 @keyframes celebrateIn{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .celebrate-icon{
-  width:104px;height:104px;border-radius:30px;margin:0 auto 20px;
-  background:radial-gradient(120% 130% at 30% 22%, #bfffe9 0%, var(--green) 32%, var(--cyan) 70%, var(--blue) 100%);
+  width:138px;height:138px;margin:0 auto 18px;position:relative;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:var(--badge-bevel), 0 0 55px -6px var(--cyan-dim);
-  animation:pulseGlow 1.8s ease-in-out infinite;
-  overflow:hidden;
+  animation:medalDrop .7s cubic-bezier(.2,1.1,.3,1) both;
 }
-.celebrate-overlay.kind-pr .celebrate-icon{background:radial-gradient(120% 130% at 30% 22%, #d8fff2 0%, var(--green) 30%, var(--cyan) 100%);}
-@keyframes pulseGlow{0%,100%{box-shadow:var(--badge-bevel), 0 0 34px -6px var(--cyan-dim);}50%{box-shadow:var(--badge-bevel), 0 0 66px -2px var(--green-dim);}}
-.celebrate-icon svg{width:50px;height:50px;color:#04141a;position:relative;z-index:1;}
-.celebrate-shine{position:absolute;inset:0;overflow:hidden;border-radius:inherit;z-index:1;}
+/* El halo va detrás en un degradado propio: así la medalla brilla sin que el
+   navegador tenga que desenfocar nada. */
+.celebrate-icon::before{
+  content:'';position:absolute;inset:-52%;border-radius:50%;z-index:0;
+  background:radial-gradient(circle closest-side,
+    color-mix(in srgb, var(--cyan) 42%, transparent) 0 24%,
+    color-mix(in srgb, var(--cyan) 19%, transparent) 40%,
+    color-mix(in srgb, var(--cyan) 12%, transparent) 56%,
+    color-mix(in srgb, var(--cyan) 5%, transparent) 72%,
+    color-mix(in srgb, var(--cyan) 1.5%, transparent) 86%,
+    transparent 100%);
+  animation:pulseGlow 2.6s ease-in-out infinite;
+}
+.celebrate-overlay.kind-pr .celebrate-icon::before{
+  background:radial-gradient(circle closest-side,
+    color-mix(in srgb, var(--green) 46%, transparent) 0 24%,
+    color-mix(in srgb, var(--green) 21%, transparent) 40%,
+    color-mix(in srgb, var(--green) 12%, transparent) 56%,
+    color-mix(in srgb, var(--green) 5%, transparent) 72%,
+    color-mix(in srgb, var(--green) 1.5%, transparent) 86%,
+    transparent 100%);
+}
+@keyframes pulseGlow{0%,100%{opacity:.55;transform:scale(.94);}50%{opacity:1;transform:scale(1.06);}}
+/* La medalla entra como si la colgaran: cae y se balancea una vez. */
+@keyframes medalDrop{
+  0%  {opacity:0;transform:translateY(-38px) rotate(-11deg) scale(.82);}
+  55% {opacity:1;transform:translateY(0) rotate(5deg) scale(1.03);}
+  78% {transform:rotate(-2.5deg) scale(1);}
+  100%{transform:rotate(0) scale(1);}
+}
+.celebrate-icon .medal{width:100%;height:100%;display:block;position:relative;z-index:1;}
+/* Destello que recorre la medalla. Se recorta al disco (mismo centro y radio
+   que el SVG, en porcentaje, así vale para cualquier tamaño). */
+.celebrate-shine{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
+  clip-path:circle(35.4% at 50% 60.4%);}
 .celebrate-shine::after{
-  content:'';position:absolute;top:-60%;left:-70%;width:45%;height:240%;
-  background:linear-gradient(100deg, transparent, rgba(255,255,255,.9), transparent);
+  content:'';position:absolute;top:-60%;left:-70%;width:26%;height:240%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
   transform:rotate(18deg);
-  animation:shineSweep 2.4s ease-in-out infinite;
+  animation:shineSweep 3.2s ease-in-out infinite;
 }
 @keyframes shineSweep{0%,15%{left:-70%;}55%,100%{left:140%;}}
 .celebrate-kicker{
@@ -1142,7 +1208,7 @@ a{color:inherit;}
     display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;
     height:calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
     padding-bottom:env(safe-area-inset-bottom);
-    background:rgba(6,10,16,.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);
+    background:rgba(6,10,16,.92);border-top:1px solid var(--border);
     justify-content:space-around;align-items:center;
   }
   .bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:10px;font-weight:700;background:none;border:none;cursor:pointer;padding:6px 10px;}
@@ -1193,9 +1259,7 @@ a{color:inherit;}
 
 <div class="bg-fx" aria-hidden="true">
   <div class="bg-grid"></div>
-  <div class="bg-glow g1"></div>
-  <div class="bg-glow g2"></div>
-  <div class="bg-glow g3"></div>
+  <div class="bg-glows"></div>
 </div>
 
 <div class="app">
@@ -1650,7 +1714,7 @@ a{color:inherit;}
 <div class="celebrate-overlay" id="celebrateOverlay">
   <div class="celebrate-particles" id="celebrateParticles"></div>
   <div class="celebrate-card" id="celebrateCard">
-    <div class="celebrate-icon icon-badge" id="celebrateIcon">
+    <div class="celebrate-icon" id="celebrateIcon">
       <div class="celebrate-shine"></div>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/></svg>
     </div>
@@ -1795,8 +1859,30 @@ const SOUND_KEY_DEFAULT = true;
 const GLYPH = inner => '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
 const BMIR = d => `<path d="${d}"/><path d="${d}" transform="translate(96,0) scale(-1,1)"/>`;
 
+/* Silueta del avatar «atleta». Vive aquí sola: los iconos de grupo muscular ya
+   no la usan, pero el retrato del perfil sí. */
 const BODY_TORSO = "M48 20.8 L36.2 25.4 C31.4 27.6 28.4 31.2 27.5 35.8 C26.7 40.2 27.3 44.8 29 48.9 C30.7 53 33.1 56.5 35.8 59.4 C37.6 61.4 38.5 63.6 38.5 66.2 C38.5 69.8 37.3 73 35.2 75.9 C33.8 77.9 33 80.7 33.2 83.5 L34 96 L44.6 96 C45.2 89.5 46.6 83 47.98 78 Z";
 const BODY_ARM = "M30.6 27.6 C24.2 29.2 18.6 32.8 14.9 38.4 C12.1 42.7 11.2 47.8 12.3 52.8 C13.2 57 14.8 61 17 64.7 C18.6 67.4 19.6 70.4 20 73.5 L20.6 78.2 C21 81.4 24.4 83.2 27.2 81.7 C29.2 80.6 30.3 78.4 29.9 76.2 L28.6 68.6 C28.2 66.2 28.2 63.7 28.7 61.3 L30.3 53.4 C30.8 50.9 30.7 48.4 30.1 46 L28.6 40.2 C28 38 28.2 35.7 29.1 33.6 L30.6 27.6 Z";
+
+/* Equipment marks: solid forms so they hold up at 14px in the card meta line. */
+const FGLYPH = inner => '<svg viewBox="0 0 48 48" fill="currentColor">'+inner+'</svg>';
+const LOTUS_PETAL = "M24 8.5C28.8 15 31.4 21.6 31.4 27.4c0 4.1-3.1 7-7.4 7s-7.4-2.9-7.4-7c0-5.8 2.6-12.4 7.4-18.9Z";
+const EQUIP_ICONS = {
+  barra: FGLYPH(`<rect x="4" y="21.4" width="40" height="5.2" rx="2.6"/><rect x="10.5" y="14" width="5.6" height="20" rx="2.4"/><rect x="18" y="9.5" width="5" height="29" rx="2.2"/><rect x="25" y="9.5" width="5" height="29" rx="2.2"/><rect x="31.9" y="14" width="5.6" height="20" rx="2.4"/>`),
+  mancuernas: FGLYPH(`<rect x="16" y="21.4" width="16" height="5.2" rx="2.6"/><rect x="8.5" y="15" width="5.4" height="18" rx="2.4"/><rect x="15" y="10.5" width="5" height="27" rx="2.2"/><rect x="28" y="10.5" width="5" height="27" rx="2.2"/><rect x="34.1" y="15" width="5.4" height="18" rx="2.4"/>`),
+  maquina: FGLYPH(`<rect x="7" y="5" width="5" height="38" rx="2.4"/><rect x="36" y="5" width="5" height="38" rx="2.4"/><rect x="14.5" y="13" width="19" height="7" rx="3.2"/><rect x="14.5" y="23.5" width="19" height="7" rx="3.2"/><rect x="14.5" y="34" width="19" height="6" rx="2.8" opacity=".55"/>`),
+  corporal: FGLYPH(`<circle cx="24" cy="9.5" r="5.2"/><path d="M24 16.6c-3.4 0-6.6.7-9.4 2.1-1.4.7-2.3 2-2.4 3.5l-.5 6.4c-.1 1.5 1 2.8 2.5 2.9 1.4.1 2.7-.9 2.9-2.3l.5-3.6 1.3 6.2c.2 1 .2 2 0 3l-1.9 9.4c-.3 1.6.8 3.1 2.4 3.3 1.5.2 2.9-.8 3.2-2.3l1.4-7.2 1.4 7.2c.3 1.5 1.7 2.5 3.2 2.3 1.6-.2 2.7-1.7 2.4-3.3l-1.9-9.4c-.2-1-.2-2 0-3l1.3-6.2.5 3.6c.2 1.4 1.5 2.4 2.9 2.3 1.5-.1 2.6-1.4 2.5-2.9l-.5-6.4c-.1-1.5-1-2.8-2.4-3.5-2.8-1.4-6-2.1-9.4-2.1Z"/>`)
+};
+function equipIcon(equipment){
+  const e = (equipment||"").toLowerCase();
+  if(e.includes("barra")) return EQUIP_ICONS.barra;
+  if(e.includes("mancuern")) return EQUIP_ICONS.mancuernas;
+  if(e.includes("máquina")||e.includes("maquina")||e.includes("polea")||e.includes("cable")) return EQUIP_ICONS.maquina;
+  if(e.includes("corporal")||e.includes("peso corporal")||e.includes("ninguno")||!e) return EQUIP_ICONS.corporal;
+  return EQUIP_ICONS.maquina;
+}
+
+let muscleSeq = 0;
 
 const BODY_BASE =
   `<g fill="rgba(255,255,255,.24)">
@@ -1821,27 +1907,40 @@ const MUSCLE_HL = {
 function muscleIcon(m){
   const c = muscleColor(m);
   const hl = MUSCLE_HL[m] || MUSCLE_HL["Pecho"];
+  const id = "mi" + (++muscleSeq);
   const pulse = m === "Cardio"
-    ? `<g fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M26 71h8l3.5-7 5 13 4-8 2.5 4h12"/></g>` : "";
-  return `<svg viewBox="0 0 96 96">${BODY_BASE}<g fill="${c}" style="filter:drop-shadow(0 0 4px ${c})">${hl}</g>${pulse}</svg>`;
+    ? `<g fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M26 71h8l3.5-7 5 13 4-8 2.5 4h12"/></g>` : "";
+  /* El músculo trabajado se enciende con un degradado propio en vez de un
+     filtro: el resplandor se ve igual, pero no crea una capa por icono (eran
+     decenas) ni se rehace al ampliar la pantalla. */
+  return `<svg viewBox="0 0 96 96" aria-hidden="true">
+    <defs>
+      <radialGradient id="${id}" cx="50%" cy="50%" r="62%">
+        <stop offset="0%" stop-color="${c}" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="${id}f" x1="0" y1="0" x2=".3" y2="1">
+        <stop offset="0%" stop-color="color-mix(in srgb, ${c} 45%, #ffffff)"/>
+        <stop offset="55%" stop-color="${c}"/>
+        <stop offset="100%" stop-color="color-mix(in srgb, ${c} 82%, #000000)"/>
+      </linearGradient>
+    </defs>
+    ${BODY_BASE}
+    <g fill="url(#${id})" transform="translate(48 52) scale(1.45) translate(-48 -52)">${hl}</g>
+    <g fill="url(#${id}f)">${hl}</g>
+    ${pulse}
+  </svg>`;
 }
 
-/* Equipment marks: solid forms so they hold up at 14px in the card meta line. */
-const FGLYPH = inner => '<svg viewBox="0 0 48 48" fill="currentColor">'+inner+'</svg>';
-const LOTUS_PETAL = "M24 8.5C28.8 15 31.4 21.6 31.4 27.4c0 4.1-3.1 7-7.4 7s-7.4-2.9-7.4-7c0-5.8 2.6-12.4 7.4-18.9Z";
-const EQUIP_ICONS = {
-  barra: FGLYPH(`<rect x="4" y="21.4" width="40" height="5.2" rx="2.6"/><rect x="10.5" y="14" width="5.6" height="20" rx="2.4"/><rect x="18" y="9.5" width="5" height="29" rx="2.2"/><rect x="25" y="9.5" width="5" height="29" rx="2.2"/><rect x="31.9" y="14" width="5.6" height="20" rx="2.4"/>`),
-  mancuernas: FGLYPH(`<rect x="16" y="21.4" width="16" height="5.2" rx="2.6"/><rect x="8.5" y="15" width="5.4" height="18" rx="2.4"/><rect x="15" y="10.5" width="5" height="27" rx="2.2"/><rect x="28" y="10.5" width="5" height="27" rx="2.2"/><rect x="34.1" y="15" width="5.4" height="18" rx="2.4"/>`),
-  maquina: FGLYPH(`<rect x="7" y="5" width="5" height="38" rx="2.4"/><rect x="36" y="5" width="5" height="38" rx="2.4"/><rect x="14.5" y="13" width="19" height="7" rx="3.2"/><rect x="14.5" y="23.5" width="19" height="7" rx="3.2"/><rect x="14.5" y="34" width="19" height="6" rx="2.8" opacity=".55"/>`),
-  corporal: FGLYPH(`<circle cx="24" cy="9.5" r="5.2"/><path d="M24 16.6c-3.4 0-6.6.7-9.4 2.1-1.4.7-2.3 2-2.4 3.5l-.5 6.4c-.1 1.5 1 2.8 2.5 2.9 1.4.1 2.7-.9 2.9-2.3l.5-3.6 1.3 6.2c.2 1 .2 2 0 3l-1.9 9.4c-.3 1.6.8 3.1 2.4 3.3 1.5.2 2.9-.8 3.2-2.3l1.4-7.2 1.4 7.2c.3 1.5 1.7 2.5 3.2 2.3 1.6-.2 2.7-1.7 2.4-3.3l-1.9-9.4c-.2-1-.2-2 0-3l1.3-6.2.5 3.6c.2 1.4 1.5 2.4 2.9 2.3 1.5-.1 2.6-1.4 2.5-2.9l-.5-6.4c-.1-1.5-1-2.8-2.4-3.5-2.8-1.4-6-2.1-9.4-2.1Z"/>`)
-};
-function equipIcon(equipment){
-  const e = (equipment||"").toLowerCase();
-  if(e.includes("barra")) return EQUIP_ICONS.barra;
-  if(e.includes("mancuern")) return EQUIP_ICONS.mancuernas;
-  if(e.includes("máquina")||e.includes("maquina")||e.includes("polea")||e.includes("cable")) return EQUIP_ICONS.maquina;
-  if(e.includes("corporal")||e.includes("peso corporal")||e.includes("ninguno")||!e) return EQUIP_ICONS.corporal;
-  return EQUIP_ICONS.maquina;
+/* PENDIENTE DE APROBAR — todavía no está enchufado en ninguna pantalla.
+   La idea: para un EJERCICIO manda el material, así "Press de banca" y "Press
+   inclinado con mancuernas" dejan de compartir icono, y el color sigue diciendo
+   el grupo muscular. Se activa cambiando muscleIcon(e.muscle) por
+   exerciseIcon(e) en la tarjeta de ejercicio, el selector y las filas de sesión. */
+function exerciseIcon(ex){
+  if(!ex) return `<span style="color:var(--text-faint)">${ICONS.dumbbell}</span>`;
+  if(ex.type === "cardio" || ex.muscle === "Cardio") return muscleIcon("Cardio");
+  return `<span style="color:${muscleColor(ex.muscle)};display:flex;width:100%;height:100%;align-items:center;justify-content:center;">${equipIcon(ex.equipment)}</span>`;
 }
 
 /* Avatar system: gym emblems rendered as vector art over a neon tone. */
@@ -1951,27 +2050,122 @@ const ICONS = {
 };
 
 const ACH_DEFS = [
-  {id:"first_workout", name:"Primer Impulso", desc:"Completa tu primer entrenamiento.", xp:50, cond:s=>s.stats.totalWorkouts>=1},
-  {id:"first_routine", name:"Arquitecto", desc:"Crea tu primera rutina.", xp:30, cond:s=>s.routines.some(r=>r.custom)},
-  {id:"first_custom_ex", name:"Innovador", desc:"Crea un ejercicio personalizado.", xp:30, cond:s=>s.exercises.some(e=>e.custom)},
-  {id:"streak_3", name:"Constancia", desc:"Alcanza una racha de 3 días.", xp:60, cond:s=>s.stats.streak>=3},
-  {id:"streak_7", name:"En Llamas", desc:"Alcanza una racha de 7 días.", xp:120, cond:s=>s.stats.streak>=7},
-  {id:"streak_30", name:"Imparable", desc:"Alcanza una racha de 30 días.", xp:400, cond:s=>s.stats.streak>=30},
-  {id:"workouts_10", name:"Disciplina", desc:"Completa 10 entrenamientos.", xp:100, cond:s=>s.stats.totalWorkouts>=10},
-  {id:"workouts_50", name:"Voluntad de Hierro", desc:"Completa 50 entrenamientos.", xp:300, cond:s=>s.stats.totalWorkouts>=50},
-  {id:"workouts_100", name:"Club de los 100", desc:"Completa 100 entrenamientos.", xp:600, cond:s=>s.stats.totalWorkouts>=100},
-  {id:"volume_10k", name:"Rey del Volumen", desc:"Completa 250 series en total.", xp:150, cond:s=>s.stats.totalSets>=250},
-  {id:"volume_100k", name:"Titán del Volumen", desc:"Completa 1.000 series en total.", xp:500, cond:s=>s.stats.totalSets>=1000},
-  {id:"pr_5", name:"Rompe Límites", desc:"Consigue 5 récords personales.", xp:120, cond:s=>s.stats.prCount>=5},
-  {id:"pr_20", name:"Leyenda Viviente", desc:"Consigue 20 récords personales.", xp:350, cond:s=>s.stats.prCount>=20},
-  {id:"explorer_5", name:"Explorador", desc:"Crea 5 ejercicios personalizados.", xp:100, cond:s=>s.exercises.filter(e=>e.custom).length>=5},
-  {id:"routines_5", name:"Diseñador Maestro", desc:"Crea 5 rutinas distintas.", xp:150, cond:s=>s.routines.filter(r=>r.custom).length>=5},
-  {id:"full_body_week", name:"Cuerpo Completo", desc:"Entrena todos los grupos musculares en una semana.", xp:180, cond:s=>fullBodyThisWeek(s)},
-  {id:"level_10", name:"Nivel 10", desc:"Alcanza el nivel 10.", xp:0, cond:s=>s.stats.level>=10},
-  {id:"level_25", name:"Nivel 25", desc:"Alcanza el nivel 25.", xp:0, cond:s=>s.stats.level>=25}
+  {id:"first_workout", medal:"rayo", tier:"bronce", name:"Primer Impulso", desc:"Completa tu primer entrenamiento.", xp:50, cond:s=>s.stats.totalWorkouts>=1},
+  {id:"first_routine", medal:"escuadra", tier:"bronce", name:"Arquitecto", desc:"Crea tu primera rutina.", xp:30, cond:s=>s.routines.some(r=>r.custom)},
+  {id:"first_custom_ex", medal:"bombilla", tier:"bronce", name:"Innovador", desc:"Crea un ejercicio personalizado.", xp:30, cond:s=>s.exercises.some(e=>e.custom)},
+  {id:"streak_3", medal:"llama1", tier:"bronce", name:"Constancia", desc:"Alcanza una racha de 3 días.", xp:60, cond:s=>s.stats.streak>=3},
+  {id:"streak_7", medal:"llama2", tier:"plata", name:"En Llamas", desc:"Alcanza una racha de 7 días.", xp:120, cond:s=>s.stats.streak>=7},
+  {id:"streak_30", medal:"cohete", tier:"oro", name:"Imparable", desc:"Alcanza una racha de 30 días.", xp:400, cond:s=>s.stats.streak>=30},
+  {id:"workouts_10", medal:"calcheck", tier:"plata", name:"Disciplina", desc:"Completa 10 entrenamientos.", xp:100, cond:s=>s.stats.totalWorkouts>=10},
+  {id:"workouts_50", medal:"yunque", tier:"oro", name:"Voluntad de Hierro", desc:"Completa 50 entrenamientos.", xp:300, cond:s=>s.stats.totalWorkouts>=50},
+  {id:"workouts_100", medal:"laurel", tier:"platino", name:"Club de los 100", desc:"Completa 100 entrenamientos.", xp:600, cond:s=>s.stats.totalWorkouts>=100},
+  {id:"volume_10k", medal:"arbolPesas", tier:"plata", name:"Rey del Volumen", desc:"Completa 250 series en total.", xp:150, cond:s=>s.stats.totalSets>=250},
+  {id:"volume_100k", medal:"barra", tier:"platino", name:"Titán del Volumen", desc:"Completa 1.000 series en total.", xp:500, cond:s=>s.stats.totalSets>=1000},
+  {id:"pr_5", medal:"rotura", tier:"plata", name:"Rompe Límites", desc:"Consigue 5 récords personales.", xp:120, cond:s=>s.stats.prCount>=5},
+  {id:"pr_20", medal:"corona", tier:"oro", name:"Leyenda Viviente", desc:"Consigue 20 récords personales.", xp:350, cond:s=>s.stats.prCount>=20},
+  {id:"explorer_5", medal:"brujula", tier:"plata", name:"Explorador", desc:"Crea 5 ejercicios personalizados.", xp:100, cond:s=>s.exercises.filter(e=>e.custom).length>=5},
+  {id:"routines_5", medal:"compas", tier:"plata", name:"Diseñador Maestro", desc:"Crea 5 rutinas distintas.", xp:150, cond:s=>s.routines.filter(r=>r.custom).length>=5},
+  {id:"full_body_week", medal:"atleta", tier:"plata", name:"Cuerpo Completo", desc:"Entrena todos los grupos musculares en una semana.", xp:180, cond:s=>fullBodyThisWeek(s)},
+  {id:"level_10", medal:"galon", tier:"oro", name:"Nivel 10", desc:"Alcanza el nivel 10.", xp:0, cond:s=>s.stats.level>=10},
+  {id:"level_25", medal:"galon2", tier:"platino", name:"Nivel 25", desc:"Alcanza el nivel 25.", xp:0, cond:s=>s.stats.level>=25}
 ];
 
 /* ============================= STATE ============================= */
+
+/* ===================== MEDALLAS =====================
+   Cada logro y cada récord se entrega en una medalla acuñada de verdad: canto
+   estriado, relieve del emblema y cinta cruzada. Todo es SVG con degradados,
+   sin filtros, para que se dibuje nítido a cualquier tamaño y no cueste
+   memoria al ampliar la pantalla. */
+const MEDAL_METALS = {
+  bronce:  {a:'#ffdcb4', b:'#e59a53', c:'#a85d20', d:'#6b3410', edge:'#ffcf9a', deep:'#48210a'},
+  plata:   {a:'#ffffff', b:'#cfdae6', c:'#8496a8', d:'#4b5d6e', edge:'#f2f8ff', deep:'#2a3744'},
+  oro:     {a:'#fff7d2', b:'#f6cd5c', c:'#c88f22', d:'#875b0f', edge:'#ffeeae', deep:'#5a3a05'},
+  platino: {a:'#ffffff', b:'#cdeeff', c:'#7db3d2', d:'#3f6e8c', edge:'#e6faff', deep:'#1d3a4c'},
+  apagado: {a:'#8b9bab', b:'#4d5b6a', c:'#33404d', d:'#1d2731', edge:'#7b8b9b', deep:'#131a22'}
+};
+
+const MEDAL_GLYPHS = {
+  rayo:      `<path d="M27.5 5 12.5 26.5h8.9L19.5 43 35.5 20.5h-9z"/>`,
+  escuadra:  `<path fill-rule="evenodd" d="M5 42h38V4L5 42Zm8.2-4.4L34.6 16.2v21.4H13.2Z"/>`,
+  bombilla:  `<path d="M24 4c-7 0-12.6 5.5-12.6 12.3 0 4.4 2.3 7.7 4.6 10.3 1.5 1.7 2.2 3 2.4 4.4h11.2c.2-1.4.9-2.7 2.4-4.4 2.3-2.6 4.6-5.9 4.6-10.3C36.6 9.5 31 4 24 4Zm-6.4 30.6h12.8v3.6H17.6Zm1.7 5.9h9.4v.7a2.8 2.8 0 0 1-2.8 2.8h-3.8a2.8 2.8 0 0 1-2.8-2.8Z"/>`,
+  llama1:    `<path d="M24 5c2.1 6.1-6.2 8.3-6.2 16.5a6.2 6.2 0 0 0 12.4 0c0-2.1-1-4.1-1-4.1 4.1 2.1 6.2 8.2 6.2 12.4a11.4 11.4 0 1 1-22.8 0C12.6 19.5 18.8 15.4 24 5Z"/>`,
+  llama2:    `<path d="M24 4c2 5.6-5.7 7.7-5.7 15.3a5.7 5.7 0 0 0 11.4 0c0-1.9-.9-3.8-.9-3.8 3.8 1.9 5.7 7.6 5.7 11.4A10.5 10.5 0 1 1 13.5 27C13.5 17.9 19.2 14.1 24 4Z"/><path d="M37.6 12.6c1.7 3.4.6 6.4-1.2 8.9-.6-3.5-2-6.5-3.7-8.6 1.6-.3 3.3-.4 4.9-.3ZM10.4 12.6c1.6-.1 3.3 0 4.9.3-1.7 2.1-3.1 5.1-3.7 8.6-1.8-2.5-2.9-5.5-1.2-8.9Z"/>`,
+  cohete:    `<path d="M24 4c6.6 5.2 10.1 12.4 10.1 21l-3.5 3.5H17.4L13.9 25C13.9 16.4 17.4 9.2 24 4Zm0 8.6a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4ZM13.2 28.3l-3.5 6.3 6.7-1.7Zm21.6 0 6.7 6.3-6.7-1.7ZM18.8 32.2h10.4c-.6 5.4-2.4 8.9-5.2 11.2-2.8-2.3-4.6-5.8-5.2-11.2Z"/>`,
+  calcheck:  `<path d="M12 5h4v5h-4Zm20 0h4v5h-4ZM8.5 8H39a4 4 0 0 1 4 4v27a4 4 0 0 1-4 4H8.5a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Zm-.5 11v20h31V19Z"/><path d="m16.2 27.8 4.9 4.9 10.4-10.4 3.6 3.6-14 14-8.5-8.5Z"/>`,
+  yunque:    `<path d="M4 18.6 13.6 12h25.6a2.4 2.4 0 0 1 2.4 2.4v5.8a2.6 2.6 0 0 1-2.6 2.6H4Z"/><path d="M18.4 23h11.2l2.6 9.4H15.8Z"/><path d="M12.4 32.4h23.2a1.8 1.8 0 0 1 1.8 1.8v4.4a1.8 1.8 0 0 1-1.8 1.8H12.4a1.8 1.8 0 0 1-1.8-1.8v-4.4a1.8 1.8 0 0 1 1.8-1.8Z"/>`,
+  laurel:    `<path d="M24 4.5 27.9 16h12.2l-9.9 7.2 3.8 11.6L24 27.6l-10 7.2 3.8-11.6L7.9 16h12.2z"/><path d="M10 37.5h28a2.4 2.4 0 0 1 0 4.8H10a2.4 2.4 0 0 1 0-4.8Z"/>`,
+  arbolPesas:`<path d="M21.2 5h5.6a2.8 2.8 0 0 1 2.8 2.8v32.4a2.8 2.8 0 0 1-2.8 2.8h-5.6a2.8 2.8 0 0 1-2.8-2.8V7.8A2.8 2.8 0 0 1 21.2 5Z"/><ellipse cx="24" cy="16" rx="12.5" ry="4.2"/><ellipse cx="24" cy="25" rx="14.8" ry="4.6"/><ellipse cx="24" cy="34.4" rx="17" ry="5"/>`,
+  barra:     `<path d="M4 20.6h5.4v6.8H4ZM38.6 20.6H44v6.8h-5.4ZM10.4 14.4h6.2v19.2h-6.2ZM31.4 14.4h6.2v19.2h-6.2ZM17.6 18.6h4.2v10.8h-4.2ZM26.2 18.6h4.2v10.8h-4.2ZM21.4 21.6h5.2v4.8h-5.2Z"/>`,
+  rotura:    `<path d="M4 20.4h5v7.2H4Zm6 -4h6.6v15.2H10Zm28.9 4H44v7.2h-5.1Zm-7.5-4H38v15.2h-6.6Z"/><path d="M27.6 4 17 23.6h6.2L20.4 44 33 23h-6.4z"/>`,
+  corona:    `<path d="M5 15.4 13.4 24 24 7.8 34.6 24 43 15.4 38.6 36.4H9.4L5 15.4Z"/><path d="M9.2 38.8h29.6a2.3 2.3 0 0 1 0 4.6H9.2a2.3 2.3 0 0 1 0-4.6Z"/>`,
+  brujula:   `<path fill-rule="evenodd" d="M24 4a20 20 0 1 0 0 40 20 20 0 0 0 0-40Zm0 5.6a14.4 14.4 0 1 1 0 28.8 14.4 14.4 0 0 1 0-28.8Z"/><path d="m32.4 15.6-4.6 11.4-11.4 4.6 4.6-11.4z"/>`,
+  compas:    `<path d="M24 4.5a5.4 5.4 0 0 1 2.9 10l8.3 24.6a2.7 2.7 0 0 1-5.1 1.7l-7.4-22-7.4 22a2.7 2.7 0 1 1-5.1-1.7l8.3-24.6A5.4 5.4 0 0 1 24 4.5Z"/><path d="m33.6 36.4 4.6 6.9-8-1.6z"/>`,
+  atleta:    `<path d="M24 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8Z"/><path d="M24 16.6c-3.6 0-6.6 1.7-8.1 4.5l-8.4 4a2.8 2.8 0 0 0 2.5 5l6.4-3.4v7.1l-3.6 8.8a3 3 0 0 0 5.5 2.2l3.4-8.2h4.6l3.4 8.2a3 3 0 0 0 5.5-2.2l-3.6-8.8v-7.1l6.4 3.4a2.8 2.8 0 0 0 2.5-5l-8.4-4c-1.5-2.8-4.5-4.5-8.1-4.5Z"/>`,
+  galon:     `<path d="M24 8 41 20.4l-5 3.7L24 15.4 12 24.1l-5-3.7Zm0 12.8L41 33.2l-5 3.7L24 28.2l-12 8.7-5-3.7Z"/>`,
+  galon2:    `<path d="M24 5 41 16.2l-5 3.6L24 11.6 12 19.8l-5-3.6Zm0 10.6L41 26.8l-5 3.6L24 22.2l-12 8.2-5-3.6Zm0 10.6L41 37.4l-5 3.6L24 32.8l-12 8.2-5-3.6Z"/>`
+};
+
+/* Muescas del canto, como el borde de una moneda. */
+function medalFluting(cx, cy, r, n, col){
+  let o = "";
+  for(let i=0;i<n;i++){
+    const a = (i/n)*Math.PI*2;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    o += `<rect x="${(x-0.85).toFixed(2)}" y="${(y-2).toFixed(2)}" width="1.7" height="4" rx=".85" fill="${col}" opacity=".55" transform="rotate(${(a*180/Math.PI+90).toFixed(1)} ${x.toFixed(2)} ${y.toFixed(2)})"/>`;
+  }
+  return o;
+}
+
+let medalSeq = 0;
+function medalSvg(tier, glyphKey, opts){
+  opts = opts || {};
+  const m = MEDAL_METALS[tier] || MEDAL_METALS.bronce;
+  const glyph = MEDAL_GLYPHS[glyphKey] || MEDAL_GLYPHS.rayo;
+  const acc = opts.accent || (tier === "apagado" ? "#5d7183" : PALETTE.chartFrom);
+  const id = "md" + (++medalSeq);
+  const cx = 48, cy = 58, R = 31;
+  return `<svg class="medal" viewBox="0 0 96 96" aria-hidden="true">
+  <defs>
+    <linearGradient id="k${id}" x1="0" y1="0" x2=".72" y2="1">
+      <stop offset="0%" stop-color="${m.a}"/><stop offset="30%" stop-color="${m.b}"/>
+      <stop offset="64%" stop-color="${m.c}"/><stop offset="100%" stop-color="${m.d}"/>
+    </linearGradient>
+    <linearGradient id="f${id}" x1=".18" y1="0" x2=".88" y2="1">
+      <stop offset="0%" stop-color="${m.b}"/><stop offset="46%" stop-color="${m.c}"/><stop offset="100%" stop-color="${m.d}"/>
+    </linearGradient>
+    <linearGradient id="e${id}" x1=".2" y1="0" x2=".8" y2="1">
+      <stop offset="0%" stop-color="${m.a}"/><stop offset="60%" stop-color="${m.b}"/><stop offset="100%" stop-color="${m.c}"/>
+    </linearGradient>
+    <radialGradient id="s${id}" cx=".33" cy=".22" r=".58">
+      <stop offset="0%" stop-color="#fff" stop-opacity=".7"/>
+      <stop offset="48%" stop-color="#fff" stop-opacity=".1"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="r${id}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${acc}" stop-opacity=".95"/>
+      <stop offset="52%" stop-color="${acc}" stop-opacity=".45"/>
+      <stop offset="100%" stop-color="${acc}" stop-opacity=".8"/>
+    </linearGradient>
+  </defs>
+  <path d="M21 0h16l17 40-15 5z" fill="${acc}" opacity=".34"/>
+  <path d="M75 0H59L42 40l15 5z" fill="${acc}" opacity=".20"/>
+  <path d="M21 0h16l3 7-15 2z" fill="#fff" opacity=".18"/>
+  <path d="M75 0H59l-3 7 15 2z" fill="#fff" opacity=".10"/>
+  <path d="M37 0h4l16 40-4 1z" fill="url(#r${id})" opacity=".45"/>
+  <circle cx="${cx}" cy="${cy}" r="${R+3}" fill="url(#k${id})"/>
+  ${medalFluting(cx, cy, R+2, 32, m.deep)}
+  <circle cx="${cx}" cy="${cy}" r="${R-1}" fill="url(#f${id})"/>
+  <circle cx="${cx}" cy="${cy}" r="${R-1}" fill="none" stroke="${m.edge}" stroke-width="1" opacity=".8"/>
+  <circle cx="${cx}" cy="${cy}" r="${R-5.5}" fill="none" stroke="${m.deep}" stroke-width="1.2" opacity=".45"/>
+  <g transform="translate(${cx} ${cy}) scale(1.05) translate(-24 -24)">
+    <g fill="${m.deep}" opacity=".85" transform="translate(.9,1.5)">${glyph}</g>
+    <g fill="url(#e${id})">${glyph}</g>
+  </g>
+  <circle cx="${cx}" cy="${cy}" r="${R+3}" fill="url(#s${id})"/>
+</svg>`;
+}
+
 let state = null;
 let session = null; /* runtime-only workout session, not persisted mid-set */
 /* El descanso se guarda como el INSTANTE en que termina, no como segundos que
@@ -2357,7 +2551,7 @@ let celebrateQueue = [];
 let celebrateAutoTimer = null;
 function queueCelebrations(defs){
   const wasEmpty = celebrateQueue.length===0;
-  defs.forEach(def=>celebrateQueue.push({ kind:"achievement", name:def.name, desc:def.desc, xp:def.xp }));
+  defs.forEach(def=>celebrateQueue.push({ kind:"achievement", id:def.id, medal:def.medal, tier:def.tier, name:def.name, desc:def.desc, xp:def.xp }));
   if(wasEmpty) showNextCelebration();
 }
 function queuePrCelebration(payload){
@@ -2406,7 +2600,7 @@ function showNextCelebration(){
     document.getElementById("celebrateKicker").textContent = "Nuevo récord personal";
     document.getElementById("celebrateTitle").textContent = item.exerciseName;
     document.getElementById("celebrateDesc").innerHTML = `${item.reps} repeticiones${item.xp?` · <span style="color:var(--green)">+${item.xp} XP</span>`:""}`;
-    iconEl.innerHTML = `<div class="celebrate-shine"></div>${ICONS.medal}`;
+    iconEl.innerHTML = medalSvg("oro", "rotura", {accent:PALETTE.chartTo}) + `<div class="celebrate-shine"></div>`;
     compareEl.classList.remove("hidden");
     document.getElementById("prPrevVal").textContent = item.prevWeight>0 ? item.prevWeight+"kg" : "—";
     document.getElementById("prNewVal").textContent = item.newWeight+"kg";
@@ -2415,7 +2609,7 @@ function showNextCelebration(){
     document.getElementById("celebrateKicker").textContent = "Logro desbloqueado";
     document.getElementById("celebrateTitle").textContent = item.name;
     document.getElementById("celebrateDesc").innerHTML = `${escapeHtml(item.desc)}${item.xp?`<br><span style="color:var(--cyan)">+${item.xp} XP</span>`:""}`;
-    iconEl.innerHTML = `<div class="celebrate-shine"></div>${ICONS.trophy}`;
+    iconEl.innerHTML = medalSvg(item.tier || "bronce", item.medal || "rayo") + `<div class="celebrate-shine"></div>`;
     compareEl.classList.add("hidden");
   }
   overlay.classList.add("open");
@@ -3724,7 +3918,7 @@ function renderAchievementsView(){
       }
     }catch(e){ progressPct = 0; }
     return `<div class="ach-card ${unlocked?'unlocked':''}">
-      <div class="ach-icon icon-badge">${ICONS.trophy}</div>
+      <div class="ach-icon">${medalSvg(unlocked ? (def.tier||"bronce") : "apagado", def.medal||"rayo")}</div>
       <h4>${escapeHtml(def.name)}</h4>
       <p>${escapeHtml(def.desc)}</p>
       ${unlocked
@@ -5172,6 +5366,23 @@ function syncClocks(){
   tickRest();
 }
 setInterval(syncClocks, 1000);
+
+/* El navegador avisa del pellizco por la ventana visual: en cuanto la escala
+   pasa de 1 marcamos el cuerpo y el CSS apaga fondos animados y desenfoques. */
+(function vigilarZoom(){
+  const vv = window.visualViewport;
+  if(!vv) return;
+  let ampliado = false;
+  const revisar = ()=>{
+    const ahora = vv.scale > 1.05;
+    if(ahora === ampliado) return;
+    ampliado = ahora;
+    document.body.classList.toggle("zoomed", ampliado);
+  };
+  vv.addEventListener("resize", revisar);
+  vv.addEventListener("scroll", revisar);
+  revisar();
+})();
 
 /* Al volver del segundo plano los relojes se ponen al día en el acto, sin
    esperar al siguiente latido. */

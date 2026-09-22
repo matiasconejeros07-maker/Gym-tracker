@@ -2046,7 +2046,9 @@ const ICONS = {
   trend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 3.4v15.1a2.1 2.1 0 0 0 2.1 2.1h15.1"/><path d="m7.4 15.3 3.6-4.2 3 2.6 4.6-5.9"/><path d="M15.4 7.8h3.2v3.2"/></svg>',
   bars:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2.6" y="13.4" width="4.8" height="8" rx="1.9"/><rect x="9.6" y="8.8" width="4.8" height="12.6" rx="1.9"/><rect x="16.6" y="3.9" width="4.8" height="17.5" rx="1.9"/></svg>',
   donut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10.6 3.5a8.6 8.6 0 1 0 9.9 9.9"/><path d="M13.6 3.9a8.6 8.6 0 0 1 6.5 6.5"/><circle cx="12" cy="12" r="3.1"/></svg>',
-  medal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 6 9l4 3-2 9 4-3 4 3-2-9 4-3-2.5-6"/><circle cx="12" cy="13.5" r="4.5"/><path d="m10.3 13.5 1.2 1.2 2.4-2.6"/></svg>'
+  /* Marca de récord. Maciza a propósito: se dibuja a 13px junto a la cifra y a
+     10px en la etiqueta PR, y ahí cualquier trazo fino se cierra sobre sí mismo. */
+  record:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 2h10.8a1.5 1.5 0 0 1 1.5 1.5v3.9A6.9 6.9 0 0 1 12 14.3 6.9 6.9 0 0 1 5.1 7.4V3.5A1.5 1.5 0 0 1 6.6 2Z"/><path d="M4.9 3.6H3.1A1.3 1.3 0 0 0 1.8 4.9v.9a4.4 4.4 0 0 0 4.4 4.4l-.4-2.4a2 2 0 0 1-.9-1.7Zm14.2 0h1.8a1.3 1.3 0 0 1 1.3 1.3v.9a4.4 4.4 0 0 1-4.4 4.4l.4-2.4a2 2 0 0 0 .9-1.7Z"/><path d="M10.7 13.6h2.6v4.1h-2.6z"/><path d="M7.5 18.6h9a1.6 1.6 0 0 1 1.6 1.6V22H5.9v-1.8a1.6 1.6 0 0 1 1.6-1.6Z"/></svg>'
 };
 
 const ACH_DEFS = [
@@ -3095,7 +3097,7 @@ function exerciseCard(e){
   const color = muscleColor(e.muscle);
   const use = exerciseUsage(e.id);
   const stat = use.bestWeight > 0
-    ? `<span class="ex-pr">${ICONS.medal}${use.bestWeight}kg × ${use.bestReps}</span>`
+    ? `<span class="ex-pr">${ICONS.record}${use.bestWeight}kg × ${use.bestReps}</span>`
     : `<span class="ex-pr ex-pr-empty">Sin registros</span>`;
   return `<article class="ex-card" style="--c:${color}">
     <div class="ex-top">
@@ -3513,7 +3515,7 @@ function renderSessionView(){
         ${se.sets.map((s,setIdx)=>{
           const prev = prevSets[setIdx];
           const prevTxt = s.isPR
-            ? `<span class="pr-inline-badge">${ICONS.medal}PR</span>`
+            ? `<span class="pr-inline-badge">${ICONS.record}PR</span>`
             : prev ? `<span class="sr-prev-val">${prev.weight}<i>kg</i> × ${prev.reps}</span>`
                    : `<span class="sr-prev-empty">—</span>`;
           return `<div class="set-row ${s.isPR?'is-pr':''} ${s.done?'is-done':''}">

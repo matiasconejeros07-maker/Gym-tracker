@@ -94,6 +94,23 @@ body[data-theme="orquidea"]{
   --grid-line:rgba(124,107,255,.09);
 }
 
+/* ---------------------------------------------------------------------------
+   Nada de zoom automático. iOS amplía la pantalla al enfocar un campo cuya
+   letra mide menos de 16px, y también al tocar dos veces seguidas un botón.
+   Se sube la letra de los campos en pantallas táctiles y se marca como
+   "manipulation" todo lo que se toca. El pellizco del usuario sigue activo:
+   no se toca user-scalable.
+--------------------------------------------------------------------------- */
+@media (pointer: coarse){
+  input, select, textarea{ font-size:16px !important; }
+  .sr-field input{ font-size:18px !important; }
+  .weigh-stepper input[type=number]{ font-size:24px !important; }
+}
+button, a, label, summary, [data-action], [data-nav], [data-filter],
+.chip, .bn-item, .nav-item, .set-row, .sr-check, .fire-btn, .ob-opt, .theme-card{
+  touch-action: manipulation;
+}
+
 *,*::before,*::after{box-sizing:border-box;}
 html{-webkit-text-size-adjust:100%;}
 body{
@@ -930,11 +947,23 @@ a{color:inherit;}
 .rest-ring-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:10;}
 .rest-ring-progress{fill:none;stroke:url(#restGrad);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .95s linear;filter:drop-shadow(0 0 12px color-mix(in srgb, var(--green) 55%, transparent));}
 .rest-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
-.rest-controls{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
-.rest-btn{padding:13px 20px;border-radius:14px;border:1px solid var(--border-strong);background:rgba(255,255,255,.03);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:transform .12s ease;}
-.rest-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.07);}
+/* Rejilla de tres columnas: los dos ajustes conservan su tamaño y "Saltar
+   descanso" ocupa el resto. Así la fila nunca se parte en dos, que era lo que
+   dejaba el +15s solo, colgando debajo. */
+.rest-controls{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:stretch;margin-bottom:18px;}
+.rest-btn{padding:13px 18px;border-radius:14px;border:1px solid var(--border-strong);background:rgba(255,255,255,.03);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:transform .12s ease;white-space:nowrap;}
+/* El realce del ratón solo aclara los botones neutros: aplicado al de saltar
+   le tapaba el degradado verde y lo dejaba gris. */
+@media (hover:hover){
+  .rest-btn:hover{transform:translateY(-1px);}
+  .rest-btn:not(.rest-btn-skip):hover{background:rgba(255,255,255,.07);}
+}
 .rest-btn-skip{background:linear-gradient(135deg,var(--green),var(--cyan));color:#04141a;border:none;box-shadow:0 0 20px -6px var(--green-dim);}
 .rest-minimize{background:none;border:none;color:var(--text-faint);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:6px;}
+@media (max-width:360px){
+  .rest-controls{gap:8px;}
+  .rest-btn{padding:13px 12px;font-size:13px;}
+}
 .rest-minimize:hover{color:var(--text-dim);}
 .rest-mini-pill{
   position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:120;
@@ -1945,7 +1974,10 @@ const ACH_DEFS = [
 /* ============================= STATE ============================= */
 let state = null;
 let session = null; /* runtime-only workout session, not persisted mid-set */
-let restTimer = { seconds:0, total:0, interval:null, minimized:false };
+/* El descanso se guarda como el INSTANTE en que termina, no como segundos que
+   se van restando: un contador por tics se congela cuando el sistema suspende
+   la pestaña, y al volver marcaría menos tiempo del que pasó de verdad. */
+let restTimer = { endsAt:0, total:0, running:false, minimized:false };
 let pendingConfirmAction = null;
 let routineBuilderExercises = []; /* working array while editing a routine in the modal */
 let editingRoutineId = null;
@@ -3337,28 +3369,55 @@ function toggleSetDone(exIdx, setIdx){
 }
 
 const REST_RING_CIRC = 2*Math.PI*98;
+
+/* Segundos que faltan, siempre calculados contra el reloj del sistema. */
+function restRemaining(){
+  if(!restTimer.running) return 0;
+  return Math.max(0, Math.ceil((restTimer.endsAt - Date.now())/1000));
+}
+
 function startRestTimer(nextLabel){
-  clearInterval(restTimer.interval);
-  restTimer.seconds = session.restSeconds;
   restTimer.total = session.restSeconds;
+  restTimer.endsAt = Date.now() + session.restSeconds*1000;
+  restTimer.running = true;
   restTimer.minimized = false;
+  restTimer.label = nextLabel || "";
+  persistRest();
   document.getElementById("restMiniPill").classList.add("hidden");
   document.getElementById("restExName").textContent = nextLabel ? "Siguiente: "+nextLabel : "";
   document.getElementById("restOverlay").classList.add("open");
   updateRestDisplays();
-  restTimer.interval = setInterval(()=>{
-    restTimer.seconds--;
-    updateRestDisplays();
-    if(restTimer.seconds<=0){
-      clearInterval(restTimer.interval);
-      restTimer.interval = null;
-      playBeep();
-      endRestTimer();
-    }
-  }, 1000);
 }
+
+/* Se guarda en la sesión para que sobreviva a que el sistema descargue la
+   página mientras el usuario está en otra app. */
+function persistRest(){
+  if(!session) return;
+  session.restEndsAt = restTimer.running ? restTimer.endsAt : null;
+  session.restTotal = restTimer.total;
+  session.restMinimized = restTimer.minimized;
+  session.restLabel = restTimer.label || "";
+  saveState();
+}
+
+/* Un solo latido comprueba el reloj; si el descanso venció mientras la app
+   estaba en segundo plano, se cierra al volver. */
+function tickRest(){
+  if(!restTimer.running) return;
+  updateRestDisplays();
+  if(restRemaining() <= 0){
+    /* Si venció hace rato es porque la app estuvo en segundo plano: se cierra
+       en silencio, un pitido a destiempo solo confunde. */
+    const tarde = Date.now() - restTimer.endsAt > 5000;
+    restTimer.running = false;
+    persistRest();
+    if(!tarde) playBeep();
+    endRestTimer();
+  }
+}
+
 function updateRestDisplays(){
-  const secs = Math.max(0, restTimer.seconds);
+  const secs = restRemaining();
   const mm = String(Math.floor(secs/60)).padStart(2,"0");
   const ss = String(secs%60).padStart(2,"0");
   const timeStr = mm+":"+ss;
@@ -3374,33 +3433,59 @@ function updateRestDisplays(){
   }
 }
 function endRestTimer(){
+  restTimer.running = false;
+  persistRest();
   document.getElementById("restOverlay").classList.remove("open");
   document.getElementById("restMiniPill").classList.add("hidden");
 }
 function minimizeRest(){
-  if(!restTimer.interval) return;
+  if(!restTimer.running) return;
   restTimer.minimized = true;
+  persistRest();
   document.getElementById("restOverlay").classList.remove("open");
   document.getElementById("restMiniPill").classList.remove("hidden");
   updateRestDisplays();
 }
 function expandRest(){
-  if(!restTimer.interval) return;
+  if(!restTimer.running) return;
   restTimer.minimized = false;
+  persistRest();
   document.getElementById("restMiniPill").classList.add("hidden");
   document.getElementById("restOverlay").classList.add("open");
   updateRestDisplays();
 }
 function adjustRestTime(delta){
-  if(!restTimer.interval) return;
-  restTimer.seconds = clamp(restTimer.seconds + delta, 0, 3600);
-  restTimer.total = Math.max(restTimer.total, restTimer.seconds);
+  if(!restTimer.running) return;
+  const nuevo = clamp(restRemaining() + delta, 0, 3600);
+  restTimer.endsAt = Date.now() + nuevo*1000;
+  restTimer.total = Math.max(restTimer.total, nuevo);
+  persistRest();
   updateRestDisplays();
 }
 function skipRest(){
-  clearInterval(restTimer.interval);
-  restTimer.interval = null;
+  restTimer.running = false;
+  persistRest();
   endRestTimer();
+}
+
+/* Vuelve a poner en marcha un descanso que quedó corriendo en otra sesión de
+   la página (bloqueo de pantalla, cambio de app, recarga). */
+function restoreRestTimer(){
+  if(!session || !session.restEndsAt) return;
+  const faltan = Math.ceil((session.restEndsAt - Date.now())/1000);
+  if(faltan <= 0){ session.restEndsAt = null; saveState(); return; }
+  restTimer.endsAt = session.restEndsAt;
+  restTimer.total = session.restTotal || faltan;
+  restTimer.minimized = !!session.restMinimized;
+  restTimer.label = session.restLabel || "";
+  restTimer.running = true;
+  document.getElementById("restExName").textContent = restTimer.label ? "Siguiente: "+restTimer.label : "";
+  if(restTimer.minimized){
+    document.getElementById("restMiniPill").classList.remove("hidden");
+  } else {
+    document.getElementById("restOverlay").classList.add("open");
+  }
+  updateRestDisplays();
 }
 function playBeep(){
   if(!state.profile.soundOn) return;
@@ -3417,8 +3502,6 @@ function playBeep(){
 }
 
 function finishSession(){
-  clearInterval(restTimer.interval);
-  restTimer.interval = null;
   endRestTimer();
   const totalSetsDone = session.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
   if(totalSetsDone===0){
@@ -3543,8 +3626,6 @@ function afterIntensity(){
 }
 
 function cancelSession(){
-  clearInterval(restTimer.interval);
-  restTimer.interval = null;
   endRestTimer();
   session = null;
   state.activeSession = null;
@@ -5072,18 +5153,33 @@ document.getElementById("exFilterChips").addEventListener("click", function(e){
 document.getElementById("btnHamburger").addEventListener("click", openSidebarMobile);
 document.getElementById("scrim").addEventListener("click", closeSidebarMobile);
 
-/* ============================= CLOCK TICK (session timer + rest without click) ============================= */
-setInterval(function(){
-  if(session && document.getElementById("view-workout").classList.contains("active")){
-    const bar = document.querySelector(".session-bar .sb-timer");
-    if(bar){
-      const elapsed = Math.floor((Date.now()-session.startedAt)/1000);
-      const mm = String(Math.floor(elapsed/60)).padStart(2,"0");
-      const ss = String(elapsed%60).padStart(2,"0");
-      bar.textContent = mm+":"+ss;
-    }
-  }
-}, 1000);
+/* ============================= CLOCK TICK (session timer + rest without click) =============================
+   Los dos relojes se leen del reloj del sistema, nunca de un contador que va
+   restando. Así, si el teléfono congela la página mientras el usuario está en
+   otra app, al volver los números ya están donde corresponde: el tiempo
+   siguió corriendo igual. */
+function syncSessionClock(){
+  if(!session) return;
+  const bar = document.querySelector(".session-bar .sb-timer");
+  if(!bar) return;
+  const elapsed = Math.floor((Date.now()-session.startedAt)/1000);
+  const mm = String(Math.floor(elapsed/60)).padStart(2,"0");
+  const ss = String(elapsed%60).padStart(2,"0");
+  bar.textContent = mm+":"+ss;
+}
+function syncClocks(){
+  syncSessionClock();
+  tickRest();
+}
+setInterval(syncClocks, 1000);
+
+/* Al volver del segundo plano los relojes se ponen al día en el acto, sin
+   esperar al siguiente latido. */
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden) syncClocks();
+});
+window.addEventListener("pageshow", syncClocks);
+window.addEventListener("focus", syncClocks);
 
 /* ============================= INIT ============================= */
 function init(){
@@ -5106,6 +5202,9 @@ function init(){
   if(recoveryNotice && recoveryNotice.kind === "restored") saveState();
   checkAchievements();
   renderRoute();
+  /* Si el usuario cerró la app en medio de un descanso, el reloj siguió
+     corriendo: aquí se retoma donde va ahora, no donde quedó. */
+  restoreRestTimer();
   startSplash();
   if(recoveryNotice){
     setTimeout(()=>{

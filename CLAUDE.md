@@ -36,6 +36,22 @@ matiz (`glassToneStyle`), nunca con desenfoques.
 Los emblemas del avatar (`emblemas/*.webp`) son los glifos exactos de esa lámina,
 separados de su cristal. No se redibujan ni se sustituyen sin que él lo pida.
 
+## Tus datos y el plan inicial
+
+Matías usa la app de verdad mientras se edita: tiene rutinas, ejercicios y entrenos
+propios. Todo cambio es **aditivo** y se prueba contra un estado realista suyo antes
+de publicar (ver `planEligible`, `routinesAreFactory` y `applyPlan` en `index.html`).
+
+- El plan por objetivo y días (`buildPlan`) solo se ofrece a quien no tiene **nada**
+  propio: `!onboarded`, sin entrenos y `contentScore(state) === 0`.
+- `applyPlan` nunca borra ni modifica lo del usuario: sustituye las tres rutinas de
+  fábrica solo si siguen **exactamente** como vinieron; en cualquier otro caso añade
+  el plan al lado. Los ejercicios que faltan se crean en la biblioteca, no como
+  «propios».
+- Las rutinas y ejercicios que vengan de un plan llevan `fromPlan`/`custom:false`.
+- Los scripts de prueba que recorren el cuestionario deben saltar los pasos 5 y 6
+  (`[data-action="ob-skip-plan"]`).
+
 ## Rendimiento en iPhone (no lo deshagas)
 
 Safari mata la pestaña por memoria si la página pide texturas grandes, y ampliar con

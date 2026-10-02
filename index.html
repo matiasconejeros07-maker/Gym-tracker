@@ -512,7 +512,7 @@ a{color:inherit;}
 }
 
 /* builder */
-.builder-list{display:flex;flex-direction:column;gap:10px;margin:14px 0;}
+.builder-list{display:flex;flex-direction:column;gap:10px;margin:14px 0;position:relative;}
 .builder-row{
   display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);
   border-radius:var(--radius-md);background:rgba(255,255,255,.02);
@@ -521,6 +521,34 @@ a{color:inherit;}
 .builder-row .br-name{font-weight:700;font-size:14.5px;flex:1;min-width:80px;}
 .builder-row .br-sets{font-size:12px;color:var(--text-dim);}
 .builder-row .br-actions{display:flex;gap:4px;}
+/* Asa para reordenar arrastrando. touch-action:none solo en el asa: así el resto de
+   la fila sigue desplazándose con el dedo y el arrastre no pelea con el scroll. */
+.br-grip{
+  flex:none;width:28px;height:40px;margin:0 -4px 0 -6px;padding:0;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;border-radius:9px;color:var(--text-faint);cursor:grab;
+  touch-action:none;-webkit-user-select:none;user-select:none;
+}
+.br-grip:hover{color:var(--text-dim);background:rgba(255,255,255,.04);}
+.br-grip svg{width:18px;height:18px;}
+/* Mientras se arrastra, las filas se pliegan a su cabecera: así caben todas y se ve
+   dónde va a caer cada una. */
+.builder-list.reordering .set-editor,
+.builder-list.reordering [data-action="add-set"]{display:none;}
+.builder-list.reordering .builder-row{transition:transform .17s ease;}
+.builder-list.reordering .builder-row.dragging{
+  transition:none;z-index:6;cursor:grabbing;
+  border-color:color-mix(in srgb, var(--cyan) 60%, transparent);
+  background:linear-gradient(160deg,#0f2132,#0a1622);
+  box-shadow:0 18px 34px -14px rgba(0,0,0,.85), 0 0 0 1px color-mix(in srgb, var(--cyan) 30%, transparent), 0 0 24px -8px var(--cyan-dim);
+}
+.builder-row.just-moved{animation:rowLanded 1.1s ease;}
+/* En pantallas estrechas las tres acciones se compactan para que el nombre del ejercicio respire. */
+@media (max-width:480px){
+  .builder-row .br-actions{gap:3px;}
+  .builder-row .br-actions .btn-icon{width:30px;height:32px;}
+  .builder-row .br-actions .btn-icon svg{width:14px;height:14px;}
+}
+@keyframes rowLanded{0%{border-color:color-mix(in srgb, var(--cyan) 70%, transparent);box-shadow:0 0 22px -6px var(--cyan-dim);}100%{border-color:var(--border);box-shadow:0 0 0 transparent;}}
 .mini-input{width:52px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:6px 4px;text-align:center;font-family:inherit;font-size:13px;}
 .set-editor{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
 .set-editor-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-dim);}
@@ -722,7 +750,8 @@ a{color:inherit;}
 .ob-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1.2;margin-bottom:8px;}
 .ob-sub{font-size:13.5px;color:var(--text-dim);line-height:1.55;margin-bottom:22px;}
 .ob-body{animation:fadeUp .3s ease;}
-.ob-foot{display:flex;gap:10px;margin-top:24px;}
+.ob-foot{display:flex;gap:10px;margin-top:24px;position:sticky;bottom:calc(-1 * env(safe-area-inset-bottom));
+  padding:26px 0 calc(env(safe-area-inset-bottom) + 6px);background:linear-gradient(180deg,rgba(5,10,16,0),var(--bg) 46%);}
 .ob-foot .btn{flex:1;justify-content:center;}
 .ob-opts{display:grid;gap:10px;}
 .ob-opt{
@@ -743,6 +772,47 @@ a{color:inherit;}
 .ob-opt b{display:block;font-size:14.5px;margin-bottom:2px;}
 .ob-opt span{display:block;font-size:12px;color:var(--text-dim);line-height:1.45;}
 .ob-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* --- plan por objetivo --- */
+.ob-group{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin:20px 0 10px;}
+.ob-group:first-of-type{margin-top:4px;}
+.ob-opts.compact{gap:8px;}
+.ob-opts.compact .ob-opt{padding:12px 14px;}
+.ob-days{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.ob-day{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;height:62px;
+  border-radius:14px;border:1px solid var(--border);color:var(--text);
+  background:linear-gradient(160deg,var(--surf-1),var(--surf-2));
+  transition:border-color .2s ease, box-shadow .2s ease, transform .16s ease;
+}
+.ob-day:active{transform:scale(.97);}
+.ob-day b{font-family:'Space Grotesk',sans-serif;font-size:22px;line-height:1;}
+.ob-day span{font-size:10px;color:var(--text-dim);letter-spacing:.04em;}
+.ob-day.on{border-color:color-mix(in srgb, var(--cyan) 55%, transparent);box-shadow:0 0 0 1px color-mix(in srgb, var(--cyan) 35%, transparent), 0 0 26px -12px var(--cyan);}
+.ob-day.on b{color:var(--cyan);}
+.ob-hint{margin-top:12px;padding:12px 14px;border-radius:13px;border:1px dashed color-mix(in srgb, var(--cyan) 34%, transparent);
+  background:color-mix(in srgb, var(--cyan) 6%, transparent);font-size:12.5px;line-height:1.5;color:var(--text-dim);}
+.ob-hint b{color:var(--text);}
+.ob-skip{display:block;margin:16px auto 0;background:none;border:none;color:var(--text-faint);font-size:12.5px;
+  text-decoration:underline;cursor:pointer;padding:8px;font-family:inherit;}
+.ob-skip:hover{color:var(--text-dim);}
+.pl-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.025);margin-bottom:14px;}
+.pl-seg button{padding:10px 8px;border-radius:10px;border:none;background:none;color:var(--text-dim);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+.pl-seg button.on{background:linear-gradient(160deg,color-mix(in srgb, var(--cyan) 22%, transparent),color-mix(in srgb, var(--cyan) 8%, transparent));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--cyan) 45%, transparent);}
+.pl-week{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap;}
+.pl-week span{padding:5px 10px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.04em;
+  color:var(--cyan);background:color-mix(in srgb, var(--cyan) 10%, transparent);border:1px solid color-mix(in srgb, var(--cyan) 28%, transparent);}
+.pl-day{border:1px solid var(--border);border-radius:16px;padding:13px 14px;margin-bottom:10px;background:linear-gradient(160deg,var(--surf-1),var(--surf-2));}
+.pl-day-head{display:flex;align-items:center;gap:12px;}
+.pl-day-head .glass{--s:36px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:#04171f;text-shadow:0 1px 0 rgba(170,250,255,.55);}
+.pl-day-head .pl-t{flex:1;min-width:0;}
+.pl-day-head b{display:block;font-size:14.5px;line-height:1.25;}
+.pl-day-head small{display:block;font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.pl-day-head .pl-min{font-size:11.5px;font-weight:700;color:var(--text-dim);white-space:nowrap;}
+.pl-ex{display:flex;justify-content:space-between;gap:10px;padding:6px 0 0;margin-top:6px;border-top:1px solid rgba(255,255,255,.05);font-size:12.5px;color:var(--text-dim);}
+.pl-ex:first-of-type{margin-top:11px;}
+.pl-ex span:first-child{color:var(--text);min-width:0;}
+.pl-ex span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;}
+.pl-note{font-size:12px;color:var(--text-faint);line-height:1.5;margin:6px 2px 0;}
 .ob-logo{width:96px;height:auto;display:block;margin:0 auto 20px;filter:drop-shadow(0 0 26px var(--cyan-dim));}
 
 /* ---------------- cardio por tiempo ---------------- */
@@ -904,6 +974,14 @@ a{color:inherit;}
 .session-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .session-ex-head h4{font-size:16px;}
 .session-ex-head .prev{font-size:12px;color:var(--text-dim);margin-left:auto;}
+.session-ex-head .se-move{display:flex;gap:4px;flex:none;}
+.session-ex-head .se-move .btn{width:34px;height:34px;padding:0;}
+.session-ex-head .se-move .btn svg{width:15px;height:15px;}
+.session-ex.just-moved{animation:rowLanded 1.1s ease;}
+.session-order-save{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:2px 0 14px;padding:12px 14px;border-radius:var(--radius-md);
+  border:1px dashed color-mix(in srgb, var(--cyan) 38%, transparent);background:color-mix(in srgb, var(--cyan) 6%, transparent);}
+.session-order-save span{font-size:12.5px;color:var(--text-dim);line-height:1.45;flex:1;min-width:170px;}
 .set-head,.set-row{display:grid;grid-template-columns:34px 82px minmax(0,96px) minmax(0,96px) 44px;gap:9px;align-items:center;}
 .set-head{
   margin:2px 0 10px;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
@@ -955,7 +1033,7 @@ a{color:inherit;}
   .col-prev{display:none;}
   .session-ex-head{flex-wrap:wrap;}
   .session-ex-head h4{flex:1;min-width:0;}
-  .session-ex-head .prev{width:100%;margin-left:0;padding-left:48px;margin-top:2px;}
+  .session-ex-head .prev{width:100%;margin-left:0;padding-left:48px;margin-top:2px;order:5;}
   .sr-field{padding:0 9px;height:46px;}
   .sr-field input{font-size:17px;}
 }
@@ -2126,6 +2204,7 @@ const ICONS = {
   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5l-.7 5.2 3.4 3.1c.5.5.2 1.4-.5 1.4h-4.2v5.8c0 .8-1 1.3-1.6.7l-.4-.5-.4.5c-.6.6-1.6.1-1.6-.7v-5.8H4.3c-.7 0-1-.9-.5-1.4l3.4-3.1L6.5 3h3Z"/></svg>',
   pinOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5l-.7 5.2 3.4 3.1c.5.5.2 1.4-.5 1.4h-4.2v5.8c0 .8-1 1.3-1.6.7l-.4-.5-.4.5c-.6.6-1.6.1-1.6-.7v-5.8H4.3c-.7 0-1-.9-.5-1.4l3.4-3.1L6.5 3h3Z" opacity=".5"/><path d="m3 3 18 18"/></svg>',
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>',
+  grip:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.9"/><circle cx="15" cy="6" r="1.9"/><circle cx="9" cy="12" r="1.9"/><circle cx="15" cy="12" r="1.9"/><circle cx="9" cy="18" r="1.9"/><circle cx="15" cy="18" r="1.9"/></svg>',
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".5" fill="currentColor"/></svg>',
@@ -2336,6 +2415,258 @@ function seedRoutines(exercises){
     { id:uid(), name:"Día de Pierna (Legs)", restSeconds:120, custom:false,
       exercises: mk([byName("Sentadilla"),byName("Peso muerto"),byName("Zancadas"),byName("Prensa de piernas")]) }
   ];
+}
+
+/* ===================== PLAN INICIAL POR OBJETIVO =====================
+   Para quien llega sin datos: según el objetivo y los días que puede entrenar se
+   arma un plan. 3 días son Push/Pull/Legs o Full Body; con más o menos días se
+   diseña la semana entera según el objetivo. Todo es un punto de partida que se
+   edita después como cualquier otra rutina.
+
+   Reglas que no se rompen:
+   · Esto solo se ofrece a quien no tiene nada propio (ver planEligible).
+   · Aplicar un plan NUNCA borra ni cambia algo del usuario: o sustituye las tres
+     rutinas de fábrica intactas, o se añade al lado de lo que haya. */
+
+const PLAN_GOALS = {
+  musculo: { label:"Ganar músculo",       desc:"Más volumen y definición muscular.",              rest:90  },
+  fuerza:  { label:"Ganar fuerza",        desc:"Levantar más peso en los ejercicios básicos.",    rest:150 },
+  grasa:   { label:"Perder grasa",        desc:"Gastar más energía sin perder músculo.",          rest:60  },
+  salud:   { label:"Salud y bienestar",   desc:"Moverme mejor y mantener un buen hábito.",        rest:75  }
+};
+
+/* Ejercicios que un plan puede pedir. Si el usuario ya los tiene (por nombre)
+   se reutilizan; si no, se crean como ejercicios de la biblioteca, no como
+   ejercicios propios. [grupo, material, tipo] */
+const PLAN_EXERCISES = {
+  "Press de banca":["Pecho","Barra","Fuerza"],
+  "Press inclinado con mancuernas":["Pecho","Mancuernas","Fuerza"],
+  "Aperturas con mancuernas":["Pecho","Mancuernas","Fuerza"],
+  "Fondos en paralelas":["Pecho","Peso corporal","Peso corporal"],
+  "Dominadas":["Espalda","Peso corporal","Peso corporal"],
+  "Remo con barra":["Espalda","Barra","Fuerza"],
+  "Remo con mancuerna":["Espalda","Mancuernas","Fuerza"],
+  "Remo en polea":["Espalda","Polea","Fuerza"],
+  "Jalón al pecho":["Espalda","Máquina","Fuerza"],
+  "Sentadilla":["Piernas","Barra","Fuerza"],
+  "Peso muerto":["Piernas","Barra","Fuerza"],
+  "Peso muerto rumano":["Piernas","Barra","Fuerza"],
+  "Prensa de piernas":["Piernas","Máquina","Fuerza"],
+  "Zancadas":["Piernas","Mancuernas","Fuerza"],
+  "Hip thrust":["Piernas","Barra","Fuerza"],
+  "Curl femoral":["Piernas","Máquina","Fuerza"],
+  "Extensión de cuádriceps":["Piernas","Máquina","Fuerza"],
+  "Elevación de talones":["Piernas","Peso corporal","Peso corporal"],
+  "Press militar":["Hombros","Barra","Fuerza"],
+  "Press militar con mancuernas":["Hombros","Mancuernas","Fuerza"],
+  "Elevaciones laterales":["Hombros","Mancuernas","Fuerza"],
+  "Face pull":["Hombros","Polea","Fuerza"],
+  "Curl de bíceps":["Brazos","Mancuernas","Fuerza"],
+  "Curl martillo":["Brazos","Mancuernas","Fuerza"],
+  "Extensión de tríceps":["Brazos","Polea","Fuerza"],
+  "Press francés":["Brazos","Barra","Fuerza"],
+  "Elevación de piernas":["Core","Peso corporal","Peso corporal"],
+  "Abdominal (crunch)":["Core","Peso corporal","Peso corporal"],
+  "Caminadora":["Cardio","Máquina","Cardio"],
+  "Bicicleta estática":["Cardio","Máquina","Cardio"],
+  "Elíptica":["Cardio","Máquina","Cardio"],
+  "Trote suave":["Cardio","Ninguno","Cardio"]
+};
+
+/* Un día de entrenamiento = una lista de [ejercicio, papel].
+   Papeles: M principal · S secundario · A accesorio · C core · K cardio. */
+const PLAN_DAYS = {
+  push_a:  [["Press de banca","M"],["Press inclinado con mancuernas","S"],["Press militar","S"],["Elevaciones laterales","A"],["Extensión de tríceps","A"]],
+  push_b:  [["Press inclinado con mancuernas","M"],["Fondos en paralelas","S"],["Press militar con mancuernas","S"],["Aperturas con mancuernas","A"],["Press francés","A"]],
+  pull_a:  [["Jalón al pecho","M"],["Remo con barra","M"],["Remo con mancuerna","S"],["Face pull","A"],["Curl de bíceps","A"]],
+  pull_b:  [["Dominadas","M"],["Remo en polea","S"],["Remo con mancuerna","S"],["Curl martillo","A"],["Face pull","A"]],
+  legs_a:  [["Sentadilla","M"],["Peso muerto rumano","S"],["Prensa de piernas","S"],["Curl femoral","A"],["Elevación de talones","A"]],
+  legs_b:  [["Peso muerto","M"],["Hip thrust","S"],["Zancadas","S"],["Extensión de cuádriceps","A"],["Elevación de piernas","C"]],
+  upper_a: [["Press de banca","M"],["Remo con barra","M"],["Press militar","S"],["Jalón al pecho","S"],["Curl de bíceps","A"],["Extensión de tríceps","A"]],
+  upper_b: [["Press inclinado con mancuernas","M"],["Dominadas","M"],["Elevaciones laterales","A"],["Remo con mancuerna","S"],["Curl martillo","A"],["Press francés","A"]],
+  lower_a: [["Sentadilla","M"],["Peso muerto rumano","S"],["Prensa de piernas","S"],["Curl femoral","A"],["Elevación de talones","A"],["Elevación de piernas","C"]],
+  lower_b: [["Peso muerto","M"],["Hip thrust","S"],["Zancadas","S"],["Extensión de cuádriceps","A"],["Abdominal (crunch)","C"]],
+  full_a:  [["Sentadilla","M"],["Press de banca","M"],["Remo con barra","M"],["Elevaciones laterales","A"],["Elevación de piernas","C"]],
+  full_b:  [["Peso muerto","M"],["Press militar","M"],["Jalón al pecho","S"],["Zancadas","S"],["Curl de bíceps","A"]],
+  full_c:  [["Prensa de piernas","M"],["Press inclinado con mancuernas","M"],["Remo con mancuerna","S"],["Hip thrust","S"],["Extensión de tríceps","A"],["Abdominal (crunch)","C"]],
+  cardio_a:[["Caminadora","K"],["Bicicleta estática","K"],["Elevación de piernas","C"],["Abdominal (crunch)","C"]],
+  cardio_b:[["Elíptica","K"],["Trote suave","K"],["Abdominal (crunch)","C"],["Elevación de piernas","C"]]
+};
+
+/* Foco de cada día, para la vista previa. */
+const PLAN_FOCUS = {
+  push_a:"Pecho · hombros · tríceps", push_b:"Pecho · hombros · tríceps",
+  pull_a:"Espalda · bíceps",          pull_b:"Espalda · bíceps",
+  legs_a:"Piernas · glúteos",         legs_b:"Piernas · glúteos",
+  upper_a:"Tren superior",           upper_b:"Tren superior",
+  lower_a:"Tren inferior",           lower_b:"Tren inferior",
+  full_a:"Cuerpo completo",           full_b:"Cuerpo completo", full_c:"Cuerpo completo",
+  cardio_a:"Cardio y abdomen",        cardio_b:"Cardio y abdomen"
+};
+
+const PLAN_WEEK = {
+  2:["Lun","Jue"], 3:["Lun","Mié","Vie"], 4:["Lun","Mar","Jue","Vie"],
+  5:["Lun","Mar","Mié","Jue","Vie"], 6:["Lun","Mar","Mié","Jue","Vie","Sáb"]
+};
+
+/* Qué días componen la semana según objetivo y número de días. `variant` solo
+   cambia el plan de 3 días: "ppl" o "full". */
+function planKeys(goal, days, variant){
+  if(days === 2) return ["full_a","full_b"];
+  if(days === 3) return (variant || planDefaultVariant(goal)) === "ppl" ? ["push_a","pull_a","legs_a"] : ["full_a","full_b","full_c"];
+  if(days === 4) return ["upper_a","lower_a","upper_b","lower_b"];
+  if(days === 5){
+    if(goal === "grasa") return ["push_a","pull_a","legs_a","full_c","cardio_a"];
+    if(goal === "salud") return ["full_a","cardio_a","full_b","cardio_b","full_c"];
+    return ["push_a","pull_a","legs_a","upper_b","lower_b"];
+  }
+  if(goal === "salud") return ["upper_a","lower_a","cardio_a","upper_b","lower_b","cardio_b"];
+  return ["push_a","pull_a","legs_a","push_b","pull_b","legs_b"];
+}
+
+/* Músculo → Push/Pull/Legs; los demás objetivos → Full Body (frecuencia alta en
+   los básicos, que es lo que mejor sirve para fuerza, definición y hábito). */
+function planDefaultVariant(goal){ return goal === "musculo" ? "ppl" : "full"; }
+
+function planName(key, keys){
+  const has = k => keys.indexOf(k) >= 0;
+  switch(key){
+    case "push_a":  return has("push_b")  ? "Empuje A (Push)" : "Día de Empuje (Push)";
+    case "push_b":  return "Empuje B (Push)";
+    case "pull_a":  return has("pull_b")  ? "Tirón A (Pull)"  : "Día de Tirón (Pull)";
+    case "pull_b":  return "Tirón B (Pull)";
+    case "legs_a":  return has("legs_b")  ? "Pierna A (Legs)" : "Día de Pierna (Legs)";
+    case "legs_b":  return "Pierna B (Legs)";
+    case "upper_a": return "Torso A";
+    case "upper_b": return has("upper_a") ? "Torso B" : "Torso";
+    case "lower_a": return "Pierna A";
+    case "lower_b": return has("lower_a") ? "Pierna B" : "Pierna y glúteo";
+    case "full_a":  return "Full Body A";
+    case "full_b":  return "Full Body B";
+    case "full_c":  return keys.length > 3 ? "Full Body metabólico" : "Full Body C";
+    case "cardio_a":return has("cardio_b") ? "Cardio y core A" : "Cardio y core";
+    case "cardio_b":return "Cardio y core B";
+  }
+  return key;
+}
+
+/* Cuántas series y repeticiones, según el objetivo y el papel del ejercicio. */
+const PLAN_DOSE = {
+  musculo:{ M:[4,8],  S:[3,10], A:[3,12], C:[3,15] },
+  fuerza: { M:[5,5],  S:[3,8],  A:[3,10], C:[3,12] },
+  grasa:  { M:[3,12], S:[3,12], A:[3,15], C:[3,15] },
+  salud:  { M:[3,10], S:[3,10], A:[2,12], C:[2,15] }
+};
+function planDose(goal, role, days){
+  if(role === "K") return { sets:1, reps:1 };
+  let [sets, reps] = PLAN_DOSE[goal][role];
+  if(days >= 5 && (role === "M" || role === "S") && sets > 3) sets -= 1;   /* más días, menos volumen por día */
+  return { sets, reps };
+}
+
+/* Kilos de partida: una fracción del peso corporal, rebajada según objetivo,
+   sexo y actividad, y redondeada a lo que existe en un gimnasio. Es un punto de
+   partida suave, no una prescripción: se ajusta en la primera sesión. */
+const PLAN_LOAD = {
+  "Press de banca":.45, "Press inclinado con mancuernas":.16, "Aperturas con mancuernas":.07,
+  "Remo con barra":.40, "Remo con mancuerna":.18, "Remo en polea":.35, "Jalón al pecho":.45,
+  "Sentadilla":.60, "Peso muerto":.70, "Peso muerto rumano":.50, "Prensa de piernas":1.10,
+  "Zancadas":.10, "Hip thrust":.70, "Curl femoral":.25, "Extensión de cuádriceps":.30,
+  "Press militar":.28, "Press militar con mancuernas":.12, "Elevaciones laterales":.04,
+  "Face pull":.15, "Curl de bíceps":.10, "Curl martillo":.10, "Extensión de tríceps":.20, "Press francés":.18
+};
+function planWeight(name, ctx){
+  const f = PLAN_LOAD[name];
+  if(!f) return 0;                                        /* peso corporal y cardio */
+  const kg = ctx && ctx.kg > 0 ? ctx.kg : 70;
+  const goalF = { fuerza:1, musculo:.9, grasa:.75, salud:.7 }[ctx && ctx.goal] || .8;
+  const sexF  = ctx && ctx.gender === "mujer" ? .65 : (ctx && ctx.gender === "otro" ? .82 : 1);
+  const actF  = [.75,.75,.85,1,1.08,1.15][clamp((ctx && ctx.activity) || 3, 0, 5)];
+  let w = kg * f * goalF * sexF * actF;
+  const equip = (PLAN_EXERCISES[name] || [])[1];
+  if(equip === "Barra")            return Math.max(20, Math.round(w/2.5)*2.5);
+  if(equip === "Mancuernas")       return w < 10 ? Math.max(2, Math.round(w)) : Math.round(w/2.5)*2.5;
+  return Math.max(10, Math.round(w/5)*5);                 /* máquinas y poleas: pasos de 5 */
+}
+
+/* Plan completo, listo para mostrar o aplicar. */
+function buildPlan(goal, days, variant, ctx){
+  const keys = planKeys(goal, days, variant);
+  const finisher = (goal === "grasa" || goal === "salud");
+  const fins = ["Caminadora","Bicicleta estática","Elíptica"];
+  const c = Object.assign({}, ctx || {}, { goal });
+  const list = keys.map((key,di)=>{
+    let rows = PLAN_DAYS[key].slice();
+    if(finisher && key.indexOf("cardio") !== 0) rows.push([fins[di % fins.length], "K"]);
+    const entries = rows.map(([n,role])=>{
+      const dose = planDose(goal, role, days);
+      return { n, role, sets:dose.sets, reps:dose.reps, weight: planWeight(n, c) };
+    });
+    return { key, name: planName(key, keys), focus: PLAN_FOCUS[key], entries, minutes: planMinutes(entries, PLAN_GOALS[goal].rest) };
+  });
+  const v = days === 3 ? (variant || planDefaultVariant(goal)) : null;
+  return { goal, days, variant:v, rest: PLAN_GOALS[goal].rest, week: PLAN_WEEK[days], list,
+           type: planTypeName(goal, days, v) };
+}
+function planMinutes(entries, rest){
+  let sec = 0;
+  entries.forEach(e=>{ sec += e.role === "K" ? 900 : e.sets * (45 + rest); });
+  return Math.max(15, Math.round(sec/300) * 5);
+}
+function planTypeName(goal, days, variant){
+  if(days === 2) return "Full Body";
+  if(days === 3) return variant === "ppl" ? "Push · Pull · Legs" : "Full Body";
+  if(days === 4) return "Torso / Pierna";
+  if(days === 5) return goal === "grasa" ? "Fuerza + cardio" : goal === "salud" ? "Fuerza y cardio" : "Push · Pull · Legs + Torso / Pierna";
+  return goal === "salud" ? "Torso / Pierna + cardio" : "Push · Pull · Legs ×2";
+}
+
+/* ¿Es alguien sin nada propio? Solo a esa persona se le arma un plan: ni ejercicios
+   ni rutinas creados por ella, ni entrenos, ni mediciones de peso. */
+function planEligible(){
+  return !state.profile.onboarded && state.workouts.length === 0 && contentScore(state) === 0;
+}
+
+/* ¿Siguen las tres rutinas de fábrica exactamente como vinieron? Basta que una
+   tenga otro nombre, otra serie o esté fijada para que NO se consideren de fábrica
+   y el plan se añada al lado en vez de sustituirlas. */
+function routinesAreFactory(st){
+  const nombres = ["Día de Empuje (Push)","Día de Tirón (Pull)","Día de Pierna (Legs)"];
+  if(!Array.isArray(st.routines) || st.routines.length !== nombres.length) return false;
+  return st.routines.every((r,i)=>
+    !r.custom && r.name === nombres[i] && !Number.isFinite(r.pinOrder) &&
+    Array.isArray(r.exercises) && r.exercises.length === 4 &&
+    r.exercises.every(e=>Array.isArray(e.sets) && e.sets.length === 3 &&
+      e.sets[0].reps === 10 && e.sets[0].weight === 20 &&
+      e.sets[1].reps === 10 && e.sets[1].weight === 20 &&
+      e.sets[2].reps === 8  && e.sets[2].weight === 22));
+}
+
+/* Convierte el plan en rutinas reales. Solo AÑADE: ejercicios que falten en la
+   biblioteca y las rutinas del plan. Las rutinas de fábrica intactas se sustituyen;
+   cualquier otra cosa que haya se deja exactamente como está. */
+function applyPlan(plan){
+  const porNombre = n => state.exercises.find(e=>e.name === n);
+  const idDe = n => {
+    let e = porNombre(n);
+    if(!e){
+      const c = PLAN_EXERCISES[n];
+      e = { id:uid(), name:n, muscle:c[0], equipment:c[1], type:c[2], custom:false };
+      state.exercises.push(e);
+    }
+    return e.id;
+  };
+  const rutinas = plan.list.map((d,i)=>({
+    id:uid(), name:d.name, restSeconds:plan.rest, custom:false, fromPlan:true, planDay:i+1,
+    exercises: d.entries.map(en=>({
+      exerciseId: idDe(en.n),
+      sets: Array.from({length:en.sets}, ()=>({ reps:en.reps, weight:en.weight }))
+    }))
+  }));
+  const reemplaza = routinesAreFactory(state);
+  state.routines = reemplaza ? rutinas : state.routines.concat(rutinas);
+  state.profile.plan = { goal:plan.goal, days:plan.days, variant:plan.variant, type:plan.type,
+                         createdAt:todayISO(), replacedFactory:reemplaza };
 }
 
 function defaultState(){
@@ -3457,13 +3788,14 @@ function renderRoutineBuilderList(){
         <span>kg</span>
         <button class="btn btn-icon btn-sm" data-action="remove-set" data-idx="${idx}" data-si="${si}" title="Quitar serie">${ICONS.x}</button>
       </div>`).join("");
-    return `<div class="builder-row" style="flex-direction:column;align-items:stretch;">
+    return `<div class="builder-row" data-idx="${idx}" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;align-items:center;gap:12px;">
+        <button class="br-grip" type="button" aria-label="Arrastrar para cambiar el orden de ${escapeHtml(name)}" title="Arrastra para reordenar">${ICONS.grip}</button>
         <div class="br-icon glass" style="--s:36px;${glassFilter(color)}">${ex ? muscleIconGlass(ex.muscle) : glassIcon(ICONS.dumbbell)}</div>
         <div class="br-name">${escapeHtml(name)}</div>
         <div class="br-actions">
-          <button class="btn btn-icon btn-sm" data-action="move-ex-up" data-idx="${idx}" ${idx===0?'disabled':''}>${ICONS.up}</button>
-          <button class="btn btn-icon btn-sm" data-action="move-ex-down" data-idx="${idx}" ${idx===routineBuilderExercises.length-1?'disabled':''}>${ICONS.down}</button>
+          <button class="btn btn-icon btn-sm" data-action="move-ex-up" data-idx="${idx}" aria-label="Subir ejercicio" ${idx===0?'disabled':''}>${ICONS.up}</button>
+          <button class="btn btn-icon btn-sm" data-action="move-ex-down" data-idx="${idx}" aria-label="Bajar ejercicio" ${idx===routineBuilderExercises.length-1?'disabled':''}>${ICONS.down}</button>
           <button class="btn btn-icon btn-sm btn-danger" data-action="remove-ex-from-builder" data-idx="${idx}">${ICONS.trash}</button>
         </div>
       </div>
@@ -3472,6 +3804,109 @@ function renderRoutineBuilderList(){
     </div>`;
   }).join("");
 }
+
+/* Mueve un ejercicio de sitio dentro del borrador de la rutina y lo marca un
+   instante para que se vea dónde quedó. Una sola vía para flechas y arrastre. */
+function moveBuilderExercise(from, to){
+  const n = routineBuilderExercises.length;
+  if(from === to || from < 0 || to < 0 || from >= n || to >= n) return;
+  const [m] = routineBuilderExercises.splice(from, 1);
+  routineBuilderExercises.splice(to, 0, m);
+  renderRoutineBuilderList();
+  const row = document.querySelector(`#routineBuilderList .builder-row[data-idx="${to}"]`);
+  if(row){
+    row.classList.add("just-moved");
+    row.scrollIntoView({ block:"nearest", behavior:"smooth" });
+    setTimeout(()=>row.classList.remove("just-moved"), 1200);
+  }
+}
+
+/* Arrastrar por el asa. Pointer Events: sirve igual con el dedo y con el ratón.
+   Mientras se arrastra, las filas se pliegan a su cabecera; la que se lleva sigue
+   al puntero y las demás se apartan para abrirle sitio. Al soltar se reordena el
+   arreglo de verdad y se dibuja de nuevo. */
+(function initBuilderDrag(){
+  const list = document.getElementById("routineBuilderList");
+  if(!list) return;
+  let d = null, raf = 0, lastY = 0;
+
+  function layout(){
+    if(!d) return;
+    const top = list.getBoundingClientRect().top;
+    let dy = (lastY - top) - d.startY;
+    const last = d.rows.length - 1;
+    dy = clamp(dy, -d.tops[d.from], (d.tops[last] + d.hs[last]) - (d.tops[d.from] + d.hs[d.from]));
+    d.row.style.transform = `translateY(${dy}px)`;
+    const center = d.tops[d.from] + dy + d.hs[d.from]/2;
+    let to = 0;
+    const minDy = -d.tops[d.from], maxDy = (d.tops[last] + d.hs[last]) - (d.tops[d.from] + d.hs[d.from]);
+    if(dy >= maxDy - 0.5) to = last;                  /* llegó al fondo: es el último */
+    else if(dy <= minDy + 0.5) to = 0;                /* llegó arriba: es el primero */
+    else d.rows.forEach((r,i)=>{ if(i !== d.from && center > d.tops[i] + d.hs[i]/2) to++; });
+    d.to = to;
+    const shift = d.hs[d.from] + d.gap;
+    d.rows.forEach((r,i)=>{
+      if(i === d.from) return;
+      let t = 0;
+      if(d.from < to && i > d.from && i <= to) t = -shift;
+      if(d.from > to && i >= to && i < d.from) t = shift;
+      r.style.transform = t ? `translateY(${t}px)` : "";
+    });
+  }
+  /* Cerca del borde de la ventana, la lista se desplaza sola. */
+  function autoscroll(){
+    if(!d) return;
+    const r = d.scroller.getBoundingClientRect();
+    const zone = 70;
+    let v = 0;
+    if(lastY < r.top + zone) v = -Math.ceil((r.top + zone - lastY) / 5);
+    else if(lastY > r.bottom - zone) v = Math.ceil((lastY - (r.bottom - zone)) / 5);
+    if(v){ d.scroller.scrollTop += v; layout(); }
+    raf = requestAnimationFrame(autoscroll);
+  }
+  function finish(commit){
+    if(!d) return;
+    cancelAnimationFrame(raf);
+    const { from, to } = d;
+    try{ d.grip.releasePointerCapture(d.id); }catch(e){}
+    d.rows.forEach(r=>{ r.style.transform = ""; r.classList.remove("dragging"); });
+    list.classList.remove("reordering");
+    d = null;
+    if(commit && from !== to) moveBuilderExercise(from, to);
+  }
+
+  list.addEventListener("pointerdown", function(e){
+    const grip = e.target.closest(".br-grip");
+    if(!grip || d) return;
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    const row = grip.closest(".builder-row");
+    const rows = Array.from(list.querySelectorAll(".builder-row"));
+    const from = rows.indexOf(row);
+    if(rows.length < 2 || from < 0) return;
+    list.classList.add("reordering");               /* se pliegan: ya se pueden medir */
+    const startTop = list.getBoundingClientRect().top;
+    d = { row, grip, rows, from, to:from, id:e.pointerId,
+          tops: rows.map(r=>r.offsetTop), hs: rows.map(r=>r.offsetHeight),
+          gap: parseFloat(getComputedStyle(list).rowGap) || 10,
+          startY: e.clientY - startTop, scroller: row.closest(".modal") || document.scrollingElement };
+    lastY = e.clientY;
+    row.classList.add("dragging");
+    try{ grip.setPointerCapture(e.pointerId); }catch(err){}
+    raf = requestAnimationFrame(autoscroll);
+  });
+  list.addEventListener("pointermove", function(e){
+    if(!d || e.pointerId !== d.id) return;
+    lastY = e.clientY;
+    layout();
+  });
+  list.addEventListener("pointerup",     e=>{ if(d && e.pointerId === d.id) finish(true); });
+  list.addEventListener("pointercancel", e=>{ if(d && e.pointerId === d.id) finish(false); });
+  /* Si se cierra el diálogo a mitad del arrastre, no se queda nada a medias. */
+  document.addEventListener("keydown", e=>{
+    if(e.key === "Escape" && d){ e.stopImmediatePropagation(); finish(false); }   /* cancela el arrastre, no el diálogo */
+  });
+})();
 
 function saveRoutineFromModal(){
   const name = document.getElementById("routineName").value.trim();
@@ -3507,11 +3942,12 @@ function startRoutine(routineId){
     routineName: r.name,
     restSeconds: r.restSeconds || 90,
     startedAt: Date.now(),
-    exercises: r.exercises.map(re=>{
+    exercises: r.exercises.map((re,ri)=>{
       const ex = state.exercises.find(e=>e.id===re.exerciseId);
       const prevBest = findLastPerformance(re.exerciseId);
       const cardio = !!ex && ex.muscle === "Cardio";
       return {
+        ri,                               /* lugar que ocupa en la rutina guardada */
         exerciseId: re.exerciseId,
         name: ex ? ex.name : "Ejercicio",
         muscle: ex ? ex.muscle : null,
@@ -3580,12 +4016,18 @@ function renderSessionView(){
       const ex = state.exercises.find(e=>e.id===se.exerciseId);
       const color = ex ? muscleColor(ex.muscle) : PALETTE.chartFrom;
       const prevSets = se.prevSets || [];
+      const total = session.exercises.length;
+      const mover = total > 1 ? `<div class="se-move">
+            <button class="btn btn-icon btn-sm" data-action="session-move-up" data-ex="${exIdx}" aria-label="Subir ${escapeHtml(se.name)}" ${exIdx===0?'disabled':''}>${ICONS.up}</button>
+            <button class="btn btn-icon btn-sm" data-action="session-move-down" data-ex="${exIdx}" aria-label="Bajar ${escapeHtml(se.name)}" ${exIdx===total-1?'disabled':''}>${ICONS.down}</button>
+          </div>` : "";
       const head = `<div class="session-ex-head">
           <div class="br-icon glass" style="--s:40px;${glassFilter(color)}">${ex ? muscleIconGlass(ex.muscle) : glassIcon(ICONS.dumbbell)}</div>
           <h4>${escapeHtml(se.name)}</h4>
           <div class="prev">${se.cardio
             ? "Se mide en tiempo"
             : (se.prevBest ? "Mejor marca · "+se.prevBest.weight+" kg × "+se.prevBest.reps : "Sin historial previo")}</div>
+          ${mover}
         </div>`;
       if(se.cardio) return renderCardioBlock(se, exIdx, head);
       return `<div class="session-ex">
@@ -3620,8 +4062,50 @@ function renderSessionView(){
         <button class="btn btn-sm btn-ghost" data-action="session-add-set" data-ex="${exIdx}">+ Serie extra</button>
       </div>`;
     }).join("")}
+    ${sessionOrderChanged() ? `<div class="session-order-save">
+      <span>Cambiaste el orden de hoy. ¿Quieres que la rutina quede así la próxima vez?</span>
+      <button class="btn btn-sm" data-action="session-save-order">Guardar este orden</button>
+    </div>` : ""}
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:16px;" data-action="finish-session">Finalizar entrenamiento</button>
   `;
+}
+
+/* ¿El orden de hoy difiere del de la rutina guardada, y se puede guardar sin
+   riesgo? Solo si la rutina sigue existiendo con los mismos ejercicios. */
+function sessionOrderChanged(){
+  if(!session || !session.exercises.every(se=>Number.isInteger(se.ri))) return false;
+  if(!session.exercises.some((se,i)=>se.ri !== i)) return false;
+  const r = state.routines.find(x=>x.id === session.routineId);
+  return !!r && r.exercises.length === session.exercises.length &&
+         session.exercises.every(se=>r.exercises[se.ri] && r.exercises[se.ri].exerciseId === se.exerciseId);
+}
+
+/* Cambia de sitio un ejercicio de la sesión en curso (la máquina está ocupada,
+   prefieres empezar por otro…). Los kilos y las series ya escritas viajan con él. */
+function moveSessionExercise(from, to){
+  const n = session ? session.exercises.length : 0;
+  if(from === to || from < 0 || to < 0 || from >= n || to >= n) return;
+  const [m] = session.exercises.splice(from, 1);
+  session.exercises.splice(to, 0, m);
+  saveState();
+  renderSessionView();
+  const block = document.querySelectorAll("#sessionRoot .session-ex")[to];
+  if(block){
+    block.classList.add("just-moved");
+    block.scrollIntoView({ block:"center", behavior:"smooth" });
+    setTimeout(()=>block.classList.remove("just-moved"), 1200);
+  }
+}
+
+function saveSessionOrder(){
+  if(!sessionOrderChanged()){ showToast(ICONS.x, "No se pudo guardar", "La rutina cambió mientras entrenabas."); return; }
+  const r = state.routines.find(x=>x.id === session.routineId);
+  const antes = r.exercises.slice();
+  r.exercises = session.exercises.map(se=>antes[se.ri]);
+  session.exercises.forEach((se,i)=>{ se.ri = i; });
+  saveState();
+  renderSessionView();
+  showToast(ICONS.check, "Orden guardado", `"${r.name}" quedó con el orden de hoy.`);
 }
 
 function toggleSetDone(exIdx, setIdx){
@@ -4391,17 +4875,22 @@ function startOnboarding(){
     age: state.profile.age || "",
     height: state.profile.height || "",
     weight: currentWeight() || "",
-    activity: state.profile.activity || 0
+    activity: state.profile.activity || 0,
+    planOn: planEligible(),          /* solo quien no tiene nada propio */
+    goal: "", days: 3, variant: null, skipPlan: false
   };
   document.getElementById("onboard").classList.add("open");
   renderOnboarding();
 }
 
-const OB_STEPS = 4;
+/* Cuatro pasos de siempre; si la persona es nueva se suman dos: objetivo y
+   semana, y el plan propuesto. */
+function obTotal(){ return obDraft && obDraft.planOn ? 6 : 4; }
 
 function renderOnboarding(){
+  const total = obTotal();
   document.getElementById("obSteps").innerHTML =
-    Array.from({length:OB_STEPS}, (_,i)=>`<i class="${i<=obStep?"on":""}"></i>`).join("");
+    Array.from({length:total}, (_,i)=>`<i class="${i<=obStep?"on":""}"></i>`).join("");
   const body = document.getElementById("obBody");
   const foot = document.getElementById("obFoot");
 
@@ -4410,13 +4899,15 @@ function renderOnboarding(){
       <img class="ob-logo" src="mark.webp" alt="">
       <div class="ob-eyebrow">Bienvenido</div>
       <h2 class="ob-title">¿Cómo te llamamos?</h2>
-      <p class="ob-sub">Cuatro preguntas rápidas y la app queda a tu medida. Puedes cambiarlo todo después.</p>
+      <p class="ob-sub">${obDraft.planOn
+        ? "Unas preguntas rápidas y te armamos una rutina a tu medida. Puedes cambiarlo todo después."
+        : "Cuatro preguntas rápidas y la app queda a tu medida. Puedes cambiarlo todo después."}</p>
       <div class="field"><label>Tu nombre</label>
         <input type="text" id="obName" maxlength="30" placeholder="Ej: Matías" value="${escapeHtml(obDraft.name)}"></div>`;
   } else if(obStep === 1){
     const opts = [["mujer","Mujer"],["hombre","Hombre"],["otro","Prefiero no decirlo"]];
     body.innerHTML = `
-      <div class="ob-eyebrow">Paso 2 de 4</div>
+      <div class="ob-eyebrow">Paso 2 de ${total}</div>
       <h2 class="ob-title">¿Con qué te identificas?</h2>
       <p class="ob-sub">Lo usamos solo para calcular tu metabolismo basal: la fórmula cambia según el sexo biológico. Si prefieres no decirlo usamos el promedio de ambas.</p>
       <div class="ob-opts">${opts.map(([v,l])=>`
@@ -4424,7 +4915,7 @@ function renderOnboarding(){
           <b style="margin:0;">${l}</b></button>`).join("")}</div>`;
   } else if(obStep === 2){
     body.innerHTML = `
-      <div class="ob-eyebrow">Paso 3 de 4</div>
+      <div class="ob-eyebrow">Paso 3 de ${total}</div>
       <h2 class="ob-title">Tus medidas de hoy</h2>
       <p class="ob-sub">Con esto calculamos tu IMC, tu metabolismo basal y las calorías que quemas al día.</p>
       <div class="ob-grid2">
@@ -4435,9 +4926,9 @@ function renderOnboarding(){
       </div>
       <div class="field"><label>Peso actual (kg)</label>
         <input type="number" id="obWeight" inputmode="decimal" min="30" max="300" step="0.1" placeholder="75" value="${obDraft.weight||""}"></div>`;
-  } else {
+  } else if(obStep === 3){
     body.innerHTML = `
-      <div class="ob-eyebrow">Paso 4 de 4</div>
+      <div class="ob-eyebrow">Paso 4 de ${total}</div>
       <h2 class="ob-title">¿Qué tan activo eres?</h2>
       <p class="ob-sub">Elige el nivel que más se parezca a tu semana normal, contando trabajo y entrenamiento.</p>
       <div class="ob-opts">${ACTIVITY_LEVELS.map(a=>`
@@ -4445,11 +4936,75 @@ function renderOnboarding(){
           <span class="ob-num">${a.level}</span>
           <span style="min-width:0;"><b>${escapeHtml(a.name)}</b><span>${escapeHtml(a.desc)}</span></span>
         </button>`).join("")}</div>`;
+  } else if(obStep === 4){
+    renderObPlanChoice(body, total);
+  } else {
+    renderObPlanPreview(body, total);
   }
 
+  const ultimo = obStep === total-1;
   foot.innerHTML =
     (obStep > 0 ? `<button class="btn btn-ghost" data-action="ob-back">Atrás</button>` : "") +
-    `<button class="btn btn-primary" data-action="ob-next">${obStep === OB_STEPS-1 ? "Empezar" : "Continuar"}</button>`;
+    `<button class="btn btn-primary" data-action="ob-next">${ultimo ? (total === 6 ? "Crear mi plan" : "Empezar") : "Continuar"}</button>`;
+}
+
+/* Contexto con el que se calculan los kilos de partida. */
+function obPlanCtx(){
+  return { kg: num(obDraft.weight, null), gender: obDraft.gender, activity: obDraft.activity };
+}
+function obPlan(){ return buildPlan(obDraft.goal, obDraft.days, obDraft.variant, obPlanCtx()); }
+
+/* Paso 5: el objetivo y cuántos días a la semana. Dos respuestas, una pantalla. */
+function renderObPlanChoice(body, total){
+  const goals = Object.keys(PLAN_GOALS);
+  const hint = obDraft.goal
+    ? (() => { const p = obPlan(); return `<b>${p.days} días · ${escapeHtml(p.type)}.</b> ${p.days === 3 ? "En el siguiente paso puedes cambiarlo entre Push / Pull / Legs y Full Body." : "Así repartimos la semana según tu objetivo."}`; })()
+    : "Elige tu objetivo y te mostramos cómo quedaría tu semana.";
+  body.innerHTML = `
+    <div class="ob-eyebrow">Paso 5 de ${total}</div>
+    <h2 class="ob-title">Tu objetivo y tu semana</h2>
+    <p class="ob-sub">Con esto te armamos las rutinas. Después las editas como quieras.</p>
+    <div class="ob-group">¿Qué quieres lograr?</div>
+    <div class="ob-opts compact">${goals.map(g=>`
+      <button class="ob-opt ${obDraft.goal===g?"on":""}" data-action="ob-goal" data-value="${g}">
+        <span style="min-width:0;"><b>${escapeHtml(PLAN_GOALS[g].label)}</b><span>${escapeHtml(PLAN_GOALS[g].desc)}</span></span>
+      </button>`).join("")}</div>
+    <div class="ob-group">¿Cuántos días a la semana?</div>
+    <div class="ob-days">${[2,3,4,5,6].map(n=>`
+      <button class="ob-day ${obDraft.days===n?"on":""}" data-action="ob-days" data-value="${n}" aria-label="${n} días">
+        <b>${n}</b><span>días</span></button>`).join("")}</div>
+    <div class="ob-hint">${hint}</div>
+    <button class="ob-skip" data-action="ob-skip-plan">Prefiero no elegir un plan ahora</button>`;
+}
+
+/* Paso 6: el plan propuesto, con sus días, sus ejercicios y la semana sugerida. */
+function renderObPlanPreview(body, total){
+  const p = obPlan();
+  const g = PLAN_GOALS[p.goal];
+  const sub = p.days === 3 && p.variant === "full" && p.goal === "musculo"
+    ? "Tres días de cuerpo completo: más frecuencia sobre cada músculo."
+    : p.days === 3 && p.variant === "ppl" && p.goal !== "musculo"
+      ? "Un día para empujar, uno para tirar y uno para piernas."
+      : `Pensado para: ${g.label.toLowerCase()}.`;
+  body.innerHTML = `
+    <div class="ob-eyebrow">Paso 6 de ${total}</div>
+    <h2 class="ob-title">Tu plan de ${p.days} días</h2>
+    <p class="ob-sub"><b style="color:var(--text);">${escapeHtml(p.type)}.</b> ${escapeHtml(sub)} Descanso de ${p.rest} s entre series.</p>
+    ${p.days === 3 ? `<div class="pl-seg" role="group" aria-label="Tipo de plan de 3 días">
+      <button class="${p.variant==="ppl"?"on":""}" data-action="ob-variant" data-value="ppl">Push · Pull · Legs</button>
+      <button class="${p.variant==="full"?"on":""}" data-action="ob-variant" data-value="full">Full Body</button>
+    </div>` : ""}
+    <div class="pl-week" aria-label="Días sugeridos">${p.week.map(d=>`<span>${d}</span>`).join("")}</div>
+    ${p.list.map((d,i)=>`
+      <div class="pl-day">
+        <div class="pl-day-head">
+          <div class="glass" style="--s:36px;">${i+1}</div>
+          <div class="pl-t"><b>${escapeHtml(d.name)}</b><small>${escapeHtml(d.focus)}</small></div>
+          <div class="pl-min">~${d.minutes} min</div>
+        </div>
+        ${d.entries.map(e=>`<div class="pl-ex"><span>${escapeHtml(e.n)}</span><span>${e.role==="K" ? "cardio" : `${e.sets}×${e.reps}`}</span></div>`).join("")}
+      </div>`).join("")}
+    <p class="pl-note">Los kilos de cada ejercicio son un punto de partida suave según tu peso: ajústalos en tu primera sesión. Puedes cambiar, quitar o reordenar cualquier ejercicio cuando quieras.</p>`;
 }
 
 /* Guarda lo escrito en el paso actual y valida antes de avanzar. */
@@ -4470,19 +5025,21 @@ function obCapture(){
     obDraft.age = age; obDraft.height = h; obDraft.weight = w;
   } else if(obStep === 3){
     if(!obDraft.activity){ showToast(ICONS.x, "Elige tu nivel", "Toca el nivel que mejor describa tu semana."); return false; }
+  } else if(obStep === 4){
+    if(!obDraft.goal){ showToast(ICONS.x, "Elige tu objetivo", "Toca lo que quieres lograr para armar tu plan."); return false; }
   }
   return true;
 }
 
 function obNext(){
   if(!obCapture()) return;
-  if(obStep < OB_STEPS-1){ obStep++; renderOnboarding(); return; }
+  if(obStep < obTotal()-1){ obStep++; renderOnboarding(); window.scrollTo(0,0); document.getElementById("onboard").scrollTop = 0; return; }
   finishOnboarding();
 }
 
 function obBack(){
-  obCapture();
-  if(obStep > 0){ obStep--; renderOnboarding(); }
+  if(obStep < 4) obCapture();     /* los pasos del plan no se validan al volver atrás */
+  if(obStep > 0){ obStep--; renderOnboarding(); document.getElementById("onboard").scrollTop = 0; }
 }
 
 function obSet(field, value){
@@ -4502,6 +5059,11 @@ function finishOnboarding(){
      preguntar. El interruptor del perfil sigue permitiendo desactivarlo. */
   p.shareData = syncEnabled();
   recordBodyWeight(obDraft.weight);
+  /* El plan se aplica antes del primer guardado completo, pero sigue siendo solo
+     aditivo: si la persona tiene algo propio, applyPlan lo respeta. */
+  const conPlan = obDraft.planOn && !obDraft.skipPlan && !!obDraft.goal;
+  if(conPlan) applyPlan(obPlan());
+  if(conPlan) state.ui.currentView = "routines";
   saveState();
   sendRegistration();
   document.getElementById("onboard").classList.remove("open");
@@ -4509,8 +5071,10 @@ function finishOnboarding(){
   setTimeout(showNextCelebration, 400);
   setTimeout(()=>maybePromptWeighIn(0), 2000);
   const m = healthMetrics();
+  const kcal = m ? ` Gasto diario estimado: ${Math.round(m.tdee).toLocaleString('es-CL')} kcal.` : "";
   showToast(ICONS.sparkle, `Todo listo, ${p.name}`,
-    m ? `Tu gasto diario estimado es de ${Math.round(m.tdee).toLocaleString('es-CL')} kcal.` : "Ya puedes empezar a entrenar.");
+    conPlan ? `Tu plan de ${obDraft.days} días ya está en Rutinas.${kcal}`
+            : (m ? `Tu gasto diario estimado es de ${Math.round(m.tdee).toLocaleString('es-CL')} kcal.` : "Ya puedes empezar a entrenar."));
 }
 
 /* Actualiza sólo el contador de calorías: redibujar el bloque entero mientras
@@ -5202,16 +5766,8 @@ document.addEventListener("click", function(e){
       routineBuilderExercises.splice(parseInt(actionEl.dataset.idx,10),1);
       renderRoutineBuilderList();
       break;
-    case "move-ex-up": {
-      const i = parseInt(actionEl.dataset.idx,10);
-      if(i>0){ const t=routineBuilderExercises[i-1]; routineBuilderExercises[i-1]=routineBuilderExercises[i]; routineBuilderExercises[i]=t; renderRoutineBuilderList(); }
-      break;
-    }
-    case "move-ex-down": {
-      const i = parseInt(actionEl.dataset.idx,10);
-      if(i<routineBuilderExercises.length-1){ const t=routineBuilderExercises[i+1]; routineBuilderExercises[i+1]=routineBuilderExercises[i]; routineBuilderExercises[i]=t; renderRoutineBuilderList(); }
-      break;
-    }
+    case "move-ex-up":   { const i = parseInt(actionEl.dataset.idx,10); moveBuilderExercise(i, i-1); break; }
+    case "move-ex-down": { const i = parseInt(actionEl.dataset.idx,10); moveBuilderExercise(i, i+1); break; }
     case "add-set": {
       const i = parseInt(actionEl.dataset.idx,10);
       const sets = routineBuilderExercises[i].sets;
@@ -5235,6 +5791,9 @@ document.addEventListener("click", function(e){
     case "minimize-rest": minimizeRest(); break;
     case "expand-rest": expandRest(); break;
     case "rest-adjust": adjustRestTime(parseInt(actionEl.dataset.delta,10)); break;
+    case "session-move-up":   { const i = parseInt(actionEl.dataset.ex,10); moveSessionExercise(i, i-1); break; }
+    case "session-move-down": { const i = parseInt(actionEl.dataset.ex,10); moveSessionExercise(i, i+1); break; }
+    case "session-save-order": saveSessionOrder(); break;
     case "session-add-set": {
       const exIdx = parseInt(actionEl.dataset.ex,10);
       const se = session.exercises[exIdx];
@@ -5293,6 +5852,10 @@ document.addEventListener("click", function(e){
     case "ob-back": obBack(); break;
     case "ob-gender": obSet("gender", actionEl.getAttribute("data-value")); break;
     case "ob-activity": obSet("activity", parseInt(actionEl.getAttribute("data-value"),10)); break;
+    case "ob-goal": obSet("goal", actionEl.getAttribute("data-value")); break;
+    case "ob-days": obSet("days", parseInt(actionEl.getAttribute("data-value"),10)); obDraft.variant = null; renderOnboarding(); break;
+    case "ob-variant": obSet("variant", actionEl.getAttribute("data-value")); break;
+    case "ob-skip-plan": obDraft.skipPlan = true; finishOnboarding(); break;
     case "edit-body-data": startOnboarding(); break;
     case "set-theme": setTheme(actionEl.getAttribute("data-theme")); break;
     case "open-weigh-in": openWeighIn(); break;
